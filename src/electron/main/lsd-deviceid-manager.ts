@@ -1,9 +1,8 @@
+import { IDeviceIDManager } from "@r2-lcp-js/lsd/deviceid-manager";
+import { IStore } from "@r2-navigator-js/electron/common/store";
 import * as debug_ from "debug";
 import * as uuid from "uuid";
 
-import { IDeviceIDManager } from "@r2-lcp-js/lsd/deviceid-manager";
-
-import { IStore } from "../common/store";
 import { StoreElectron } from "../common/store-electron";
 
 export const electronStoreLSD: IStore = new StoreElectron("readium2-testapp-lsd", {});

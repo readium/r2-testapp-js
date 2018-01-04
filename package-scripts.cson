@@ -456,35 +456,35 @@
 
   'preelectron-renderer:es5': '
     npm run material:es5 &&
-    cpy ./misc/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es5/src/electron/renderer/ &&
+    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es5/src/electron/renderer/ &&
     cpy "./src/electron/renderer/**/*.html" ./dist/es5/ --cwd=./ --parents &&
     cpy "./src/electron/renderer/**/*.css" ./dist/es5/ --cwd=./ --parents
   '
 
   'preelectron-renderer:es6-es2015': '
     npm run material:es6-es2015 &&
-    cpy ./misc/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es6-es2015/src/electron/renderer/ &&
+    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es6-es2015/src/electron/renderer/ &&
     cpy "./src/electron/renderer/**/*.html" ./dist/es6-es2015/ --cwd=./ --parents &&
     cpy "./src/electron/renderer/**/*.css" ./dist/es6-es2015/ --cwd=./ --parents
   '
 
   'preelectron-renderer:es7-es2016': '
     npm run material:es7-es2016 &&
-    cpy ./misc/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es7-es2016/src/electron/renderer/ &&
+    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es7-es2016/src/electron/renderer/ &&
     cpy "./src/electron/renderer/**/*.html" ./dist/es7-es2016/ --cwd=./ --parents &&
     cpy "./src/electron/renderer/**/*.css" ./dist/es7-es2016/ --cwd=./ --parents
   '
 
   'preelectron-renderer:es8-es2017': '
     npm run material:es8-es2017 &&
-    cpy ./misc/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es8-es2017/src/electron/renderer/ &&
+    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es8-es2017/src/electron/renderer/ &&
     cpy "./src/electron/renderer/**/*.html" ./dist/es8-es2017/ --cwd=./ --parents &&
     cpy "./src/electron/renderer/**/*.css" ./dist/es8-es2017/ --cwd=./ --parents
   '
 
   'electron-renderer:all': '
     npm run riot:all &&
-    cpy "./ReadiumCSS/**/*.*" ../dist/ --cwd=./misc --parents
+    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
   '
 
   'postelectron-renderer:all': '
@@ -493,7 +493,7 @@
 
   'electron-renderer:es5': '
     npm run riot:es5 &&
-    cpy "./ReadiumCSS/**/*.*" ../dist/ --cwd=./misc --parents
+    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
   '
 
   'postelectron-renderer:es5': '
@@ -502,7 +502,7 @@
 
   'electron-renderer:es6-es2015': '
     npm run riot:es6-es2015 &&
-    cpy "./ReadiumCSS/**/*.*" ../dist/ --cwd=./misc --parents
+    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
   '
 
   'postelectron-renderer:es6-es2015': '
@@ -511,7 +511,7 @@
 
   'electron-renderer:es7-es2016': '
     npm run riot:es7-es2016 &&
-    cpy "./ReadiumCSS/**/*.*" ../dist/ --cwd=./misc --parents
+    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
   '
 
   'postelectron-renderer:es7-es2016': '
@@ -520,7 +520,7 @@
 
   'electron-renderer:es8-es2017': '
     npm run riot:es8-es2017 &&
-    cpy "./ReadiumCSS/**/*.*" ../dist/ --cwd=./misc --parents
+    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
   '
 
   'postelectron-renderer:es8-es2017': '

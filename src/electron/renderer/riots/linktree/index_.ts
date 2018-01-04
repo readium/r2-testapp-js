@@ -1,6 +1,5 @@
 // http://riotjs.com/guide/
 // http://riotjs.com/api/
-import { handleLink } from "../../index";
 
 export interface IRiotOptsLinkTreeItem {
     children: IRiotOptsLinkTreeItem[];
@@ -9,6 +8,7 @@ export interface IRiotOptsLinkTreeItem {
 }
 export interface IRiotOptsLinkTree {
     basic: boolean;
+    handleLink: (href: string) => void;
     links: IRiotOptsLinkTreeItem[];
     url: string;
 }
@@ -42,7 +42,11 @@ export const riotMountLinkTree = (selector: string, opts: IRiotOptsLinkTree): Ri
 
         const href = (ev.currentTarget as HTMLElement).getAttribute("href");
         if (href) {
-            handleLink(href, undefined, false);
+            let thiz = this;
+            while (!thiz.opts.handleLink && thiz.parent) {
+                thiz = thiz.parent;
+            }
+            thiz.opts.handleLink(href);
         }
     };
 };

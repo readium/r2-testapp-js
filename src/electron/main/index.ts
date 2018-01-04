@@ -20,6 +20,11 @@ import { Publication } from "@models/publication";
 import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-processing";
 import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
+import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-window-tracker";
+import { installLcpHandler } from "@r2-navigator-js/electron/main/lcp";
+import { lsdLcpUpdateInject } from "@r2-navigator-js/electron/main/lsd-injectlcpl";
+import { setupReadiumCSS } from "@r2-navigator-js/electron/main/readium-css";
+import { initSessions } from "@r2-navigator-js/electron/main/sessions";
 import { initGlobals } from "@r2-shared-js/init-globals";
 import { Server } from "@r2-streamer-js/http/server";
 import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
@@ -29,12 +34,7 @@ import * as filehound from "filehound";
 import * as portfinder from "portfinder";
 
 import { R2_EVENT_DEVTOOLS } from "../common/events";
-import { trackBrowserWindow } from "./browser-window-tracker";
-import { installLcpHandler } from "./lcp";
 import { deviceIDManager } from "./lsd-deviceid-manager";
-import { lsdLcpUpdateInject } from "./lsd-injectlcpl";
-import { setupReadiumCSS } from "./readium-css";
-import { initSessions } from "./sessions";
 
 // import * as mime from "mime-types";
 

@@ -1,4 +1,4 @@
-import { IStore } from "./store";
+import { IStore } from "@r2-navigator-js/electron/common/store";
 
 import ElectronStore = require("electron-store");
 

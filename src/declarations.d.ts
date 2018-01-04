@@ -4,5 +4,4 @@
 
 declare module "css2json";
 declare module "filehound";
-declare module "resize-sensor/ResizeSensor";
 declare module "system-font-families";

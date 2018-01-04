@@ -40,6 +40,9 @@
       ],
       "@r2-lcp-js/*": [
         "node_modules/r2-lcp-js/dist/es5/src/*"
+      ],
+      "@r2-navigator-js/*": [
+        "node_modules/r2-navigator-js/dist/es5/src/*"
       ]
     }
   }
