@@ -44,7 +44,7 @@
   overflow: hidden;
 }
 .mdc-dialog {
-  z-index: 6; /* over mdc-temporary-drawer (5) */
+  z-index: 6; /* over mdc-drawer--temporary (5) */
 }
 /* .mdc-snackbar {
   z-index: 7;

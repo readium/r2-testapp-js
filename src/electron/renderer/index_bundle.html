@@ -45,8 +45,8 @@
 
     <button id="drawerButton" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="material-icons md-36" aria-label="Menu">menu</i></button>
 
-    <aside id="drawer" class="mdc-temporary-drawer">
-      <nav id="drawerNav" class="mdc-temporary-drawer__drawer">
+    <aside id="drawer" class="mdc-drawer--temporary">
+      <nav id="drawerNav" class="mdc-drawer__drawer">
 
           <div id="nav-select" class="mdc-select" role="listbox" tabindex="0">
             <div class="mdc-select__surface">
@@ -70,7 +70,7 @@
                   <!-- <i class="material-icons" style="vertical-align: bottom; display: inline; padding-right: 0.5em;" role="presentation" aria-hidden="true">linear_scale</i>  -->
                   <li class="mdc-list-item" role="option" id="selectSpine" tabindex="0">Publication spine</li>
 
-                  <li class="mdc-list-divider" role="presentation" disabled> </li>
+                  <li class="mdc-list-divider mdc-list-divider--padded" role="presentation" disabled> </li>
 
                   <!-- <i class="material-icons" style="vertical-align: bottom; display: inline; padding-right: 0.5em;" role="presentation" aria-hidden="true">tune</i>  -->
                   <li class="mdc-list-item" role="option" id="selectStyles" tabindex="0">Styles</li>
@@ -78,7 +78,7 @@
                   <!-- <i class="material-icons" style="vertical-align: bottom; display: inline; padding-right: 0.5em;" role="presentation" aria-hidden="true">settings</i>  -->
                   <li class="mdc-list-item" role="option" id="selectAdvanced" tabindex="0">Advanced</li>
 
-                  <li class="mdc-list-divider" role="presentation" disabled> </li>
+                  <li class="mdc-list-divider mdc-list-divider--padded" role="presentation" disabled> </li>
 
                   <li class="mdc-list-item" role="option" id="selectTools" tabindex="0">Developer tools</li>
               </ul>
@@ -102,7 +102,7 @@
                   <label for="readiumcss_switch-input" class="mdc-switch-label">Enable styling</label>
                 </div>
 
-                <!-- <hr class="mdc-list-divider" role="presentation"> -->
+                <!-- <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation"> -->
 
                 <div id="stylingWrapper" style="margin-left: 1em; padding-left: 1em; margin-bottom: 1em;">
 
@@ -211,7 +211,7 @@
 
                 <button id="buttonOpenSettings" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple">OPEN SETTINGS</button>
 
-                <hr class="mdc-list-divider" role="presentation" style="margin:0;margin-top:1em;margin-bottom:1em;">
+                <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation" style="margin:0;margin-top:1em;margin-bottom:1em;">
 
                 <button id="buttonLSDRenew" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple">LSD RENEW</button>
                 <button id="buttonLSDReturn" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple">LSD RETURN</button>
