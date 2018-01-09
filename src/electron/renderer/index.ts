@@ -1085,19 +1085,25 @@ function startNavigatorExperiment() {
         setTimeout(() => {
             drawer.open = false;
 
+            let preloadPath = "./preload.js";
+
             // TODO: REEEALLY HACKY! (and does not work in release bundle mode, only with dist/ exploded code)
-            let distTarget = "es5";
-            if (__dirname.indexOf("es6-es2015") > 0) {
+            let distTarget: string | undefined;
+            if (__dirname.indexOf("/dist/es5") > 0) {
+                distTarget = "es5";
+            } else if (__dirname.indexOf("/dist/es6-es2015") > 0) {
                 distTarget = "es6-es2015";
-            } else if (__dirname.indexOf("es7-es2016") > 0) {
+            } else if (__dirname.indexOf("/dist/es7-es2016") > 0) {
                 distTarget = "es7-es2016";
-            } else if (__dirname.indexOf("es8-es2017") > 0) {
+            } else if (__dirname.indexOf("/dist/es8-es2017") > 0) {
                 distTarget = "es8-es2017";
             }
-            const preloadPath = path.join(process.cwd(),
-                "node_modules/r2-navigator-js/dist/" +
-                distTarget
-                + "/src/electron/renderer/webview/preload.js");
+            if (distTarget) {
+                preloadPath = path.join(process.cwd(),
+                    "node_modules/r2-navigator-js/dist/" +
+                    distTarget
+                    + "/src/electron/renderer/webview/preload.js");
+            }
 
             installNavigatorDOM(_publication, publicationJsonUrl,
                 "publication_viewport",
