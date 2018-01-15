@@ -79,7 +79,7 @@
     "css2json": "^0.0.4",
     "eclint": "^2.6.0",
     "electron": "1.7.*",
-    "electron-builder": "^19.53.4",
+    "electron-builder": "^19.53.5",
     "exorcist": "^1.0.0",
     "git-rev-sync": "^1.9.1",
     "mkdirp": "^0.5.1",
@@ -89,7 +89,7 @@
     "tslint": "^5.9.1",
     "tslint-language-service": "^0.9.8",
     "typescript": "^2.6.2",
-    "uglify-es": "^3.3.5"
+    "uglify-es": "^3.3.7"
   },
   "main": "dist/es6-es2015/src/electron/main/index.js",
   "types": "dist/es6-es2015/src/electron/main/index.d.js",
