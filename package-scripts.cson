@@ -1,12 +1,14 @@
   'cson2json': '
-    node node_modules/cson/bin/cson2json package-scripts.cson > package-scripts.json &&
-    echo " " >> package-scripts.json &&
-    node node_modules/cson/bin/cson2json package-scripts-bundle.cson > package-scripts-bundle.json &&
-    cat package-scripts.json package-scripts-bundle.json | node node_modules/json/lib/json --merge > package-scripts_ALL.json &&
-    json -I -f package.json -e "this.scripts=$(cat package-scripts_ALL.json)" &&
-    rimraf package-scripts.json &&
-    rimraf package-scripts-bundle.json &&
-    rimraf package-scripts_ALL.json
+    sed -E "s/#ECMASCRIPT#/es5/g" package-scripts-bundle.cson > tmp-bundle.cson &&
+    sed -E "s/#ECMASCRIPT#/es6-es2015/g" package-scripts-bundle.cson >> tmp-bundle.cson &&
+    sed -E "s/#ECMASCRIPT#/es7-es2016/g" package-scripts-bundle.cson >> tmp-bundle.cson &&
+    sed -E "s/#ECMASCRIPT#/es8-es2017/g" package-scripts-bundle.cson >> tmp-bundle.cson &&
+    sed -E "s/#ECMASCRIPT#/es5/g" package-scripts-build.cson > tmp-build.cson &&
+    sed -E "s/#ECMASCRIPT#/es6-es2015/g" package-scripts-build.cson >> tmp-build.cson &&
+    sed -E "s/#ECMASCRIPT#/es7-es2016/g" package-scripts-build.cson >> tmp-build.cson &&
+    sed -E "s/#ECMASCRIPT#/es8-es2017/g" package-scripts-build.cson >> tmp-build.cson &&
+    json -I -f package.json -e "this.scripts=$(cat package-scripts.cson tmp-build.cson tmp-bundle.cson | node node_modules/cson/bin/cson2json)" &&
+    rimraf tmp-*.cson
   '
 
   'postinstallxx': '
@@ -66,101 +68,11 @@
     npm run riot:es8-es2017
   '
 
-  'riot:es5': '
-    cpy ./node_modules/riot/riot.js ./dist/es5/src/electron/renderer/ &&
-    riot
-      --ext html
-      --type none
-      ./dist/es5/src/electron/renderer/riots/ ./dist/es5/src/electron/renderer/riots/ &&
-    rimraf "./dist/es5/src/electron/renderer/riots/**/*.html"
-  '
-
-  'riot:es6-es2015': '
-    cpy ./node_modules/riot/riot.js ./dist/es6-es2015/src/electron/renderer/ &&
-    riot
-      --ext html
-      --type none
-      ./dist/es6-es2015/src/electron/renderer/riots/ ./dist/es6-es2015/src/electron/renderer/riots/ &&
-    rimraf "./dist/es6-es2015/src/electron/renderer/riots/**/*.html"
-  '
-
-  'riot:es7-es2016': '
-    cpy ./node_modules/riot/riot.js ./dist/es7-es2016/src/electron/renderer/ &&
-    riot
-      --ext html
-      --type none
-      ./dist/es7-es2016/src/electron/renderer/riots/
-      ./dist/es7-es2016/src/electron/renderer/riots/ &&
-    rimraf "./dist/es7-es2016/src/electron/renderer/riots/**/*.html"
-  '
-
-  'riot:es8-es2017': '
-    cpy ./node_modules/riot/riot.js ./dist/es8-es2017/src/electron/renderer/ &&
-    riot
-      --ext html
-      --type none
-      ./dist/es8-es2017/src/electron/renderer/riots/
-      ./dist/es8-es2017/src/electron/renderer/riots/ &&
-    rimraf "./dist/es8-es2017/src/electron/renderer/riots/**/*.html"
-  '
-
-  'material:es5': '
-    cpy node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2 ./dist/es5/src/electron/renderer/ &&
-    cpy ./node_modules/material-components-web/dist/material-components-web.css ./dist/es5/src/electron/renderer/ &&
-    cpy ./node_modules/material-components-web/dist/material-components-web.js ./dist/es5/src/electron/renderer/
-  '
-
-  'material:es6-es2015': '
-    cpy node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2 ./dist/es6-es2015/src/electron/renderer/ &&
-    cpy ./node_modules/material-components-web/dist/material-components-web.css ./dist/es6-es2015/src/electron/renderer/ &&
-    cpy ./node_modules/material-components-web/dist/material-components-web.js ./dist/es6-es2015/src/electron/renderer/
-  '
-
-  'material:es7-es2016': '
-    cpy node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2 ./dist/es7-es2016/src/electron/renderer/ &&
-    cpy ./node_modules/material-components-web/dist/material-components-web.css ./dist/es7-es2016/src/electron/renderer/ &&
-    cpy ./node_modules/material-components-web/dist/material-components-web.js ./dist/es7-es2016/src/electron/renderer/
-  '
-
-  'material:es8-es2017': '
-    cpy node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2 ./dist/es8-es2017/src/electron/renderer/ &&
-    cpy ./node_modules/material-components-web/dist/material-components-web.css ./dist/es8-es2017/src/electron/renderer/ &&
-    cpy ./node_modules/material-components-web/dist/material-components-web.js ./dist/es8-es2017/src/electron/renderer/
-  '
-
   'preelectron-renderer:all': '
     npm run preelectron-renderer:es5 &&
     npm run preelectron-renderer:es6-es2015 &&
     npm run preelectron-renderer:es7-es2016 &&
     npm run preelectron-renderer:es8-es2017
-  '
-
-  'preelectron-renderer:es5': '
-    npm run material:es5 &&
-    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es5/src/electron/renderer/ &&
-    cpy "./src/electron/renderer/**/*.html" ./dist/es5/ --cwd=./ --parents &&
-    cpy "./src/electron/renderer/**/*.css" ./dist/es5/ --cwd=./ --parents
-  '
-
-  'preelectron-renderer:es6-es2015': '
-    npm run material:es6-es2015 &&
-    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es6-es2015/src/electron/renderer/ &&
-    cpy "./src/electron/renderer/**/*.html" ./dist/es6-es2015/ --cwd=./ --parents &&
-    cpy "./src/electron/renderer/**/*.css" ./dist/es6-es2015/ --cwd=./ --parents
-  '
-
-  'preelectron-renderer:es7-es2016': '
-    npm run material:es7-es2016 &&
-    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es7-es2016/src/electron/renderer/ &&
-    cpy "./src/electron/renderer/**/*.html" ./dist/es7-es2016/ --cwd=./ --parents &&
-    cpy "./src/electron/renderer/**/*.css" ./dist/es7-es2016/ --cwd=./ --parents
-  '
-
-  'preelectron-renderer:es8-es2017': '
-    npm run material:es8-es2017 &&
-    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/es8-es2017/src/electron/renderer/ &&
-    cpy "./src/electron/renderer/**/*.html" ./dist/es8-es2017/ --cwd=./ --parents &&
-    cpy "./src/electron/renderer/**/*.css" ./dist/es8-es2017/ --cwd=./ --parents
   '
 
   'electron-renderer:all': '
@@ -170,42 +82,6 @@
 
   'postelectron-renderer:all': '
     npm run browserify:all
-  '
-
-  'electron-renderer:es5': '
-    npm run riot:es5 &&
-    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
-  '
-
-  'postelectron-renderer:es5': '
-    npm run browserify:es5
-  '
-
-  'electron-renderer:es6-es2015': '
-    npm run riot:es6-es2015 &&
-    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
-  '
-
-  'postelectron-renderer:es6-es2015': '
-    npm run browserify:es6-es2015
-  '
-
-  'electron-renderer:es7-es2016': '
-    npm run riot:es7-es2016 &&
-    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
-  '
-
-  'postelectron-renderer:es7-es2016': '
-    npm run browserify:es7-es2016
-  '
-
-  'electron-renderer:es8-es2017': '
-    npm run riot:es8-es2017 &&
-    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
-  '
-
-  'postelectron-renderer:es8-es2017': '
-    npm run browserify:es8-es2017
   '
 
   'preelectron': '
@@ -311,62 +187,6 @@
     npm run electron-renderer:all
   '
 
-  'prebuild:es5': '
-    npm run lint &&
-    npm run clean
-  '
-
-  'build:es5': '
-    npm run transpile:typescript:es5
-  '
-
-  'postbuild:es5': '
-    npm run afterdist &&
-    npm run electron-renderer:es5
-  '
-
-  'prebuild:es6-es2015': '
-    npm run lint &&
-    npm run clean
-  '
-
-  'build:es6-es2015': '
-    npm run transpile:typescript:es6-es2015
-  '
-
-  'postbuild:es6-es2015': '
-    npm run afterdist &&
-    npm run electron-renderer:es6-es2015
-  '
-
-  'prebuild:es7-es2016': '
-    npm run lint &&
-    npm run clean
-  '
-
-  'build:es7-es2016': '
-    npm run transpile:typescript:es7-es2016
-  '
-
-  'postbuild:es7-es2016': '
-    npm run afterdist &&
-    npm run electron-renderer:es7-es2016
-  '
-
-  'prebuild:es8-es2017': '
-    npm run lint &&
-    npm run clean
-  '
-
-  'build:es8-es2017': '
-    npm run transpile:typescript:es8-es2017
-  '
-
-  'postbuild:es8-es2017': '
-    npm run afterdist &&
-    npm run electron-renderer:es8-es2017
-  '
-
   'clean': '
     rimraf ./dist &&
     mkdirp ./dist
@@ -442,22 +262,6 @@
     npm run transpile:typescript:es8-es2017
   '
 
-  'transpile:typescript:es5': '
-    tsc -p "./tsconfigs/tsconfig-es5-all.json"
-  '
-
-  'transpile:typescript:es6-es2015': '
-    tsc -p "./tsconfigs/tsconfig-es6-es2015-all.json"
-  '
-
-  'transpile:typescript:es7-es2016': '
-    tsc -p "./tsconfigs/tsconfig-es7-es2016-all.json"
-  '
-
-  'transpile:typescript:es8-es2017': '
-    tsc -p "./tsconfigs/tsconfig-es8-es2017-all.json"
-  '
-
   'transpile:typescript:es8-es2017+afterdist': '
     npm run transpile:typescript:es8-es2017 &&
     npm run afterdist &&
@@ -471,4 +275,11 @@
   'posttranspile:typescript:single': '
     npm run afterdist &&
     npm run electron-renderer:es8-es2017
+  '
+
+  'browserify:all': '
+    npm run browserify:es5 &&
+    npm run browserify:es6-es2015 &&
+    npm run browserify:es7-es2016 &&
+    npm run browserify:es8-es2017
   '

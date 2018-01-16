@@ -1,0 +1,48 @@
+  'prebuild:#ECMASCRIPT#': '
+    npm run lint &&
+    npm run clean
+  '
+
+  'build:#ECMASCRIPT#': '
+    npm run transpile:typescript:#ECMASCRIPT#
+  '
+
+  'postbuild:#ECMASCRIPT#': '
+    npm run afterdist &&
+    npm run electron-renderer:#ECMASCRIPT#
+  '
+
+  'transpile:typescript:#ECMASCRIPT#': '
+    tsc -p "./tsconfigs/tsconfig-#ECMASCRIPT#-all.json"
+  '
+
+  'riot:#ECMASCRIPT#': '
+    cpy ./node_modules/riot/riot.js ./dist/#ECMASCRIPT#/src/electron/renderer/ &&
+    riot
+      --ext html
+      --type none
+      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/ ./dist/#ECMASCRIPT#/src/electron/renderer/riots/ &&
+    rimraf "./dist/#ECMASCRIPT#/src/electron/renderer/riots/**/*.html"
+  '
+
+  'material:#ECMASCRIPT#': '
+    cpy node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2 ./dist/#ECMASCRIPT#/src/electron/renderer/ &&
+    cpy ./node_modules/material-components-web/dist/material-components-web.css ./dist/#ECMASCRIPT#/src/electron/renderer/ &&
+    cpy ./node_modules/material-components-web/dist/material-components-web.js ./dist/#ECMASCRIPT#/src/electron/renderer/
+  '
+
+  'preelectron-renderer:#ECMASCRIPT#': '
+    npm run material:#ECMASCRIPT# &&
+    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/#ECMASCRIPT#/src/electron/renderer/ &&
+    cpy "./src/electron/renderer/**/*.html" ./dist/#ECMASCRIPT#/ --cwd=./ --parents &&
+    cpy "./src/electron/renderer/**/*.css" ./dist/#ECMASCRIPT#/ --cwd=./ --parents
+  '
+
+  'electron-renderer:#ECMASCRIPT#': '
+    npm run riot:#ECMASCRIPT# &&
+    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
+  '
+
+  'postelectron-renderer:#ECMASCRIPT#': '
+    npm run browserify:#ECMASCRIPT#
+  '
