@@ -19,44 +19,24 @@
       --build-from-source
   '
 
-  'electron-app:prepare': '
-    npm run build
-  '
-
-  'preelectron-app': '
-    npm run electron-app:prepare
-  '
-
-  'electron-app': '
+  'electron-pack': '
     build
       --publish
       never
   '
 
-  'preelectron-app:win': '
-    npm run electron-app:prepare
-  '
-
-  'electron-app:win': '
+  'electron-pack:win': '
     build
       --win
       --x64
   '
 
-  'preelectron-app:linux': '
-    npm run electron-app:prepare
-  '
-
-  'electron-app:linux': '
+  'electron-pack:linux': '
     build
       --linux
   '
 
-  'preelectron-app:mac': '
-    npm run electron-app:prepare
-  '
-
-  'electron-app:mac': '
+  'electron-pack:mac': '
     build
       --mac
   '
@@ -81,7 +61,7 @@
   '
 
   'postelectron-renderer:all': '
-    npm run browserify:all
+    npm run bundle:all
   '
 
   'preelectron': '
@@ -91,21 +71,20 @@
   'electron': '
     cross-env
     DEBUG=r2:*
-    BUILD_ENV=DEV
+    NODE_ENV=development
     electron
     ./dist/es8-es2017/src/electron/main/index.js
   '
 
-  'preelectron-browserify': '
+  'preelectron-bundle': '
     npm run preelectron
   '
 
-  'electron-browserify': '
+  'electron-bundle': '
     cross-env
     DEBUG=r2:*
-    BUILD_ENV=DEV
     electron
-    ./dist/es8-es2017/electron/main-browserify.js
+    ./dist/bundle-es8-es2017/main.js
   '
 
   '_pregitdist': '
@@ -277,9 +256,16 @@
     npm run electron-renderer:es8-es2017
   '
 
-  'browserify:all': '
-    npm run browserify:es5 &&
-    npm run browserify:es6-es2015 &&
-    npm run browserify:es7-es2016 &&
-    npm run browserify:es8-es2017
+  'bundle:all': '
+    npm run bundle:es5 &&
+    npm run bundle:es6-es2015 &&
+    npm run bundle:es7-es2016 &&
+    npm run bundle:es8-es2017
+  '
+
+  'bundle:all_': '
+    npm run bundle:es5_ &&
+    npm run bundle:es6-es2015_ &&
+    npm run bundle:es7-es2016_ &&
+    npm run bundle:es8-es2017_
   '

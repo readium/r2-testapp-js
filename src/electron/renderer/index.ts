@@ -1105,6 +1105,11 @@ function startNavigatorExperiment() {
                     + "/src/electron/renderer/webview/preload.js");
             }
 
+            preloadPath = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev") ?
+                            preloadPath : `${__dirname}/preload.js`;
+            preloadPath = preloadPath.replace(/\\/g, "/");
+            console.log(preloadPath);
+
             installNavigatorDOM(_publication, publicationJsonUrl,
                 "publication_viewport",
                 preloadPath,

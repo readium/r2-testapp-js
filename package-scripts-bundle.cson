@@ -1,186 +1,297 @@
-  'zbrowserify:#ECMASCRIPT#': '
-    echo "Browserify skipped."
-  '
-
-  'zprebrowserify:#ECMASCRIPT#': '
-    mkdirp ./dist/#ECMASCRIPT#/electron/
-  '
-
-  'z__browserify:#ECMASCRIPT#': '
+  'bundle-browserify-electron-main:#ECMASCRIPT#': '
     browserify
-      ./dist/#ECMASCRIPT#/src/electron/renderer/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linklist/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linklistgroup/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linktree/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/menuselect/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/material-components-web.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riot.js
-      --external
-      "node_modules/electron/**/*.js"
-      --exclude
-      electron
+      ./dist/#ECMASCRIPT#/src/electron/main/index.js
       --no-builtins
       --no-commondir
       --ignore-missing
-      --insert-globals
+      --xxinsert-globals
+      --insert-global-vars "xx__filename,xx__dirname"
       --no-browser-field
       --xxfull-paths
-      --debug
-      --outfile
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify-with-sourcemap.js &&
-
-    cat ./dist/#ECMASCRIPT#/electron/renderer-browserify-with-sourcemap.js |
-
-    exorcist
-      --root
-      ../../../
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js.map >
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js &&
-
-    sorcery
-      --input
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js
-      --output ./dist/#ECMASCRIPT#/electron/renderer-browserify.js &&
-
-    uglifyjs
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify.js
-      --output
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify.min.js
-      --compress
-      --mangle
-      --ecma 5
-      --source-map
-      "root=\'\',url=\'browserify.min.js.map\',content=\'./dist/#ECMASCRIPT#/electron/renderer-browserify.js.map\'" &&
-
-    rimraf ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js &&
-    rimraf ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js.map &&
-    rimraf ./dist/#ECMASCRIPT#/electron/renderer-browserify-with-sourcemap.js
-  '
-
-  'browserify:#ECMASCRIPT#': '
-    echo "Browserify skipped."
-  '
-
-  'prebrowserify:#ECMASCRIPT#': '
-    mkdirp ./dist/#ECMASCRIPT#/electron/
-  '
-
-  '__browserify:#ECMASCRIPT#': '
-    npm run browserify-do:#ECMASCRIPT# &&
-    npm run browserify-exorcist:#ECMASCRIPT#_ &&
-    npm run browserify-sorcery:#ECMASCRIPT#_ &&
-    npm run browserify-uglifyjs:#ECMASCRIPT#_
-  '
-
-  'browserify-do:#ECMASCRIPT#': '
-    browserify
-      ./dist/#ECMASCRIPT#/src/electron/renderer/index.js
       --xxlist
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linklist/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linklistgroup/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linktree/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/menuselect/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/material-components-web.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riot.js
-      --external
-      "node_modules/electron/**/*.js"
-      --exclude
-      electron
-      --no-builtins
-      --no-commondir
-      --ignore-missing
-      --insert-globals
-      --no-browser-field
-      --xxfull-paths
+      --xxdeps
       --debug
+      --xxexternal
+                "node_modules/electron/**/*.js"
+      --exclude
+                electron
+      --exclude
+                conf
       --outfile
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify-with-sourcemap.js
+      ./dist/bundle-#ECMASCRIPT#/electron-main.inlinesourcemap.js
   '
 
-  'browserify-exorcist:#ECMASCRIPT#': '
-    cat ./dist/#ECMASCRIPT#/electron/renderer-browserify-with-sourcemap.js |
+  'bundle-exorcist-electron-main:#ECMASCRIPT#': '
+    cat ./dist/bundle-#ECMASCRIPT#/electron-main.inlinesourcemap.js |
     exorcist
       --root
-      ../../../
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js.map >
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js
+      ../../
+      ./dist/bundle-#ECMASCRIPT#/electron-main_.js.map >
+      ./dist/bundle-#ECMASCRIPT#/electron-main_.js &&
+
+    json -I -f ./dist/bundle-#ECMASCRIPT#/electron-main_.js.map -e "this.sourcesContent=false" &&
+
+    rimraf ./dist/bundle-#ECMASCRIPT#/electron-main.inlinesourcemap.js
   '
 
-  'browserify-sorcery:#ECMASCRIPT#': '
+  'bundle-sorcery-electron-main:#ECMASCRIPT#': '
     sorcery
       --input
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js
+      ./dist/bundle-#ECMASCRIPT#/electron-main_.js
       --output
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify.js
+      ./dist/bundle-#ECMASCRIPT#/electron-main.js &&
+
+    rimraf ./dist/bundle-#ECMASCRIPT#/electron-main_.js &&
+    rimraf ./dist/bundle-#ECMASCRIPT#/electron-main_.js.map
   '
 
-  'browserify-uglifyjs:#ECMASCRIPT#': '
+  'bundle-uglify-electron-main:#ECMASCRIPT#': '
+    echo "uglify skip."
+  '
+
+  'bundle-uglify-electron-main:#ECMASCRIPT#_': '
+    cpy ./dist/bundle-#ECMASCRIPT#/electron-main.js.map ./dist/bundle-#ECMASCRIPT#/ --rename=electron-main-.js.map &&
+    json -I -f ./dist/bundle-#ECMASCRIPT#/electron-main-.js.map -e "this.sourcesContent=false" &&
+
     uglifyjs
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify.js
+      ./dist/bundle-#ECMASCRIPT#/electron-main.js
       --output
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify.min.js
-      --compress
-      --mangle
-      --ecma 8
+      ./dist/bundle-#ECMASCRIPT#/electron-main.min.js
+      --xxcompress
+      --xxmangle
+      --keep-classnames
+      --keep-fnames
+      --beautify
+      "beautify=false,preserve_line=false,indent_level=0"
       --source-map
-      "root=\'\',url=\'browserify.min.js.map\',content=\'./dist/#ECMASCRIPT#/electron/renderer-browserify.js.map\'" &&
+      "root=\'\',url=\'electron-main.min.js.map\',content=\'./dist/bundle-#ECMASCRIPT#/electron-main-.js.map\'" &&
 
-    rimraf ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js &&
-    rimraf ./dist/#ECMASCRIPT#/electron/renderer-browserify_.js.map &&
-    rimraf ./dist/#ECMASCRIPT#/electron/renderer-browserify-with-sourcemap.js
+      rimraf ./dist/bundle-#ECMASCRIPT#/electron-main-.js.map
   '
 
-  '___browserify:#ECMASCRIPT#_': '
+      # --require
+      #           ./dist/#ECMASCRIPT#/src/electron/renderer/riot.js
+      # --require
+      #           ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linklist/index.js
+      # --require
+      #           ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linklistgroup/index.js
+      # --require
+      #           ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linktree/index.js
+      # --require
+      #           ./dist/#ECMASCRIPT#/src/electron/renderer/riots/menuselect/index.js
+      # --require
+      #           ./dist/#ECMASCRIPT#/src/electron/renderer/material-components-web.js
+
+  'bundle-browserify-electron-renderer:#ECMASCRIPT#': '
     browserify
       ./dist/#ECMASCRIPT#/src/electron/renderer/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linklist/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linklistgroup/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/linktree/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riots/menuselect/index.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/material-components-web.js
-      --require
-      ./dist/#ECMASCRIPT#/src/electron/renderer/riot.js
-      --external
-      "node_modules/electron/**/*.js"
-      --exclude
-      electron
       --no-builtins
       --no-commondir
       --ignore-missing
-      --insert-globals
+      --xxinsert-globals
+      --insert-global-vars "xx__filename,xx__dirname"
       --no-browser-field
       --xxfull-paths
-      --debug |
+      --xxlist
+      --xxdeps
+      --debug
+      --xxexternal
+                "node_modules/electron/**/*.js"
+      --exclude
+                electron
+      --exclude
+                conf
+      --outfile
+      ./dist/bundle-#ECMASCRIPT#/electron-renderer.inlinesourcemap.js
+  '
 
-    uglifyjs
-      --compress
-      --mangle
-      --ecma 8
-      --source-map
-      "root=\'../../../\',url=\'browserify_.min.js.map\',content=\'inline\'"
-      --output
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify_.min.js &&
+  'bundle-exorcist-electron-renderer:#ECMASCRIPT#': '
+    cat ./dist/bundle-#ECMASCRIPT#/electron-renderer.inlinesourcemap.js |
+    exorcist
+      --root
+      ../../
+      ./dist/bundle-#ECMASCRIPT#/electron-renderer_.js.map >
+      ./dist/bundle-#ECMASCRIPT#/electron-renderer_.js &&
 
+    json -I -f ./dist/bundle-#ECMASCRIPT#/electron-renderer_.js.map -e "this.sourcesContent=false" &&
+
+    rimraf ./dist/bundle-#ECMASCRIPT#/electron-renderer.inlinesourcemap.js
+  '
+
+  'bundle-sorcery-electron-renderer:#ECMASCRIPT#': '
     sorcery
       --input
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify_.min.js
+      ./dist/bundle-#ECMASCRIPT#/electron-renderer_.js
       --output
-      ./dist/#ECMASCRIPT#/electron/renderer-browserify.min.js
+      ./dist/bundle-#ECMASCRIPT#/electron-renderer.js &&
+
+    rimraf ./dist/bundle-#ECMASCRIPT#/electron-renderer_.js &&
+    rimraf ./dist/bundle-#ECMASCRIPT#/electron-renderer_.js.map
+  '
+
+  'bundle-uglify-electron-renderer:#ECMASCRIPT#': '
+    echo "uglify skip."
+  '
+
+  'bundle-uglify-electron-renderer:#ECMASCRIPT#_': '
+    cpy ./dist/bundle-#ECMASCRIPT#/electron-renderer.js.map ./dist/bundle-#ECMASCRIPT#/ --rename=electron-renderer-.js.map &&
+    json -I -f ./dist/bundle-#ECMASCRIPT#/electron-renderer-.js.map -e "this.sourcesContent=false" &&
+
+    uglifyjs
+      ./dist/bundle-#ECMASCRIPT#/electron-renderer.js
+      --output
+      ./dist/bundle-#ECMASCRIPT#/electron-renderer.min.js
+      --xxcompress
+      --xxmangle
+      --keep-classnames
+      --keep-fnames
+      --beautify
+      "beautify=false,preserve_line=false,indent_level=0"
+      --source-map
+      "root=\'\',url=\'electron-renderer.min.js.map\',content=\'./dist/bundle-#ECMASCRIPT#/electron-renderer-.js.map\'" &&
+
+      rimraf ./dist/bundle-#ECMASCRIPT#/electron-renderer-.js.map
+  '
+
+  'bundle-browserify-electron-webview-preload:#ECMASCRIPT#': '
+    browserify
+      ./node_modules/r2-navigator-js/dist/#ECMASCRIPT#/src/electron/renderer/webview/preload.js
+      --no-builtins
+      --no-commondir
+      --ignore-missing
+      --xxinsert-globals
+      --insert-global-vars "xx__filename,xx__dirname"
+      --no-browser-field
+      --xxfull-paths
+      --xxlist
+      --xxdeps
+      --debug
+      --xxexternal
+                "node_modules/electron/**/*.js"
+      --exclude
+                electron
+      --outfile
+      ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.inlinesourcemap.js
+  '
+
+  'bundle-exorcist-electron-webview-preload:#ECMASCRIPT#': '
+    cat ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.inlinesourcemap.js |
+    exorcist
+      --root
+      ../../
+      ./dist/bundle-#ECMASCRIPT#/electron-webview-preload_.js.map >
+      ./dist/bundle-#ECMASCRIPT#/electron-webview-preload_.js &&
+
+    json -I -f ./dist/bundle-#ECMASCRIPT#/electron-webview-preload_.js.map -e "this.sourcesContent=false" &&
+
+    rimraf ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.inlinesourcemap.js
+  '
+
+  'bundle-sorcery-electron-webview-preload:#ECMASCRIPT#': '
+    sorcery
+      --input
+      ./dist/bundle-#ECMASCRIPT#/electron-webview-preload_.js
+      --output
+      ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.js &&
+
+    rimraf ./dist/bundle-#ECMASCRIPT#/electron-webview-preload_.js &&
+    rimraf ./dist/bundle-#ECMASCRIPT#/electron-webview-preload_.js.map
+  '
+
+  'bundle-uglify-electron-webview-preload:#ECMASCRIPT#': '
+    echo "uglify skip."
+  '
+
+  'bundle-uglify-electron-webview-preload:#ECMASCRIPT#_': '
+    cpy ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.js.map ./dist/bundle-#ECMASCRIPT#/ --rename=electron-webview-preload-.js.map &&
+    json -I -f ./dist/bundle-#ECMASCRIPT#/electron-webview-preload-.js.map -e "this.sourcesContent=false" &&
+
+    uglifyjs
+      ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.js
+      --output
+      ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.min.js
+      --xxcompress
+      --xxmangle
+      --keep-classnames
+      --keep-fnames
+      --beautify
+      "beautify=false,preserve_line=false,indent_level=0"
+      --source-map
+      "root=\'\',url=\'electron-webview-preload.min.js.map\',content=\'./dist/bundle-#ECMASCRIPT#/electron-webview-preload-.js.map\'" &&
+
+      rimraf ./dist/bundle-#ECMASCRIPT#/electron-webview-preload-.js.map
+  '
+
+  'bundle:#ECMASCRIPT#': '
+    echo "bundle skip."
+  '
+
+  'bundle-npm-externals:#ECMASCRIPT#_': '
+    cd ./dist/bundle-#ECMASCRIPT#/ &&
+    rimraf package.json &&
+    rimraf package-lock.json &&
+    rimraf node_modules &&
+    npm init -f -y &&
+    npm install conf@latest &&
+    rimraf package.json &&
+    rimraf package-lock.json &&
+    cd ..
+  '
+
+  'bundle:#ECMASCRIPT#_': '
+    mkdirp ./dist/bundle-#ECMASCRIPT# &&
+
+    npm run bundle-npm-externals:#ECMASCRIPT#_ &&
+
+    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/riot.js ./dist/bundle-#ECMASCRIPT#/ &&
+
+    cpy ./riots/linklist/index.js ../../../../bundle-#ECMASCRIPT#/ --cwd=./dist/#ECMASCRIPT#/src/electron/renderer/ --parents &&
+    cpy ./riots/linklistgroup/index.js ../../../../bundle-#ECMASCRIPT#/ --cwd=./dist/#ECMASCRIPT#/src/electron/renderer/ --parents &&
+    cpy ./riots/linktree/index.js ../../../../bundle-#ECMASCRIPT#/ --cwd=./dist/#ECMASCRIPT#/src/electron/renderer/ --parents &&
+    cpy ./riots/menuselect/index.js ../../../../bundle-#ECMASCRIPT#/ --cwd=./dist/#ECMASCRIPT#/src/electron/renderer/ --parents &&
+
+    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/MaterialIcons-Regular.woff2 ./dist/bundle-#ECMASCRIPT#/ &&
+    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/material-components-web.css ./dist/bundle-#ECMASCRIPT#/ &&
+    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/material-components-web.js ./dist/bundle-#ECMASCRIPT#/ &&
+
+    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/AccessibleDfA.otf ./dist/bundle-#ECMASCRIPT#/ &&
+
+    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/index.html ./dist/bundle-#ECMASCRIPT#/ &&
+    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/index.css ./dist/bundle-#ECMASCRIPT#/ &&
+
+    echo \'require("./electron-renderer.js");\' > ./dist/bundle-#ECMASCRIPT#/index.js &&
+    echo \'require("./electron-main.js");\' > ./dist/bundle-#ECMASCRIPT#/main.js &&
+    echo \'require("./electron-webview-preload.js");\' > ./dist/bundle-#ECMASCRIPT#/preload.js &&
+
+    cpy "./ReadiumCSS/**/*.*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents &&
+    rimraf "./dist/bundle-#ECMASCRIPT#/ReadiumCSS/*.css" &&
+
+    cpy "./misc/epubs/*.*" ./dist/bundle-#ECMASCRIPT#/ --parents &&
+
+    npm run bundle-electron-main:#ECMASCRIPT# &&
+    npm run bundle-electron-renderer:#ECMASCRIPT# &&
+    npm run bundle-electron-webview-preload:#ECMASCRIPT# &&
+
+    rimraf "./dist/bundle-#ECMASCRIPT#/*.js.map"
+  '
+
+  'bundle-electron-main:#ECMASCRIPT#': '
+    npm run bundle-browserify-electron-main:#ECMASCRIPT# &&
+    npm run bundle-exorcist-electron-main:#ECMASCRIPT# &&
+    npm run bundle-sorcery-electron-main:#ECMASCRIPT# &&
+    npm run bundle-uglify-electron-main:#ECMASCRIPT#
+  '
+
+  'bundle-electron-renderer:#ECMASCRIPT#': '
+    npm run bundle-browserify-electron-renderer:#ECMASCRIPT# &&
+    npm run bundle-exorcist-electron-renderer:#ECMASCRIPT# &&
+    npm run bundle-sorcery-electron-renderer:#ECMASCRIPT# &&
+    npm run bundle-uglify-electron-renderer:#ECMASCRIPT#
+  '
+
+  'bundle-electron-webview-preload:#ECMASCRIPT#': '
+    npm run bundle-browserify-electron-webview-preload:#ECMASCRIPT# &&
+    npm run bundle-exorcist-electron-webview-preload:#ECMASCRIPT# &&
+    npm run bundle-sorcery-electron-webview-preload:#ECMASCRIPT# &&
+    npm run bundle-uglify-electron-webview-preload:#ECMASCRIPT#
   '

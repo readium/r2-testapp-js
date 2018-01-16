@@ -165,7 +165,10 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
     });
 
     const urlEncoded = encodeURIComponent_RFC3986(publicationUrl);
-    let fullUrl = `file://${__dirname}/../renderer/index.html?pub=${urlEncoded}`;
+    let htmlPath = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev") ?
+                    `${__dirname}/../renderer/index.html` : `${__dirname}/index.html`;
+    htmlPath = htmlPath.replace(/\\/g, "/");
+    let fullUrl = `file://${htmlPath}?pub=${urlEncoded}`;
     if (lcpHint) {
         fullUrl = fullUrl + "&lcpHint=" + encodeURIComponent_RFC3986(lcpHint);
     }
@@ -214,7 +217,11 @@ app.on("ready", () => {
 
         installLcpHandler(_publicationsServer, deviceIDManager);
 
-        setupReadiumCSS(_publicationsServer, path.join(process.cwd(), "dist/ReadiumCSS"));
+        const readiumCSSPath = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev") ?
+            path.join(process.cwd(), "dist", "ReadiumCSS").replace(/\\/g, "/") :
+            path.join(__dirname, "ReadiumCSS").replace(/\\/g, "/");
+
+        setupReadiumCSS(_publicationsServer, readiumCSSPath);
 
         // _publicationsServer.expressGet(["/resize-sensor.js"],
         //     (req: express.Request, res: express.Response) => {
