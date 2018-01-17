@@ -79,7 +79,7 @@
     "css2json": "^0.0.4",
     "eclint": "^2.6.0",
     "electron": "1.7.*",
-    "electron-builder": "^19.53.7",
+    "electron-builder": "^19.54.0",
     "exorcist": "^1.0.0",
     "git-rev-sync": "^1.9.1",
     "json": "^9.0.6",
