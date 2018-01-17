@@ -153,7 +153,7 @@
     "electron-pack:mac": "build --mac && asar l electron-pack/mac/*.app/Contents/Resources/app.asar",
     "riot:all": "npm run riot:es5 && npm run riot:es6-es2015 && npm run riot:es7-es2016 && npm run riot:es8-es2017",
     "preelectron-renderer:all": "npm run preelectron-renderer:es5 && npm run preelectron-renderer:es6-es2015 && npm run preelectron-renderer:es7-es2016 && npm run preelectron-renderer:es8-es2017",
-    "electron-renderer:all": "npm run riot:all && cpy \"./ReadiumCSS/**/*.*\" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents",
+    "electron-renderer:all": "npm run riot:all && cpy \"./ReadiumCSS/**/*.*\" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents && rimraf \"./dist/ReadiumCSS/*.css\"",
     "postelectron-renderer:all": "npm run bundle:all",
     "preelectron": "node tools/electronRename.js",
     "electron": "cross-env DEBUG=r2:* NODE_ENV=development electron ./dist/es8-es2017/src/electron/main/index.js",
