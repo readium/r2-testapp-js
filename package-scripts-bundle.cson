@@ -244,8 +244,21 @@
   '
 
   'bundle:#ECMASCRIPT#_': '
-    curl https://raw.githubusercontent.com/rbuckton/reflect-metadata/master/Reflect.ts > ./node_modules/reflect-metadata/Reflect.ts &&
-    curl https://raw.githubusercontent.com/rbuckton/reflect-metadata/master/Reflect.ts > ./node_modules/r2-navigator-js/node_modules/ta-json/node_modules/reflect-metadata/Reflect.ts &&
+    curl https://raw.githubusercontent.com/rbuckton/reflect-metadata/master/Reflect.ts > Reflect.ts &&
+
+    (ls ./node_modules/reflect-metadata/ &&
+    cpy Reflect.ts ./node_modules/reflect-metadata/) || echo "OK" &&
+
+    (ls ./node_modules/ta-json/node_modules/reflect-metadata/ &&
+    cpy Reflect.ts ./node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK"  &&
+
+    (ls ./node_modules/r2-navigator-js/node_modules/ta-json/node_modules/reflect-metadata/ &&
+    cpy Reflect.ts ./node_modules/r2-navigator-js/node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK"  &&
+
+    (ls ./node_modules/r2-streamer-js/node_modules/ta-json/node_modules/reflect-metadata/ &&
+    cpy Reflect.ts ./node_modules/r2-streamer-js/node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK"  &&
+
+    rimraf Reflect.ts &&
 
     mkdirp ./dist/bundle-#ECMASCRIPT# &&
 
