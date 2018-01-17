@@ -244,6 +244,9 @@
   '
 
   'bundle:#ECMASCRIPT#_': '
+    curl https://raw.githubusercontent.com/rbuckton/reflect-metadata/master/Reflect.ts > ./node_modules/reflect-metadata/Reflect.ts &&
+    curl https://raw.githubusercontent.com/rbuckton/reflect-metadata/master/Reflect.ts > ./node_modules/r2-navigator-js/node_modules/ta-json/node_modules/reflect-metadata/Reflect.ts &&
+
     mkdirp ./dist/bundle-#ECMASCRIPT# &&
 
     npm run bundle-npm-externals:#ECMASCRIPT#_ &&
