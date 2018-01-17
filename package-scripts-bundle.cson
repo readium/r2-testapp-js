@@ -17,6 +17,8 @@
                 electron
       --exclude
                 conf
+      --exclude
+                bindings
       --outfile
       ./dist/bundle-#ECMASCRIPT#/electron-main.inlinesourcemap.js
   '
@@ -101,6 +103,8 @@
                 electron
       --exclude
                 conf
+      --exclude
+                bindings
       --outfile
       ./dist/bundle-#ECMASCRIPT#/electron-renderer.inlinesourcemap.js
   '
@@ -233,6 +237,7 @@
     rimraf node_modules &&
     npm init -f -y &&
     npm install conf@latest &&
+    npm install bindings@latest &&
     rimraf package.json &&
     rimraf package-lock.json &&
     cd ..
@@ -242,6 +247,8 @@
     mkdirp ./dist/bundle-#ECMASCRIPT# &&
 
     npm run bundle-npm-externals:#ECMASCRIPT#_ &&
+
+    cpy ./LCP/lcp.node ./dist/bundle-#ECMASCRIPT#/ &&
 
     cpy ./dist/#ECMASCRIPT#/src/electron/renderer/riot.js ./dist/bundle-#ECMASCRIPT#/ &&
 

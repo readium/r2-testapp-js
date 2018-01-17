@@ -54,6 +54,8 @@ import {
     riotMountMenuSelect,
 } from "./riots/menuselect/index_";
 
+const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
+
 const electronStore: IStore = new StoreElectron("readium2-testapp", {
     basicLinkTitles: true,
     styling: {
@@ -1105,8 +1107,7 @@ function startNavigatorExperiment() {
                     + "/src/electron/renderer/webview/preload.js");
             }
 
-            preloadPath = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev") ?
-                            preloadPath : `${__dirname}/preload.js`;
+            preloadPath = IS_DEV ? preloadPath : `${__dirname}/preload.js`;
             preloadPath = preloadPath.replace(/\\/g, "/");
             console.log(preloadPath);
 

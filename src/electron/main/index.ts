@@ -39,7 +39,12 @@ import { deviceIDManager } from "./lsd-deviceid-manager";
 // import * as mime from "mime-types";
 
 initGlobals();
-const lcpPluginPath = path.join(process.cwd(), "LCP", "lcp.node");
+
+const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
+
+const lcpPluginPath = IS_DEV ?
+    path.join(process.cwd(), "LCP", "lcp.node") :
+    path.join(__dirname, "lcp.node");
 setLcpNativePluginPath(lcpPluginPath);
 
 const debug = debug_("r2:electron:main");
@@ -50,7 +55,17 @@ let _publicationsRootUrl: string;
 let _publicationsFilePaths: string[];
 let _publicationsUrls: string[];
 
-const DEFAULT_BOOK_PATH = fs.realpathSync(path.resolve("./misc/epubs/"));
+let DEFAULT_BOOK_PATH = path.join(IS_DEV ? process.cwd() : __dirname, "misc", "epubs");
+debug(DEFAULT_BOOK_PATH);
+if (fs.existsSync(DEFAULT_BOOK_PATH)) {
+    debug("DEFAULT_BOOK_PATH => exists");
+    DEFAULT_BOOK_PATH = fs.realpathSync(path.resolve(DEFAULT_BOOK_PATH));
+    debug(DEFAULT_BOOK_PATH);
+} else {
+    debug("DEFAULT_BOOK_PATH => missing");
+    DEFAULT_BOOK_PATH = ".";
+}
+
 let _lastBookPath: string | undefined;
 
 // protocol.registerStandardSchemes(["epub", "file"], { secure: true });
@@ -165,8 +180,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
     });
 
     const urlEncoded = encodeURIComponent_RFC3986(publicationUrl);
-    let htmlPath = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev") ?
-                    `${__dirname}/../renderer/index.html` : `${__dirname}/index.html`;
+    let htmlPath = IS_DEV ? `${__dirname}/../renderer/index.html` : `${__dirname}/index.html`;
     htmlPath = htmlPath.replace(/\\/g, "/");
     let fullUrl = `file://${htmlPath}?pub=${urlEncoded}`;
     if (lcpHint) {
@@ -202,6 +216,11 @@ app.on("ready", () => {
     (async () => {
         try {
             _publicationsFilePaths = await filehound.create()
+                .depth(0)
+                .ignoreHiddenDirectories()
+                .ignoreHiddenFiles()
+                // .discard("node_modules")
+                // .discard(".*.asar")
                 .paths(DEFAULT_BOOK_PATH)
                 .ext([".epub", ".epub3", ".cbz", ".lcpl"])
                 .find();
@@ -217,7 +236,7 @@ app.on("ready", () => {
 
         installLcpHandler(_publicationsServer, deviceIDManager);
 
-        const readiumCSSPath = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev") ?
+        const readiumCSSPath = IS_DEV ?
             path.join(process.cwd(), "dist", "ReadiumCSS").replace(/\\/g, "/") :
             path.join(__dirname, "ReadiumCSS").replace(/\\/g, "/");
 
