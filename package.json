@@ -62,7 +62,7 @@
     "riot": "^3.8.1",
     "system-font-families": "^0.5.0",
     "ta-json": "github:danielweck/ta-json#dist",
-    "tslib": "^1.8.1",
+    "tslib": "^1.9.0",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
@@ -79,7 +79,7 @@
     "css2json": "^0.0.4",
     "eclint": "^2.6.0",
     "electron": "1.7.*",
-    "electron-builder": "^19.54.0",
+    "electron-builder": "^19.55.0",
     "exorcist": "^1.0.0",
     "git-rev-sync": "^1.9.1",
     "json": "^9.0.6",
