@@ -94,9 +94,6 @@
   },
   "main": "dist/bundle-es8-es2017/main.js",
   "types": "dist/es8-es2017/src/electron/main/index.d.js",
-  "bin": {
-    "electron": "./node_modules/.bin/electron"
-  },
   "files": [
     "LICENSE",
     "README.md",
