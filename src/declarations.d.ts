@@ -2,6 +2,5 @@
 
 // declare module "*";
 
-declare module "css2json";
 declare module "filehound";
 declare module "system-font-families";
