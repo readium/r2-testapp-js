@@ -1091,13 +1091,14 @@ function startNavigatorExperiment() {
 
             // TODO: REEEALLY HACKY! (and does not work in release bundle mode, only with dist/ exploded code)
             let distTarget: string | undefined;
-            if (__dirname.indexOf("/dist/es5") > 0) {
+            const __dirnameSlashed = __dirname.replace(/\\/g, "/");
+            if (__dirnameSlashed.indexOf("/dist/es5") > 0) {
                 distTarget = "es5";
-            } else if (__dirname.indexOf("/dist/es6-es2015") > 0) {
+            } else if (__dirnameSlashed.indexOf("/dist/es6-es2015") > 0) {
                 distTarget = "es6-es2015";
-            } else if (__dirname.indexOf("/dist/es7-es2016") > 0) {
+            } else if (__dirnameSlashed.indexOf("/dist/es7-es2016") > 0) {
                 distTarget = "es7-es2016";
-            } else if (__dirname.indexOf("/dist/es8-es2017") > 0) {
+            } else if (__dirnameSlashed.indexOf("/dist/es8-es2017") > 0) {
                 distTarget = "es8-es2017";
             }
             if (distTarget) {
@@ -1107,7 +1108,7 @@ function startNavigatorExperiment() {
                     + "/src/electron/renderer/webview/preload.js");
             }
 
-            preloadPath = IS_DEV ? preloadPath : `${__dirname}/preload.js`;
+            preloadPath = IS_DEV ? preloadPath : `${__dirnameSlashed}/preload.js`;
             preloadPath = preloadPath.replace(/\\/g, "/");
             console.log(preloadPath);
 
