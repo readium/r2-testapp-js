@@ -24,7 +24,7 @@ import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-windo
 import { installLcpHandler } from "@r2-navigator-js/electron/main/lcp";
 import { lsdLcpUpdateInject } from "@r2-navigator-js/electron/main/lsd-injectlcpl";
 import { setupReadiumCSS } from "@r2-navigator-js/electron/main/readium-css";
-import { initSessions } from "@r2-navigator-js/electron/main/sessions";
+import { initSessions, secureSessions } from "@r2-navigator-js/electron/main/sessions";
 import { initGlobals } from "@r2-shared-js/init-globals";
 import { Server } from "@r2-streamer-js/http/server";
 import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
@@ -231,8 +231,12 @@ app.on("ready", () => {
 
         _publicationsServer = new Server({
             disableDecryption: false,
-            disableReaders: false,
+            disableOPDS: true,
+            disableReaders: true,
+            disableRemotePubUrl: true,
         });
+
+        secureSessions(_publicationsServer); // port 443 ==> HTTPS
 
         installLcpHandler(_publicationsServer, deviceIDManager);
 
@@ -325,7 +329,13 @@ app.on("ready", () => {
         } catch (err) {
             debug(err);
         }
-        _publicationsRootUrl = _publicationsServer.start(_publicationsServerPort);
+        _publicationsServerPort = 443; // Force HTTPS, see secureSessions()
+
+        const serverInfo = await _publicationsServer.start(_publicationsServerPort);
+        debug(serverInfo);
+
+        _publicationsRootUrl = _publicationsServer.serverUrl() as string;
+        debug(_publicationsRootUrl);
 
         _publicationsUrls = pubPaths.map((pubPath) => {
             return `${_publicationsRootUrl}${pubPath}`;
