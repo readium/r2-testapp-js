@@ -130,8 +130,8 @@
 
   'gitdist': '
     cd ../r2-testapp-js-dist/ &&
-    git checkout -B master &&
-    git pull &&
+    git checkout -B feature/https &&
+    (git pull || echo "pull") &&
     (git status || echo status) &&
     ((rimraf "*" && echo rimrafOK) || echo rimrafNOK) &&
     cpy ../r2-testapp-js/package.json . &&
@@ -142,7 +142,7 @@
     cpy "dist/**/*.*" ../r2-testapp-js-dist/ --cwd=../r2-testapp-js/ --parents &&
     (git add * || echo add) &&
     (git commit -a -m "add new dist" || echo commit) &&
-    (git push --set-upstream origin master || echo push) &&
+    (git push --set-upstream origin feature/https || echo push) &&
     (git status || echo status) &&
     cd ../r2-testapp-js
   '
