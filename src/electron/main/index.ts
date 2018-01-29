@@ -329,9 +329,9 @@ app.on("ready", () => {
         } catch (err) {
             debug(err);
         }
-        _publicationsServerPort = 443; // Force HTTPS, see secureSessions()
 
-        const serverInfo = await _publicationsServer.start(_publicationsServerPort);
+        // Force HTTPS, see secureSessions()
+        const serverInfo = await _publicationsServer.start(_publicationsServerPort, true);
         debug(serverInfo);
 
         _publicationsRootUrl = _publicationsServer.serverUrl() as string;
