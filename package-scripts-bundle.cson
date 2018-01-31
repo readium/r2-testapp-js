@@ -287,7 +287,6 @@
     echo \'require("./electron-webview-preload.js");\' > ./dist/bundle-#ECMASCRIPT#/preload.js &&
 
     cpy "./ReadiumCSS/**/*.*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents &&
-    rimraf "./dist/bundle-#ECMASCRIPT#/ReadiumCSS/*.css" &&
 
     cpy "./misc/epubs/*.*" ./dist/bundle-#ECMASCRIPT#/ --parents &&
 

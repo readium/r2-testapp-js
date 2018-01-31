@@ -93,8 +93,7 @@
 
   'electron-renderer:all': '
     npm run riot:all &&
-    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents &&
-    rimraf "./dist/ReadiumCSS/*.css"
+    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
   '
 
   'postelectron-renderer:all': '
