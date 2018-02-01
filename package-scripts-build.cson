@@ -13,7 +13,7 @@
   '
 
   'transpile:typescript:#ECMASCRIPT#': '
-    tsc -p "./tsconfigs/tsconfig-#ECMASCRIPT#-all.json"
+    tsc --pretty -p "./tsconfigs/tsconfig-#ECMASCRIPT#-all.json"
   '
 
   'riot:#ECMASCRIPT#': '
