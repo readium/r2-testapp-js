@@ -31,6 +31,7 @@
     json -I -f dist/electron/package.json -e "this.devDependencies=undefined" &&
     json -I -f dist/electron/package.json -e "this.optionalDependencies=undefined" &&
     json -I -f dist/electron/package.json -e "this.peerDependencies=undefined" &&
+    json -I -f dist/electron/package.json -e "this.bundleDependencies=undefined" &&
     json -I -f dist/electron/package.json -e "this.dependencies={ conf: \\"latest\\", bindings: \\"latest\\" }" &&
     json -I -f dist/electron/package.json -e "this.types=undefined" &&
     json -I -f dist/electron/package.json -e "this.bin=undefined" &&
