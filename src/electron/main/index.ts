@@ -22,6 +22,7 @@ import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
 import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-window-tracker";
 import { installLcpHandler } from "@r2-navigator-js/electron/main/lcp";
+import { installLsdHandler } from "@r2-navigator-js/electron/main/lsd";
 import { lsdLcpUpdateInject } from "@r2-navigator-js/electron/main/lsd-injectlcpl";
 import { setupReadiumCSS } from "@r2-navigator-js/electron/main/readium-css";
 import { initSessions, secureSessions } from "@r2-navigator-js/electron/main/sessions";
@@ -47,7 +48,7 @@ const lcpPluginPath = IS_DEV ?
     path.join(__dirname, "lcp.node");
 setLcpNativePluginPath(lcpPluginPath);
 
-const debug = debug_("r2:electron:main");
+const debug = debug_("r2:testapp#electron/main/index");
 
 let _publicationsServer: Server;
 let _publicationsServerPort: number;
@@ -238,7 +239,8 @@ app.on("ready", () => {
 
         secureSessions(_publicationsServer); // port 443 ==> HTTPS
 
-        installLcpHandler(_publicationsServer, deviceIDManager);
+        installLcpHandler(_publicationsServer);
+        installLsdHandler(_publicationsServer, deviceIDManager);
 
         const readiumCSSPath = IS_DEV ?
             path.join(process.cwd(), "dist", "ReadiumCSS").replace(/\\/g, "/") :
@@ -347,21 +349,21 @@ app.on("ready", () => {
         process.nextTick(async () => {
 
             const args = process.argv.slice(2);
-            console.log("args:");
-            console.log(args);
+            debug("args:");
+            debug(args);
             let filePathToLoadOnLaunch: string | undefined;
             if (args && args.length && args[0]) {
                 const argPath = args[0].trim();
                 let filePath = argPath;
-                console.log(filePath);
+                debug(filePath);
                 if (!fs.existsSync(filePath)) {
                     filePath = path.join(__dirname, argPath);
-                    console.log(filePath);
+                    debug(filePath);
                     if (!fs.existsSync(filePath)) {
                         filePath = path.join(process.cwd(), argPath);
-                        console.log(filePath);
+                        debug(filePath);
                         if (!fs.existsSync(filePath)) {
-                            console.log("FILEPATH DOES NOT EXIST: " + filePath);
+                            debug("FILEPATH DOES NOT EXIST: " + filePath);
                         } else {
                             filePathToLoadOnLaunch = filePath;
                         }
@@ -370,7 +372,7 @@ app.on("ready", () => {
                     }
                 } else {
                     filePath = fs.realpathSync(filePath);
-                    console.log(filePath);
+                    debug(filePath);
                     filePathToLoadOnLaunch = filePath;
                 }
             }

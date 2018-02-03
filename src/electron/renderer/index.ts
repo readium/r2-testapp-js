@@ -254,13 +254,100 @@ window.onerror = (err) => {
     console.log("Error", err);
 };
 
-ipcRenderer.on(R2_EVENT_TRY_LCP_PASS_RES, (_event: any, okay: boolean, msg: string, passSha256Hex: string) => {
+ipcRenderer.on(R2_EVENT_TRY_LCP_PASS_RES, (
+    _event: any,
+    okay: boolean,
+    msg: string | number,
+    passSha256Hex: string) => {
 
     if (!okay) {
+        let message: string;
+        if (typeof msg === "string") {
+            message = msg;
+        } else {
+            switch (msg as number) {
+                case 0: {
+                    message = "NONE: " + msg;
+                    break;
+                }
+                case 1: {
+                    message = "INCORRECT PASSPHRASE: " + msg;
+                    break;
+                }
+                case 11: {
+                    message = "LICENSE_OUT_OF_DATE: " + msg;
+                    break;
+                }
+                case 101: {
+                    message = "CERTIFICATE_REVOKED: " + msg;
+                    break;
+                }
+                case 102: {
+                    message = "CERTIFICATE_SIGNATURE_INVALID: " + msg;
+                    break;
+                }
+                case 111: {
+                    message = "LICENSE_SIGNATURE_DATE_INVALID: " + msg;
+                    break;
+                }
+                case 112: {
+                    message = "LICENSE_SIGNATURE_INVALID: " + msg;
+                    break;
+                }
+                case 121: {
+                    message = "CONTEXT_INVALID: " + msg;
+                    break;
+                }
+                case 131: {
+                    message = "CONTENT_KEY_DECRYPT_ERROR: " + msg;
+                    break;
+                }
+                case 141: {
+                    message = "USER_KEY_CHECK_INVALID: " + msg;
+                    break;
+                }
+                case 151: {
+                    message = "CONTENT_DECRYPT_ERROR: " + msg;
+                    break;
+                }
+                default: {
+                    message = "Unknown error?! " + msg;
+                }
+            }
+        }
+
         setTimeout(() => {
-            showLcpDialog(msg);
+            showLcpDialog(message);
         }, 500);
 
+        // DRMErrorCode (from r2-lcp-client)
+        // 1 === NO CORRECT PASSPHRASE / UERKEY IN GIVEN ARRAY
+        //     // No error
+        //     NONE = 0,
+        //     /**
+        //         WARNING ERRORS > 10
+        //     **/
+        //     // License is out of date (check start and end date)
+        //     LICENSE_OUT_OF_DATE = 11,
+        //     /**
+        //         CRITICAL ERRORS > 100
+        //     **/
+        //     // Certificate has been revoked in the CRL
+        //     CERTIFICATE_REVOKED = 101,
+        //     // Certificate has not been signed by CA
+        //     CERTIFICATE_SIGNATURE_INVALID = 102,
+        //     // License has been issued by an expired certificate
+        //     LICENSE_SIGNATURE_DATE_INVALID = 111,
+        //     // License signature does not match
+        //     LICENSE_SIGNATURE_INVALID = 112,
+        //     // The drm context is invalid
+        //     CONTEXT_INVALID = 121,
+        //     // Unable to decrypt encrypted content key from user key
+        //     CONTENT_KEY_DECRYPT_ERROR = 131,
+        //     // User key check invalid
+        //     USER_KEY_CHECK_INVALID = 141,
+        //     // Unable to decrypt encrypted content from content key
+        //     CONTENT_DECRYPT_ERROR = 151
         return;
     }
 
