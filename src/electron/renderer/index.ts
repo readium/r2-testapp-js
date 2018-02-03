@@ -1197,6 +1197,7 @@ function startNavigatorExperiment() {
 
             preloadPath = IS_DEV ? preloadPath : `${dirnameSlashed}/preload.js`;
             preloadPath = preloadPath.replace(/\\/g, "/");
+            // preloadPath = "file://" + preloadPath;
             console.log(preloadPath);
 
             installNavigatorDOM(_publication, publicationJsonUrl,
