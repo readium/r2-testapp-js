@@ -13,6 +13,7 @@
 // https://github.com/electron/electron/blob/master/docs/api/dialog.md
 // https://github.com/electron/electron/blob/master/docs/api/ipc-renderer.md
 
+import * as express from "express";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -247,6 +248,45 @@ app.on("ready", () => {
             path.join(__dirname, "ReadiumCSS").replace(/\\/g, "/");
 
         setupReadiumCSS(_publicationsServer, readiumCSSPath);
+
+        // For the webview preload sourcemaps (local file URL)
+        if (IS_DEV) {
+            let preloadPath = "FOLDER_PATH_TO/preload.js";
+            // TODO: REEEALLY HACKY! (and does not work in release bundle mode, only with dist/ exploded code)
+            let distTarget: string | undefined;
+            const dirnameSlashed = __dirname.replace(/\\/g, "/");
+            if (dirnameSlashed.indexOf("/dist/es5") > 0) {
+                distTarget = "es5";
+            } else if (dirnameSlashed.indexOf("/dist/es6-es2015") > 0) {
+                distTarget = "es6-es2015";
+            } else if (dirnameSlashed.indexOf("/dist/es7-es2016") > 0) {
+                distTarget = "es7-es2016";
+            } else if (dirnameSlashed.indexOf("/dist/es8-es2017") > 0) {
+                distTarget = "es8-es2017";
+            }
+            if (distTarget) {
+                preloadPath = path.join(process.cwd(),
+                    "node_modules/r2-navigator-js/dist/" +
+                    distTarget); // + "/src/electron/renderer/webview/preload.js"
+            }
+            preloadPath = preloadPath.replace(/\\/g, "/");
+            console.log(preloadPath);
+            // https://expressjs.com/en/4x/api.html#express.static
+            const staticOptions = {
+                dotfiles: "ignore",
+                etag: true,
+                fallthrough: false,
+                immutable: true,
+                index: false,
+                maxAge: "1d",
+                redirect: false,
+                // extensions: ["css", "otf"],
+                // setHeaders: function (res, path, stat) {
+                //   res.set('x-timestamp', Date.now())
+                // }
+            };
+            _publicationsServer.expressUse(preloadPath, express.static(preloadPath, staticOptions));
+        }
 
         // _publicationsServer.expressGet(["/resize-sensor.js"],
         //     (req: express.Request, res: express.Response) => {
