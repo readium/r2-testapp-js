@@ -1,9 +1,5 @@
 import * as path from "path";
 
-import SystemFonts = require("system-font-families");
-
-import debounce = require("debounce");
-
 import { IStringMap } from "@models/metadata-multilang";
 import { Publication } from "@models/publication";
 import {
@@ -14,7 +10,6 @@ import {
     R2_EVENT_TRY_LCP_PASS,
     R2_EVENT_TRY_LCP_PASS_RES,
 } from "@r2-navigator-js/electron/common/events";
-import { IStore } from "@r2-navigator-js/electron/common/store";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
     handleLink,
@@ -28,6 +23,7 @@ import { initGlobals } from "@r2-shared-js/init-globals";
 import { ipcRenderer } from "electron";
 import { JSON as TAJSON } from "ta-json";
 
+import { IStore } from "../common/store";
 import { StoreElectron } from "../common/store-electron";
 import {
     IRiotOptsLinkList,
@@ -53,6 +49,10 @@ import {
     IRiotTagMenuSelect,
     riotMountMenuSelect,
 } from "./riots/menuselect/index_";
+
+import SystemFonts = require("system-font-families");
+
+import debounce = require("debounce");
 
 const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
 

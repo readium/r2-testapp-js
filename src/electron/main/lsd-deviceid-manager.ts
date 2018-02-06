@@ -1,68 +1,70 @@
-import { IDeviceIDManager } from "@r2-lcp-js/lsd/deviceid-manager";
-import { IStore } from "@r2-navigator-js/electron/common/store";
 import * as debug_ from "debug";
 import * as uuid from "uuid";
 
-import { StoreElectron } from "../common/store-electron";
+import { IDeviceIDManager } from "@r2-lcp-js/lsd/deviceid-manager";
 
-export const electronStoreLSD: IStore = new StoreElectron("readium2-testapp-lsd", {});
+import { IStore } from "../common/store";
 
 const debug = debug_("r2:testapp#electron/main/lsd-deviceid-manager");
 
 const LSD_STORE_DEVICEID_ENTRY_PREFIX = "deviceID_";
 
-export const deviceIDManager: IDeviceIDManager = {
+export function getDeviceIDManager(electronStoreLSD: IStore, name: string): IDeviceIDManager {
 
-    checkDeviceID(key: string): string | undefined {
+    const deviceIDManager: IDeviceIDManager = {
 
-        const entry = LSD_STORE_DEVICEID_ENTRY_PREFIX + key;
+        checkDeviceID(key: string): string | undefined {
 
-        const lsdStore = electronStoreLSD.get("lsd");
-        if (!lsdStore || !lsdStore[entry]) {
-            return undefined;
-        }
+            const entry = LSD_STORE_DEVICEID_ENTRY_PREFIX + key;
 
-        return lsdStore[entry];
-    },
-
-    getDeviceID(): string {
-
-        let id = uuid.v4();
-
-        const lsdStore = electronStoreLSD.get("lsd");
-        if (!lsdStore) {
-            electronStoreLSD.set("lsd", {
-                deviceID: id,
-            });
-        } else {
-            if (lsdStore.deviceID) {
-                id = lsdStore.deviceID;
-            } else {
-                lsdStore.deviceID = id;
-                electronStoreLSD.set("lsd", lsdStore);
+            const lsdStore = electronStoreLSD.get("lsd");
+            if (!lsdStore || !lsdStore[entry]) {
+                return undefined;
             }
-        }
 
-        return id;
-    },
+            return lsdStore[entry];
+        },
 
-    getDeviceNAME(): string {
-        return "Readium2 Electron desktop app";
-    },
+        getDeviceID(): string {
 
-    recordDeviceID(key: string) {
+            let id = uuid.v4();
 
-        const id = this.getDeviceID();
+            const lsdStore = electronStoreLSD.get("lsd");
+            if (!lsdStore) {
+                electronStoreLSD.set("lsd", {
+                    deviceID: id,
+                });
+            } else {
+                if (lsdStore.deviceID) {
+                    id = lsdStore.deviceID;
+                } else {
+                    lsdStore.deviceID = id;
+                    electronStoreLSD.set("lsd", lsdStore);
+                }
+            }
 
-        const lsdStore = electronStoreLSD.get("lsd");
-        if (!lsdStore) {
-            // Should be init'ed at this.getDeviceID()
-            debug("LSD store problem?!");
-            return;
-        }
+            return id;
+        },
 
-        const entry = LSD_STORE_DEVICEID_ENTRY_PREFIX + key;
-        lsdStore[entry] = id;
-        electronStoreLSD.set("lsd", lsdStore);
-    },
-};
+        getDeviceNAME(): string {
+            return name;
+        },
+
+        recordDeviceID(key: string) {
+
+            const id = this.getDeviceID();
+
+            const lsdStore = electronStoreLSD.get("lsd");
+            if (!lsdStore) {
+                // Should be init'ed at this.getDeviceID()
+                debug("LSD store problem?!");
+                return;
+            }
+
+            const entry = LSD_STORE_DEVICEID_ENTRY_PREFIX + key;
+            lsdStore[entry] = id;
+            electronStoreLSD.set("lsd", lsdStore);
+        },
+    };
+    return deviceIDManager;
+}

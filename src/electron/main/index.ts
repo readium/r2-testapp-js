@@ -13,7 +13,6 @@
 // https://github.com/electron/electron/blob/master/docs/api/dialog.md
 // https://github.com/electron/electron/blob/master/docs/api/ipc-renderer.md
 
-import * as express from "express";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -32,11 +31,17 @@ import { Server } from "@r2-streamer-js/http/server";
 import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
 import * as debug_ from "debug";
 import { BrowserWindow, Menu, app, dialog, ipcMain, webContents } from "electron";
+import * as express from "express";
 import * as filehound from "filehound";
 import * as portfinder from "portfinder";
 
 import { R2_EVENT_DEVTOOLS } from "../common/events";
-import { deviceIDManager } from "./lsd-deviceid-manager";
+import { IStore } from "../common/store";
+import { StoreElectron } from "../common/store-electron";
+import { getDeviceIDManager } from "./lsd-deviceid-manager";
+
+const electronStoreLSD: IStore = new StoreElectron("readium2-testapp-lsd", {});
+const deviceIDManager = getDeviceIDManager(electronStoreLSD, "Readium2 Electron desktop app");
 
 // import * as mime from "mime-types";
 
