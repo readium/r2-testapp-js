@@ -2,6 +2,7 @@ import * as path from "path";
 
 import { IStringMap } from "@models/metadata-multilang";
 import { Publication } from "@models/publication";
+import { IEventPayload_R2_EVENT_READIUMCSS } from "@r2-navigator-js/electron/common/events";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
     handleLink,
@@ -87,20 +88,20 @@ const electronStoreLCP: IStore = new StoreElectron("readium2-testapp-lcp", {});
 
 initGlobals();
 
-const computeReadiumCssJsonMessage = (): string => {
+const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
 
     const on = electronStore.get("styling.readiumcss");
     if (on) {
-        const align = electronStore.get("styling.align");
-        const colCount = electronStore.get("styling.colCount");
-        const dark = electronStore.get("styling.dark");
-        const font = electronStore.get("styling.font");
-        const fontSize = electronStore.get("styling.fontSize");
-        const lineHeight = electronStore.get("styling.lineHeight");
-        const invert = electronStore.get("styling.invert");
-        const night = electronStore.get("styling.night");
-        const paged = electronStore.get("styling.paged");
-        const sepia = electronStore.get("styling.sepia");
+        const align = electronStore.get("styling.align") as string;
+        const colCount = electronStore.get("styling.colCount") as string;
+        const dark = electronStore.get("styling.dark") as boolean;
+        const font = electronStore.get("styling.font") as string;
+        const fontSize = electronStore.get("styling.fontSize") as string;
+        const lineHeight = electronStore.get("styling.lineHeight") as string;
+        const invert = electronStore.get("styling.invert") as boolean;
+        const night = electronStore.get("styling.night") as boolean;
+        const paged = electronStore.get("styling.paged") as boolean;
+        const sepia = electronStore.get("styling.sepia") as boolean;
         const cssJson = {
             align,
             colCount,
@@ -113,11 +114,10 @@ const computeReadiumCssJsonMessage = (): string => {
             paged,
             sepia,
         };
-        const jsonMsg = { injectCSS: "yes", setCSS: cssJson };
-        return JSON.stringify(jsonMsg, null, 0);
+        const jsonMsg: IEventPayload_R2_EVENT_READIUMCSS = { injectCSS: "yes", setCSS: cssJson };
+        return jsonMsg;
     } else {
-        const jsonMsg = { injectCSS: "rollback", setCSS: "rollback" };
-        return JSON.stringify(jsonMsg, null, 0);
+        return { injectCSS: "rollback", setCSS: "rollback" };
     }
 };
 setReadiumCssJsonGetter(computeReadiumCssJsonMessage);
