@@ -21,8 +21,6 @@ import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-p
 import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
 import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-window-tracker";
-import { installLcpHandler } from "@r2-navigator-js/electron/main/lcp";
-import { installLsdHandler } from "@r2-navigator-js/electron/main/lsd";
 import { lsdLcpUpdateInject } from "@r2-navigator-js/electron/main/lsd-injectlcpl";
 import { setupReadiumCSS } from "@r2-navigator-js/electron/main/readium-css";
 import { initSessions, secureSessions } from "@r2-navigator-js/electron/main/sessions";
@@ -38,6 +36,8 @@ import * as portfinder from "portfinder";
 import { R2_EVENT_DEVTOOLS } from "../common/events";
 import { IStore } from "../common/store";
 import { StoreElectron } from "../common/store-electron";
+import { installLcpHandler } from "./lcp";
+import { installLsdHandler } from "./lsd";
 import { getDeviceIDManager } from "./lsd-deviceid-manager";
 
 const electronStoreLSD: IStore = new StoreElectron("readium2-testapp-lsd", {});
