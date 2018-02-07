@@ -203,9 +203,9 @@ form {
   vertical-align: middle;
   font-size: 36px;
 }
-/* .mdc-simple-menu,
-.mdc-simple-menu--animating,
-.mdc-simple-menu--animating .mdc-simple-menu__items > *,
+/* .mdc-menu,
+.mdc-menu--animating,
+.mdc-menu--animating .mdc-menu__items > *,
 .mdc-list,
 .mdc-list-item,
 .mdc-list-item::before,
@@ -213,7 +213,7 @@ form {
 .mdc-select__selected-text {
   transition: all 0s ease 0s !important;
 } */
-.mdc-simple-menu--animating {
+.mdc-menu--animating {
   overflow: hidden;
 }
 /* #nav-select */

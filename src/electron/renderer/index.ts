@@ -682,7 +682,7 @@ const initFontSelector = () => {
 
 window.addEventListener("DOMContentLoaded", () => {
 
-    (window as any).mdc.menu.MDCSimpleMenuFoundation.numbers.TRANSITION_DURATION_MS = 200;
+    (window as any).mdc.menu.MDCMenuFoundation.numbers.TRANSITION_DURATION_MS = 200;
 
     // TODO this seems to hijack MDC slider thumb change
     window.document.addEventListener("keydown", (ev: KeyboardEvent) => {
@@ -726,7 +726,7 @@ window.addEventListener("DOMContentLoaded", () => {
         drawer.open = true;
     });
     // drawerElement.addEventListener("click", (ev) => {
-    //     const allMenus = drawerElement.querySelectorAll(".mdc-simple-menu");
+    //     const allMenus = drawerElement.querySelectorAll(".mdc-menu");
     //     const openedMenus: Node[] = [];
     //     allMenus.forEach((elem) => {
     //         if ((elem as any).mdcSimpleMenu && (elem as any).mdcSimpleMenu.open) {
@@ -824,7 +824,7 @@ window.addEventListener("DOMContentLoaded", () => {
     //     });
 
     const menuFactory = (menuEl: HTMLElement) => {
-        const menu = new (window as any).mdc.menu.MDCSimpleMenu(menuEl);
+        const menu = new (window as any).mdc.menu.MDCMenu(menuEl);
         (menuEl as any).mdcSimpleMenu = menu;
         return menu;
     };

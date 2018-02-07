@@ -114,7 +114,7 @@ export const riotMountMenuSelect = (selector: string, opts: IRiotOptsMenuSelect)
     that.on("mount", () => {
 
         const menuFactory = (menuEl: HTMLElement) => {
-            const menu = new (window as any).mdc.menu.MDCSimpleMenu(menuEl);
+            const menu = new (window as any).mdc.menu.MDCMenu(menuEl);
             (menuEl as any).mdcSimpleMenu = menu;
             return menu;
         };
