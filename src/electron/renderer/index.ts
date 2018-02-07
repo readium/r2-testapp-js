@@ -5,6 +5,8 @@ import { Publication } from "@models/publication";
 import { IEventPayload_R2_EVENT_READIUMCSS } from "@r2-navigator-js/electron/common/events";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
+    DOM_EVENT_HIDE_VIEWPORT,
+    DOM_EVENT_SHOW_VIEWPORT,
     handleLink,
     installNavigatorDOM,
     navLeftOrRight,
@@ -170,11 +172,12 @@ electronStore.onChanged("styling.night", (newValue: any, oldValue: any) => {
     const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
     nightSwitch.checked = newValue;
 
-    if (newValue) {
-        document.body.classList.add("mdc-theme--dark");
-    } else {
-        document.body.classList.remove("mdc-theme--dark");
-    }
+    // TODO DARK THEME
+    // if (newValue) {
+    //     document.body.classList.add("mdc-theme--dark");
+    // } else {
+    //     document.body.classList.remove("mdc-theme--dark");
+    // }
 
     readiumCssOnOff();
 });
@@ -712,11 +715,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
     installKeyboardMouseFocusHandler();
 
-    if (electronStore.get("styling.night")) {
-        document.body.classList.add("mdc-theme--dark");
-    } else {
-        document.body.classList.remove("mdc-theme--dark");
-    }
+    // TODO DARK THEME
+    // if (electronStore.get("styling.night")) {
+    //     document.body.classList.add("mdc-theme--dark");
+    // } else {
+    //     document.body.classList.remove("mdc-theme--dark");
+    // }
 
     const drawerElement = document.getElementById("drawer") as HTMLElement;
     drawer = new (window as any).mdc.drawer.MDCTemporaryDrawer(drawerElement);
@@ -1225,13 +1229,53 @@ function startNavigatorExperiment() {
             // preloadPath = "file://" + preloadPath;
             console.log(preloadPath);
 
+            const rootHtmlElementID = "publication_viewport";
+            const rootHtmlElement = document.getElementById(rootHtmlElementID) as HTMLElement;
+            if (!rootHtmlElement) {
+                console.log("!rootHtmlElement ???");
+                return;
+            }
+
+            rootHtmlElement.addEventListener(DOM_EVENT_HIDE_VIEWPORT, () => {
+                hideWebView();
+            });
+            rootHtmlElement.addEventListener(DOM_EVENT_SHOW_VIEWPORT, () => {
+                unhideWebView();
+            });
+
             installNavigatorDOM(_publication, publicationJsonUrl,
-                "publication_viewport",
+                rootHtmlElementID,
                 preloadPath,
                 pubDocHrefToLoad, pubDocSelectorToGoto);
         }, 500);
     })();
 }
+
+const ELEMENT_ID_HIDE_PANEL = "r2_navigator_reader_chrome_HIDE";
+let _viewHideInterval: NodeJS.Timer | undefined;
+const unhideWebView = () => {
+    if (_viewHideInterval) {
+        clearInterval(_viewHideInterval);
+        _viewHideInterval = undefined;
+    }
+    const hidePanel = document.getElementById(ELEMENT_ID_HIDE_PANEL) as HTMLElement;
+    if (!hidePanel || hidePanel.style.display === "none") {
+        return;
+    }
+    if (hidePanel) {
+        hidePanel.style.display = "none";
+    }
+};
+const hideWebView = () => {
+    const hidePanel = document.getElementById(ELEMENT_ID_HIDE_PANEL) as HTMLElement;
+    if (hidePanel && hidePanel.style.display !== "block") {
+        hidePanel.style.display = "block";
+        _viewHideInterval = setInterval(() => {
+            console.log("unhideWebView FORCED");
+            unhideWebView();
+        }, 5000);
+    }
+};
 
 function handleLink_(href: string) {
     if (drawer.open) {
