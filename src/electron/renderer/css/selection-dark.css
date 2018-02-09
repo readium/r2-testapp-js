@@ -1,0 +1,4 @@
+.mdc-theme--dark ::selection {
+  background-color: rgb(100, 122, 177) !important;
+  color: white !important;
+}

@@ -1,0 +1,19 @@
+.mdc-theme--dark ::-webkit-scrollbar-thumb {
+  background: #a4a4a4;
+  border: 3px solid #545454;
+}
+
+.mdc-theme--dark ::-webkit-scrollbar-thumb:hover {
+  background: #dedede;
+}
+
+.mdc-theme--dark ::-webkit-scrollbar-track {
+  background: #545454;
+}
+
+.mdc-theme--dark ::-webkit-scrollbar-track:horizontal {
+  border-top: 1px solid black;
+}
+.mdc-theme--dark ::-webkit-scrollbar-track:vertical {
+  border-left: 1px solid black;
+}

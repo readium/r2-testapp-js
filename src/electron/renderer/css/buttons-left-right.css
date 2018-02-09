@@ -1,0 +1,22 @@
+#buttonNavLeft, #buttonNavRight {
+  display: block;
+  position: absolute;
+  top: 20%;
+  bottom: 20%;
+  margin: 0;
+  padding: 0;
+  width: var(--R2__specialDimension);
+  height: auto;
+  min-width: var(--R2__specialDimension);
+  min-height: auto;
+}
+#buttonNavLeft {
+  left: 0;
+}
+#buttonNavRight {
+  right: 0;
+}
+#buttonNavLeft i, #buttonNavRight i {
+  vertical-align: middle;
+  font-size: 36px;
+}

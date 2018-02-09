@@ -1,0 +1,50 @@
+#tabsPanels {
+  height: 100%;
+  overflow: hidden;
+  borderxx: 2px solid red;
+  box-sizing: border-box;
+  display: inline-flex;
+  margin-top: 1px;
+}
+.tabPanel {
+  display: none;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+}
+.tabPanel.active {
+  display: block;
+}
+
+/* riot-linktree,
+[data-is="riot-linktree"] */
+#reader_controls_TOC,
+#reader_controls_TOC ul {
+  padding-left: 0;
+  list-style: none;
+  border-left: 1px solid #DDDDDD;
+}
+
+#reader_controls_ADVANCED,
+#reader_controls_TOOLS,
+#reader_controls_STYLES {
+  padding: 1em;
+}
+#reader_controls_TOC a:focus {
+  background-color: rgba(230, 230, 230, 1);
+}
+
+#tabsPanels .mdc-list-item__text {
+  max-width: 100%;
+}
+#tabsPanels .mdc-list-item__secondary-text {
+  word-wrap: break-word;
+}
+#lineHeightSelector {
+  margin-top: -22px;
+}
+
+#fontSizeSelector {
+  margin-top: -22px;
+}

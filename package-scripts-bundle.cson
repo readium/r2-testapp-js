@@ -280,8 +280,7 @@
     cpy ./dist/#ECMASCRIPT#/src/electron/renderer/AccessibleDfA.otf ./dist/bundle-#ECMASCRIPT#/ &&
 
     cpy ./dist/#ECMASCRIPT#/src/electron/renderer/index.html ./dist/bundle-#ECMASCRIPT#/ &&
-    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/index.css ./dist/bundle-#ECMASCRIPT#/ &&
-    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/mdc.css ./dist/bundle-#ECMASCRIPT#/ &&
+    cpy ./dist/#ECMASCRIPT#/src/electron/renderer/*.css ./dist/bundle-#ECMASCRIPT#/ &&
 
     echo \'require("./electron-renderer.js");\' > ./dist/bundle-#ECMASCRIPT#/index.js &&
     echo \'require("./electron-main.js");\' > ./dist/bundle-#ECMASCRIPT#/main.js &&

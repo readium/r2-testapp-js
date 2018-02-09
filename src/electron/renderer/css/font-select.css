@@ -1,0 +1,39 @@
+#fontSelect {
+  margin-bottom: 2em;
+}
+#fontSelect.mdc-select {
+  width: 100% !important;
+}
+#fontSelect .mdc-select__menu {
+  /* left: 0 !important; */
+  width: 80%;
+}
+#fontSelect .mdc-select__selected-text,
+#fontSelect .mdc-select__label {
+  padding-left: 6px;
+}
+#fontSelect .mdc-select__selected-textxx::before,
+#fontSelect .mdc-select__label::before {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  vertical-align: bottom;
+
+  display: inline-block;
+  position: relative;
+  left: -6px;
+  top: -3px;
+
+  content: "\E245";
+  /* format_size */
+}

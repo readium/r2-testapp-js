@@ -1,0 +1,65 @@
+#nav-select.mdc-select {
+  width: 100% !important;
+}
+#nav-select-menu.mdc-select__menu {
+  width: 100% !important;
+}
+#nav-select .mdc-select__surface {
+  padding-bottom: 0px;
+}
+#nav-select .mdc-select__label {
+  padding-left: 10px;
+}
+#nav-select .mdc-select__selected-text {
+  padding-left: 8px;
+}
+#nav-select-menu > ul {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+#nav-select-menu > ul > li.mdc-list-item {
+  padding-left: 46px;
+}
+#nav-select-menu > ul > li.mdc-list-item::after {
+
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  vertical-align: bottom;
+
+  display: inline-block;
+  position: absolute;
+  left: 8px;
+  top: 11px;
+
+  background: transparent;
+  opacity: 1;
+}
+#selectTOC::after {
+    content: "\E88A"; /* home */
+}
+#selectLandmarks::after {
+    content: "\E55F"; /* place */
+}
+#selectPageList::after {
+    content: "\E241"; /* format_list_bulleted */
+}
+#selectSpine::after {
+    content: "\E260"; /* linear_scale */
+}
+#selectStyles::after {
+    content: "\E8F4"; /* format_color_text */
+}
+#selectAdvanced::after {
+    content: "\E8B8"; /* settings */
+}

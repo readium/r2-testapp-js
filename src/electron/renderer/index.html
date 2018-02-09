@@ -11,7 +11,6 @@
   <style type="riot"> </style>
 
   <link type="text/css" href="./index.css" rel="stylesheet" >
-  <link type="text/css" href="./mdc.css" rel="stylesheet" >
 
   <script  type="application/javascript" src="./material-components-web.js"> </script>
 
@@ -44,8 +43,8 @@
     <aside id="drawer" class="mdc-drawer--temporary">
       <nav id="drawerNav" class="mdc-drawer__drawer">
 
-          <div id="nav-select" class="mdc-select" role="listbox" tabindex="0">
-            <div class="mdc-select__surface">
+          <div id="nav-select" class="mdc-select" role="listbox">
+            <div class="mdc-select__surface" tabindex="0">
               <!-- float-above ==> https://github.com/material-components/material-components-web/issues/1810 -->
               <div class="mdc-select__label mdc-select__label--float-above">Main menu</div>
               <div class="mdc-select__selected-text"></div>
@@ -136,7 +135,7 @@
                     <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
                   </div>
 
-                  <div data-is="riot-menuselect" id="fontSelect" style="margin-bottom: 1em;"> </div>
+                  <div data-is="riot-menuselect" id="fontSelect"> </div>
 
                   <!-- <i class="material-icons" role="presentation" style="vertical-align: top;" aria-label="font size" aria-hidden>format_size</i> -->
                   <span class="mdc-typography--text" style="display: block;">Font size (%):</span>

@@ -1,0 +1,107 @@
+/* switch/toggle control: shrinks the oversized keyboard/mouse focus "ring" (knob ring) */
+.mdc-switch__native-control:focus ~ .mdc-switch__background .mdc-switch__knob::before {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  top: -5px;
+  left: -5px;
+}
+
+/* .mdc-snackbar {
+  z-index: 7;
+} */
+
+/*
+.mdc-list-item:hover > span,
+.mdc-list-item:hover > span > span {
+  color: var(--mdc-theme-primary, blue);
+}
+*/
+
+/* .mdc-menu,
+.mdc-menu--animating,
+.mdc-menu--animating .mdc-menu__items > *,
+.mdc-list,
+.mdc-list-item,
+.mdc-list-item::before,
+.mdc-select,
+.mdc-select__selected-text {
+  transition: all 0s ease 0s !important;
+} */
+
+/*
+// TODO CHECK
+.mdc-menu--animating {
+  overflow: hidden;
+}
+*/
+
+/*
+// TODO CHECK
+.mdc-select {
+  width: 100% !important;
+}
+.mdc-select {
+  background-position-x: 96%;
+}
+*/
+
+/* .mdc-select__selected-text,
+.mdc-select__label {
+  padding-left: 1em;
+} */
+
+/*
+// TODO CHECK
+.mdc-list-item {
+  padding-left: 3px;
+  border-left: 3px solid var(--mdc-theme-background, white);
+}
+
+
+.mdc-list-item:hover {
+  border-left: 3px solid var(--mdc-theme-secondary, magenta);
+}
+*/
+
+/*
+// TODO DARK THEME
+
+.mdc-theme--dark,
+.mdc-theme--dark #reader_chrome,
+.mdc-theme--dark #r2_navigator_reader_chrome_HIDE,
+.mdc-theme--dark #publication_viewport,
+.mdc-theme--dark #r2_navigator_sliding_viewport,
+.mdc-theme--dark .mdc-button:not(.mdc-button--raised),
+.mdc-theme--dark #reader_controls_TOC a:focus {
+  background-color: rgba(70, 70, 70, 1);
+}
+.mdc-theme--dark #reader_controls_TOC,
+.mdc-theme--dark #reader_controls_TOC ul {
+  border-left: 1px solid #000000;
+}
+.mdc-theme--dark #reader_controls_TOC a {
+  border-left: 3px solid #303030;
+}
+.mdc-theme--dark #reader_controls_TOC a:hover {
+  border-left: 3px solid var(--mdc-theme-secondary, orange);
+}
+.mdc-theme--dark #reader_controls_TOC a:hover > span,
+.mdc-theme--dark #reader_controls_TOC a:hover > span > span {
+  color: var(--mdc-theme-primary-light, blue);
+}
+*/
+
+/*
+// TODO DARK THEME
+.mdc-theme--dark .mdc-list-item {
+  border-left: 3px solid #303030;
+}
+*/
+/*
+// TODO DARK THEME
+.mdc-theme--dark .mdc-list-item:hover > span,
+.mdc-theme--dark .mdc-list-item:hover > span > span {
+  color: var(--mdc-theme-primary-light, blue);
+}
+*/

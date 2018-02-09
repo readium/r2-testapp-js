@@ -1,0 +1,3 @@
+.mdc-theme--dark {
+  color: var(--mdc-theme-background, white);
+}

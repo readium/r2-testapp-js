@@ -1,0 +1,9 @@
+*:focus {
+  outline-style: solid !important;
+  outline-width: 2px !important;
+  outline-color: var(--mdc-theme-primary, blue) !important;
+  outline-offset: 0px !important;
+}
+*.no-focus-outline:focus {
+  outline-style: none !important;
+}

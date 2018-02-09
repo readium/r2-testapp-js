@@ -1,0 +1,3 @@
+*:focus {
+  outline-color: var(--mdc-theme-secondary, blue) !important;
+}

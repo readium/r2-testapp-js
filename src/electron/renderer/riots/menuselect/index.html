@@ -1,4 +1,4 @@
-<riot-menuselect class="mdc-select" role="listbox" tabindex="0">
+<riot-menuselect class="mdc-select" role="listbox">
   <div class="mdc-select__surface">
     <!-- float-above ==> https://github.com/material-components/material-components-web/issues/1810 -->
     <div class="mdc-select__label mdc-select__label--float-above">{ opts.label }</div>
@@ -10,7 +10,7 @@
         <li each="{ opts.options }"
             class="{ (label === '_' ? 'mdc-list-divider mdc-list-divider--padded' : 'mdc-list-item' ) }"
             role="{ (label === '_' ? 'presentation' : 'option' ) }"
-            tabindex="0"
+            tabindex="{ (label === "_" ? -1 : 0) }"
             id="{ id }"
             aria-selected="{ id === parent.opts.selected }"
             disabled="{ label === '_' }"

@@ -1,0 +1,11 @@
+/* over mdc-drawer--temporary (5) */
+/* .mdc-dialog */
+#lcpDialog {
+  z-index: 6;
+}
+#lcpDialog .mdc-text-field__input {
+  width: 50%;
+}
+#lcpDialog .mdc-form-field, #lcpDialog .mdc-text-field {
+  width: 100%;
+}
