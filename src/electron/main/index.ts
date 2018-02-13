@@ -20,6 +20,7 @@ import { Publication } from "@models/publication";
 import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-processing";
 import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
+import { convertHttpUrlToCustomScheme } from "@r2-navigator-js/electron/common/sessions";
 import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-window-tracker";
 import { lsdLcpUpdateInject } from "@r2-navigator-js/electron/main/lsd-injectlcpl";
 import { setupReadiumCSS } from "@r2-navigator-js/electron/main/readium-css";
@@ -185,6 +186,9 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         debug("electronBrowserWindow dom-ready " + publicationFilePath + " : " + publicationUrl);
         // electronBrowserWindow.webContents.openDevTools();
     });
+
+    // This triggers the origin-sandbox for localStorage, etc.
+    publicationUrl = convertHttpUrlToCustomScheme(publicationUrl);
 
     const urlEncoded = encodeURIComponent_RFC3986(publicationUrl);
     let htmlPath = IS_DEV ? `${__dirname}/../renderer/index.html` : `${__dirname}/index.html`;

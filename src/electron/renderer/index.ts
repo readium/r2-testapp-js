@@ -3,6 +3,10 @@ import * as path from "path";
 import { IStringMap } from "@models/metadata-multilang";
 import { Publication } from "@models/publication";
 import { IEventPayload_R2_EVENT_READIUMCSS } from "@r2-navigator-js/electron/common/events";
+import {
+    READIUM2_ELECTRON_HTTP_PROTOCOL,
+    convertCustomSchemeToHttpUrl,
+} from "@r2-navigator-js/electron/common/sessions";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
     DOM_EVENT_HIDE_VIEWPORT,
@@ -15,7 +19,7 @@ import {
     setReadiumCssJsonGetter,
 } from "@r2-navigator-js/electron/renderer/index";
 import { initGlobals } from "@r2-shared-js/init-globals";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, webFrame } from "electron";
 import { JSON as TAJSON } from "ta-json";
 
 import {
@@ -64,6 +68,16 @@ import SystemFonts = require("system-font-families");
 import debounce = require("debounce");
 
 const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
+
+webFrame.registerURLSchemeAsSecure(READIUM2_ELECTRON_HTTP_PROTOCOL);
+// webFrame.registerURLSchemeAsBypassingCSP(READIUM2_ELECTRON_HTTP_PROTOCOL);
+webFrame.registerURLSchemeAsPrivileged(READIUM2_ELECTRON_HTTP_PROTOCOL, {
+    allowServiceWorkers: false,
+    bypassCSP: false,
+    corsEnabled: false,
+    secure: true,
+    supportFetchAPI: true,
+});
 
 const electronStore: IStore = new StoreElectron("readium2-testapp", {
     basicLinkTitles: true,
@@ -152,14 +166,18 @@ const queryParams = getURLQueryParams();
 
 // tslint:disable-next-line:no-string-literal
 const publicationJsonUrl = queryParams["pub"];
-
-const pathBase64 = publicationJsonUrl.replace(/.*\/pub\/(.*)\/manifest.json/, "$1");
-
+console.log(publicationJsonUrl);
+const publicationJsonUrl_ = publicationJsonUrl.startsWith(READIUM2_ELECTRON_HTTP_PROTOCOL) ?
+    convertCustomSchemeToHttpUrl(publicationJsonUrl) : publicationJsonUrl;
+console.log(publicationJsonUrl_);
+const pathBase64 = publicationJsonUrl_.replace(/.*\/pub\/(.*)\/manifest.json/, "$1");
+console.log(pathBase64);
 const pathDecoded = window.atob(pathBase64);
-
+console.log(pathDecoded);
 const pathFileName = pathDecoded.substr(
     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
     pathDecoded.length - 1);
+console.log(pathFileName);
 
 // tslint:disable-next-line:no-string-literal
 const lcpHint = queryParams["lcpHint"];
