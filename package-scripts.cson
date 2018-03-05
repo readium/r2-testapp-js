@@ -22,9 +22,9 @@
   'electron-pack:prepare': '
     rimraf dist/electron/ &&
     mkdirp dist/electron/ &&
-    cpy "./**/*" ../electron/  --cwd=./dist/bundle-es8-es2017/ --parents &&
+    cpy "./**/*" ../electron/  --cwd=./dist/bundle-es8-es2017/ --parents --no-dir &&
     rimraf dist/electron/node_modules/ &&
-    cpy package.json dist/electron/ &&
+    cpy ./package.json dist/electron/ &&
     json -I -f dist/electron/package.json -e "this.build=undefined" &&
     json -I -f dist/electron/package.json -e "this.scripts=undefined" &&
     json -I -f dist/electron/package.json -e "this.importSort=undefined" &&
@@ -94,7 +94,7 @@
 
   'electron-renderer:all': '
     npm run riot:all &&
-    cpy "./ReadiumCSS/**/*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
+    cpy "./ReadiumCSS/**/*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents --no-dir
   '
 
   'postelectron-renderer:all': '
@@ -138,8 +138,8 @@
     cpy ../r2-testapp-js/package-lock.json . &&
     cpy ../r2-testapp-js/LICENSE . &&
     cpy ../r2-testapp-js/README.md . &&
-    cpy "docs/**/*" ../r2-testapp-js-dist/ --cwd=../r2-testapp-js/ --parents &&
-    cpy "dist/**/*" ../r2-testapp-js-dist/ --cwd=../r2-testapp-js/ --parents &&
+    cpy "./docs/**/*" ../r2-testapp-js-dist/ --cwd=../r2-testapp-js/ --parents --no-dir &&
+    cpy "./dist/**/*" ../r2-testapp-js-dist/ --cwd=../r2-testapp-js/ --parents --no-dir &&
     (git add * || echo add) &&
     (git commit -a -m "add new dist" || echo commit) &&
     (git push --set-upstream origin develop || echo push) &&

@@ -247,16 +247,16 @@
     curl https://raw.githubusercontent.com/rbuckton/reflect-metadata/master/Reflect.ts > Reflect.ts &&
 
     ((ls ./node_modules/reflect-metadata/ &&
-    cpy Reflect.ts ./node_modules/reflect-metadata/) || echo "OK") &&
+    cpy ./Reflect.ts ./node_modules/reflect-metadata/) || echo "OK") &&
 
     ((ls ./node_modules/ta-json/node_modules/reflect-metadata/ &&
-    cpy Reflect.ts ./node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK") &&
+    cpy ./Reflect.ts ./node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK") &&
 
     ((ls ./node_modules/r2-navigator-js/node_modules/ta-json/node_modules/reflect-metadata/ &&
-    cpy Reflect.ts ./node_modules/r2-navigator-js/node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK") &&
+    cpy ./Reflect.ts ./node_modules/r2-navigator-js/node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK") &&
 
     ((ls ./node_modules/r2-streamer-js/node_modules/ta-json/node_modules/reflect-metadata/ &&
-    cpy Reflect.ts ./node_modules/r2-streamer-js/node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK") &&
+    cpy ./Reflect.ts ./node_modules/r2-streamer-js/node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK") &&
 
     rimraf Reflect.ts &&
 
@@ -281,13 +281,13 @@
     cpy ./dist/#ECMASCRIPT#/src/electron/renderer/iAWriterDuospace-Regular.ttf ./dist/bundle-#ECMASCRIPT#/ &&
 
     cpy ./dist/#ECMASCRIPT#/src/electron/renderer/index.html ./dist/bundle-#ECMASCRIPT#/ &&
-    cpy "**/*.css" ../../../../bundle-#ECMASCRIPT#/ --cwd=./dist/#ECMASCRIPT#/src/electron/renderer/ --parents &&
+    cpy "./**/*.css" ../../../../bundle-#ECMASCRIPT#/ --cwd=./dist/#ECMASCRIPT#/src/electron/renderer/ --parents &&
 
     printf "require(\'./electron-renderer.js\');" > ./dist/bundle-#ECMASCRIPT#/index.js &&
     printf "require(\'./electron-main.js\');" > ./dist/bundle-#ECMASCRIPT#/main.js &&
     printf "require(\'./electron-webview-preload.js\');" > ./dist/bundle-#ECMASCRIPT#/preload.js &&
 
-    cpy "./ReadiumCSS/**/*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents &&
+    cpy "./ReadiumCSS/**/*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents --no-dir &&
 
     cpy "./misc/epubs/*" ./dist/bundle-#ECMASCRIPT#/ --parents &&
 
