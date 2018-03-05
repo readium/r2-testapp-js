@@ -1,9 +1,19 @@
 @font-face {
-  font-family: "AccessibleDfa";
+  font-family: AccessibleDfa;
   font-style: normal;
   font-weight: normal;
-  src: local("AccessibleDfa"), url("../AccessibleDfA.otf") format("opentype");
+  src: local("AccessibleDfa"),
+    url("../AccessibleDfA.otf") format("opentype");
 }
+
+@font-face {
+  font-family: "IA Writer Duospace";
+  font-style: normal;
+  font-weight: normal;
+  src: local("iAWriterDuospace-Regular"),
+    url("../iAWriterDuospace-Regular.ttf") format("truetype");
+}
+
 @font-face {
   font-family: 'Material Icons';
   font-style: normal;

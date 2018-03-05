@@ -34,6 +34,7 @@
   'preelectron-renderer:#ECMASCRIPT#': '
     npm run material:#ECMASCRIPT# &&
     cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/AccessibleDfA.otf ./dist/#ECMASCRIPT#/src/electron/renderer/ &&
+    cpy ./node_modules/r2-navigator-js/dist/ReadiumCSS/fonts/iAWriterDuospace-Regular.ttf ./dist/#ECMASCRIPT#/src/electron/renderer/ &&
     cpy "./src/electron/renderer/**/*.html" ./dist/#ECMASCRIPT#/ --cwd=./ --parents &&
     cpy "./src/electron/renderer/**/*.css" ./dist/#ECMASCRIPT#/ --cwd=./ --parents
   '
