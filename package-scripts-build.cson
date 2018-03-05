@@ -41,7 +41,7 @@
 
   'electron-renderer:#ECMASCRIPT#': '
     npm run riot:#ECMASCRIPT# &&
-    cpy "./ReadiumCSS/**/*.*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
+    cpy "./ReadiumCSS/**/*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents
   '
 
   'postelectron-renderer:#ECMASCRIPT#': '

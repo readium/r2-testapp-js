@@ -287,9 +287,9 @@
     printf "require(\'./electron-main.js\');" > ./dist/bundle-#ECMASCRIPT#/main.js &&
     printf "require(\'./electron-webview-preload.js\');" > ./dist/bundle-#ECMASCRIPT#/preload.js &&
 
-    cpy "./ReadiumCSS/**/*.*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents &&
+    cpy "./ReadiumCSS/**/*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents &&
 
-    cpy "./misc/epubs/*.*" ./dist/bundle-#ECMASCRIPT#/ --parents &&
+    cpy "./misc/epubs/*" ./dist/bundle-#ECMASCRIPT#/ --parents &&
 
     npm run bundle-electron-main:#ECMASCRIPT# &&
     npm run bundle-electron-renderer:#ECMASCRIPT# &&
