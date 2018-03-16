@@ -107,45 +107,47 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
 
     debug("createElectronBrowserWindow() " + publicationFilePath + " : " + publicationUrl);
 
-    // const fileName = path.basename(publicationFilePath);
-    // const ext = path.extname(fileName).toLowerCase();
-
-    let publication: Publication;
-    try {
-        publication = await _publicationsServer.loadOrGetCachedPublication(publicationFilePath);
-    } catch (err) {
-        debug(err);
-        return;
-    }
-
     let lcpHint: string | undefined;
-    if (publication && publication.LCP) {
-        try {
-            await launchStatusDocumentProcessing(publication.LCP, deviceIDManager,
-                async (licenseUpdateJson: string | undefined) => {
-                    debug("launchStatusDocumentProcessing DONE.");
+    if (publicationFilePath.indexOf("http") !== 0) {
+        // const fileName = path.basename(publicationFilePath);
+        // const ext = path.extname(fileName).toLowerCase();
 
-                    if (licenseUpdateJson) {
-                        let res: string;
-                        try {
-                            res = await lsdLcpUpdateInject(licenseUpdateJson, publication, publicationFilePath);
-                            debug("EPUB SAVED: " + res);
-                        } catch (err) {
-                            debug(err);
-                        }
-                    }
-                });
+        let publication: Publication;
+        try {
+            publication = await _publicationsServer.loadOrGetCachedPublication(publicationFilePath);
         } catch (err) {
             debug(err);
+            return;
         }
 
-        if (publication.LCP.Encryption &&
-            publication.LCP.Encryption.UserKey &&
-            publication.LCP.Encryption.UserKey.TextHint) {
-            lcpHint = publication.LCP.Encryption.UserKey.TextHint;
-        }
-        if (!lcpHint) {
-            lcpHint = "LCP passphrase";
+        if (publication && publication.LCP) {
+            try {
+                await launchStatusDocumentProcessing(publication.LCP, deviceIDManager,
+                    async (licenseUpdateJson: string | undefined) => {
+                        debug("launchStatusDocumentProcessing DONE.");
+
+                        if (licenseUpdateJson) {
+                            let res: string;
+                            try {
+                                res = await lsdLcpUpdateInject(licenseUpdateJson, publication, publicationFilePath);
+                                debug("EPUB SAVED: " + res);
+                            } catch (err) {
+                                debug(err);
+                            }
+                        }
+                    });
+            } catch (err) {
+                debug(err);
+            }
+
+            if (publication.LCP.Encryption &&
+                publication.LCP.Encryption.UserKey &&
+                publication.LCP.Encryption.UserKey.TextHint) {
+                lcpHint = publication.LCP.Encryption.UserKey.TextHint;
+            }
+            if (!lcpHint) {
+                lcpHint = "LCP passphrase";
+            }
         }
     }
 
@@ -187,8 +189,10 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         // electronBrowserWindow.webContents.openDevTools();
     });
 
-    // This triggers the origin-sandbox for localStorage, etc.
-    publicationUrl = convertHttpUrlToCustomScheme(publicationUrl);
+    if (publicationFilePath.indexOf("http") !== 0) {
+        // This triggers the origin-sandbox for localStorage, etc.
+        publicationUrl = convertHttpUrlToCustomScheme(publicationUrl);
+    }
 
     const urlEncoded = encodeURIComponent_RFC3986(publicationUrl);
     let htmlPath = IS_DEV ? `${__dirname}/../renderer/index.html` : `${__dirname}/index.html`;
@@ -406,24 +410,29 @@ app.on("ready", () => {
                 const argPath = args[0].trim();
                 let filePath = argPath;
                 debug(filePath);
-                if (!fs.existsSync(filePath)) {
-                    filePath = path.join(__dirname, argPath);
-                    debug(filePath);
+                if (filePath.indexOf("http") === 0) {
+                    await openFile(filePath);
+                    return;
+                } else {
                     if (!fs.existsSync(filePath)) {
-                        filePath = path.join(process.cwd(), argPath);
+                        filePath = path.join(__dirname, argPath);
                         debug(filePath);
                         if (!fs.existsSync(filePath)) {
-                            debug("FILEPATH DOES NOT EXIST: " + filePath);
+                            filePath = path.join(process.cwd(), argPath);
+                            debug(filePath);
+                            if (!fs.existsSync(filePath)) {
+                                debug("FILEPATH DOES NOT EXIST: " + filePath);
+                            } else {
+                                filePathToLoadOnLaunch = filePath;
+                            }
                         } else {
                             filePathToLoadOnLaunch = filePath;
                         }
                     } else {
+                        filePath = fs.realpathSync(filePath);
+                        debug(filePath);
                         filePathToLoadOnLaunch = filePath;
                     }
-                } else {
-                    filePath = fs.realpathSync(filePath);
-                    debug(filePath);
-                    filePathToLoadOnLaunch = filePath;
                 }
             }
 
@@ -614,16 +623,26 @@ async function openFileDownload(filePath: string) {
 async function openFile(filePath: string) {
     let n = _publicationsFilePaths.indexOf(filePath);
     if (n < 0) {
-        const publicationPaths = _publicationsServer.addPublications([filePath]);
-        debug(publicationPaths);
+        if (filePath.indexOf("http") === 0) {
+            _publicationsFilePaths.push(filePath);
+            debug(_publicationsFilePaths);
 
-        _publicationsFilePaths.push(filePath);
-        debug(_publicationsFilePaths);
+            _publicationsUrls.push(decodeURIComponent(filePath));
+            debug(_publicationsUrls);
 
-        _publicationsUrls.push(`${_publicationsRootUrl}${publicationPaths[0]}`);
-        debug(_publicationsUrls);
+            n = _publicationsFilePaths.length - 1; // === _publicationsUrls.length - 1
+        } else {
+            const publicationPaths = _publicationsServer.addPublications([filePath]);
+            debug(publicationPaths);
 
-        n = _publicationsFilePaths.length - 1; // === _publicationsUrls.length - 1
+            _publicationsFilePaths.push(filePath);
+            debug(_publicationsFilePaths);
+
+            _publicationsUrls.push(`${_publicationsRootUrl}${publicationPaths[0]}`);
+            debug(_publicationsUrls);
+
+            n = _publicationsFilePaths.length - 1; // === _publicationsUrls.length - 1
+        }
 
         process.nextTick(() => {
             resetMenu();
