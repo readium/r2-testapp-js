@@ -108,7 +108,7 @@ const electronStoreLCP: IStore = new StoreElectron("readium2-testapp-lcp", {});
 initGlobals();
 
 // tslint:disable-next-line:no-string-literal
-let pubServerRoot = queryParams["pubServerRoot"];
+const pubServerRoot = queryParams["pubServerRoot"];
 console.log(pubServerRoot);
 
 const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {

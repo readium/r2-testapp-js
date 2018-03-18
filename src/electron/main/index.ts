@@ -132,7 +132,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             // debug(response.body);
 
             if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
-                failure("HTTP CODE " + response.statusCode);
+                await failure("HTTP CODE " + response.statusCode);
                 return;
             }
 
@@ -182,7 +182,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             // debug(response.body);
 
             if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
-                failure("HTTP CODE " + response.statusCode);
+                await failure("HTTP CODE " + response.statusCode);
                 return;
             }
 
@@ -221,7 +221,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
             //     pathDecoded.length - 1);
             // debug(pathFileName);
-            debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath)
+            debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath);
             _publicationsServer.cachePublication(pathDecoded, publication);
             const pubCheck = _publicationsServer.cachedPublication(pathDecoded);
             if (!pubCheck) {
@@ -240,7 +240,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
 
                     // No response streaming! :(
                     // https://github.com/request/request-promise/issues/90
-                    const needsStreamingResponse = true;
+                    // const needsStreamingResponse = true;
                     if (needsStreamingResponse) {
                         const promise = new Promise((resolve, reject) => {
                             request.get({
@@ -248,8 +248,8 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                                 method: "GET",
                                 uri: lcplHref,
                             })
-                                .on("response", async (response: request.RequestResponse) => {
-                                    await successLCP(response, publication as Publication);
+                                .on("response", async (responsez: request.RequestResponse) => {
+                                    await successLCP(responsez, publication as Publication);
                                     resolve();
                                 })
                                 .on("error", async (err: any) => {
@@ -263,10 +263,10 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                             return;
                         }
                     } else {
-                        let response: requestPromise.FullResponse;
+                        let responsez: requestPromise.FullResponse;
                         try {
                             // tslint:disable-next-line:await-promise no-floating-promises
-                            response = await requestPromise({
+                            responsez = await requestPromise({
                                 headers: {},
                                 method: "GET",
                                 resolveWithFullResponse: true,
@@ -276,7 +276,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                             await failure(err);
                             return;
                         }
-                        await successLCP(response, publication);
+                        await successLCP(responsez, publication);
                     }
                 }
             }
