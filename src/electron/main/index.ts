@@ -421,7 +421,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
     }
     // fullUrl = fullUrl + "&lcpPlugin=" + encodeURIComponent_RFC3986(Buffer.from(lcpPluginPath).toString("base64"));
 
-    const urlRoot = _publicationsServer.serverUrl() as string + "/";
+    const urlRoot = _publicationsServer.serverUrl() as string;
     fullUrl = fullUrl + "&pubServerRoot=" + encodeURIComponent_RFC3986(urlRoot);
 
     // `file://${process.cwd()}/src/electron/renderer/index.html`;
