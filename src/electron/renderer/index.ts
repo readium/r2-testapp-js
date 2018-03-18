@@ -19,6 +19,7 @@ import {
     setReadiumCssJsonGetter,
 } from "@r2-navigator-js/electron/renderer/index";
 import { initGlobals } from "@r2-shared-js/init-globals";
+import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
 import { ipcRenderer, webFrame } from "electron";
 import { JSON as TAJSON } from "ta-json";
 
@@ -165,12 +166,14 @@ const queryParams = getURLQueryParams();
 // }
 
 // tslint:disable-next-line:no-string-literal
-const publicationJsonUrl = queryParams["pub"];
+let publicationJsonUrl = queryParams["pub"];
 console.log(publicationJsonUrl);
 const publicationJsonUrl_ = publicationJsonUrl.startsWith(READIUM2_ELECTRON_HTTP_PROTOCOL) ?
     convertCustomSchemeToHttpUrl(publicationJsonUrl) : publicationJsonUrl;
 console.log(publicationJsonUrl_);
-const pathBase64 = publicationJsonUrl_.replace(/.*\/pub\/(.*)\/manifest.json/, "$1");
+const pathBase64 = publicationJsonUrl_.
+    replace(/.*\/pub\/(.*)\/manifest.json/, "$1").
+    replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
 console.log(pathBase64);
 const pathDecoded = window.atob(pathBase64);
 console.log(pathDecoded);
@@ -394,6 +397,13 @@ ipcRenderer.on(R2_EVENT_TRY_LCP_PASS_RES, (
                 };
             }
             electronStoreLCP.set("lcp", lcpStore);
+        }
+
+        if (publicationJsonUrl.indexOf("URL_LCP_PASS_PLACEHOLDER") > 0) {
+            let pazz = Buffer.from(payload.passSha256Hex).toString("base64");
+            pazz = encodeURIComponent_RFC3986(pazz);
+            publicationJsonUrl = publicationJsonUrl.replace("URL_LCP_PASS_PLACEHOLDER", pazz);
+            console.log(publicationJsonUrl);
         }
     }
 

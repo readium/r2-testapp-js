@@ -37,6 +37,8 @@ export function installLcpHandler(publicationsServer: Server) {
                 passSha256Hex = checkSum.digest("hex");
                 // const lcpPass64 = new Buffer(hash).toString("base64");
                 // const lcpPassHex = new Buffer(lcpPass64, "base64").toString("utf8");
+            } else {
+                passSha256Hex = payload.lcpPass;
             }
             const payloadRes: IEventPayload_R2_EVENT_TRY_LCP_PASS_RES = {
                 error: undefined,

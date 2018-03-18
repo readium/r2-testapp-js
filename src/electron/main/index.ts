@@ -19,6 +19,7 @@ import * as path from "path";
 import { Publication } from "@models/publication";
 import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-processing";
 import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
+import { LCP } from "@r2-lcp-js/parser/epub/lcp";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
 import { convertHttpUrlToCustomScheme } from "@r2-navigator-js/electron/common/sessions";
 import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-window-tracker";
@@ -28,11 +29,15 @@ import { initSessions, secureSessions } from "@r2-navigator-js/electron/main/ses
 import { initGlobals } from "@r2-shared-js/init-globals";
 import { Server } from "@r2-streamer-js/http/server";
 import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
+import { streamToBufferPromise } from "@utils/stream/BufferUtils";
 import * as debug_ from "debug";
 import { BrowserWindow, Menu, app, dialog, ipcMain, webContents } from "electron";
 import * as express from "express";
 import * as filehound from "filehound";
 import * as portfinder from "portfinder";
+import * as request from "request";
+import * as requestPromise from "request-promise-native";
+import { JSON as TAJSON } from "ta-json";
 
 import { R2_EVENT_DEVTOOLS } from "../common/events";
 import { IStore } from "../common/store";
@@ -108,46 +113,259 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
     debug("createElectronBrowserWindow() " + publicationFilePath + " : " + publicationUrl);
 
     let lcpHint: string | undefined;
-    if (publicationFilePath.indexOf("http") !== 0) {
+    let publication: Publication | undefined;
+
+    if (publicationFilePath.indexOf("http") === 0 &&
+        publicationFilePath.endsWith(".json") // TODO: hacky!
+    ) {
+        const failure = async (err: any) => {
+            debug(err);
+        };
+
+        const successLCP = async (response: request.RequestResponse, pub: Publication) => {
+
+            // Object.keys(response.headers).forEach((header: string) => {
+            //     debug(header + " => " + response.headers[header]);
+            // });
+
+            // debug(response);
+            // debug(response.body);
+
+            if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
+                failure("HTTP CODE " + response.statusCode);
+                return;
+            }
+
+            let responseStr: string;
+            if (response.body) {
+                debug("RES BODY");
+                responseStr = response.body;
+            } else {
+                debug("RES STREAM");
+                let responseData: Buffer;
+                try {
+                    responseData = await streamToBufferPromise(response);
+                } catch (err) {
+                    debug(err);
+                    return;
+                }
+                responseStr = responseData.toString("utf8");
+            }
+
+            const responseJson = global.JSON.parse(responseStr);
+            debug(responseJson);
+
+            let lcpl: LCP | undefined;
+            lcpl = TAJSON.deserialize<LCP>(responseJson, LCP);
+            lcpl.ZipPath = "META-INF/license.lcpl";
+            lcpl.JsonSource = responseStr;
+            lcpl.init();
+
+            // breakLength: 100  maxArrayLength: undefined
+            // console.log(util.inspect(lcpl,
+            //     { showHidden: false, depth: 1000, colors: true, customInspect: true }));
+
+            pub.LCP = lcpl;
+            publicationUrl = publicationUrl.replace("/pub/",
+                "/pub/" + _publicationsServer.lcpBeginToken +
+                "URL_LCP_PASS_PLACEHOLDER" + _publicationsServer.lcpEndToken);
+            debug(publicationUrl);
+        };
+
+        const success = async (response: request.RequestResponse) => {
+
+            // Object.keys(response.headers).forEach((header: string) => {
+            //     debug(header + " => " + response.headers[header]);
+            // });
+
+            // debug(response);
+            // debug(response.body);
+
+            if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
+                failure("HTTP CODE " + response.statusCode);
+                return;
+            }
+
+            let responseStr: string;
+            if (response.body) {
+                debug("RES BODY");
+                responseStr = response.body;
+            } else {
+                debug("RES STREAM");
+                let responseData: Buffer;
+                try {
+                    responseData = await streamToBufferPromise(response);
+                } catch (err) {
+                    debug(err);
+                    return;
+                }
+                responseStr = responseData.toString("utf8");
+            }
+
+            const responseJson = global.JSON.parse(responseStr);
+            debug(responseJson);
+
+            try {
+                publication = TAJSON.deserialize<Publication>(responseJson, Publication);
+            } catch (erorz) {
+                debug(erorz);
+                return;
+            }
+            debug(publication);
+
+            const pathBase64 = decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
+            debug(pathBase64);
+            const pathDecoded = new Buffer(pathBase64, "base64").toString("utf8");
+            debug(pathDecoded);
+            // const pathFileName = pathDecoded.substr(
+            //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
+            //     pathDecoded.length - 1);
+            // debug(pathFileName);
+            debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath)
+            _publicationsServer.cachePublication(pathDecoded, publication);
+            const pubCheck = _publicationsServer.cachedPublication(pathDecoded);
+            if (!pubCheck) {
+                debug("PUB CHECK FAIL?");
+            }
+
+            if (publication.Links) {
+                const licenseLink = publication.Links.find((link) => {
+                    return link.Rel.indexOf("license") >= 0 &&
+                        link.TypeLink === "application/vnd.readium.lcp.license.v1.0+json";
+                });
+                if (licenseLink && licenseLink.Href) {
+                    // const lcplHref = publicationFilePath + "/../" + licenseLink.Href;
+                    const lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href);
+                    debug(lcplHref);
+
+                    // No response streaming! :(
+                    // https://github.com/request/request-promise/issues/90
+                    const needsStreamingResponse = true;
+                    if (needsStreamingResponse) {
+                        const promise = new Promise((resolve, reject) => {
+                            request.get({
+                                headers: {},
+                                method: "GET",
+                                uri: lcplHref,
+                            })
+                                .on("response", async (response: request.RequestResponse) => {
+                                    await successLCP(response, publication as Publication);
+                                    resolve();
+                                })
+                                .on("error", async (err: any) => {
+                                    await failure(err);
+                                    reject();
+                                });
+                        });
+                        try {
+                            await promise;
+                        } catch (err) {
+                            return;
+                        }
+                    } else {
+                        let response: requestPromise.FullResponse;
+                        try {
+                            // tslint:disable-next-line:await-promise no-floating-promises
+                            response = await requestPromise({
+                                headers: {},
+                                method: "GET",
+                                resolveWithFullResponse: true,
+                                uri: lcplHref,
+                            });
+                        } catch (err) {
+                            await failure(err);
+                            return;
+                        }
+                        await successLCP(response, publication);
+                    }
+                }
+            }
+        };
+
+        // No response streaming! :(
+        // https://github.com/request/request-promise/issues/90
+        const needsStreamingResponse = true;
+        if (needsStreamingResponse) {
+            const promise = new Promise((resolve, reject) => {
+                request.get({
+                    headers: {},
+                    method: "GET",
+                    uri: publicationFilePath,
+                })
+                    .on("response", async (response: request.RequestResponse) => {
+                        await success(response);
+                        resolve();
+                    })
+                    .on("error", async (err: any) => {
+                        await failure(err);
+                        reject();
+                    });
+            });
+            try {
+                await promise;
+            } catch (err) {
+                return;
+            }
+        } else {
+            let response: requestPromise.FullResponse;
+            try {
+                // tslint:disable-next-line:await-promise no-floating-promises
+                response = await requestPromise({
+                    headers: {},
+                    method: "GET",
+                    resolveWithFullResponse: true,
+                    uri: publicationFilePath,
+                });
+            } catch (err) {
+                await failure(err);
+                return;
+            }
+            await success(response);
+        }
+    } else if (publicationFilePath.indexOf("http") !== 0) {
         // const fileName = path.basename(publicationFilePath);
         // const ext = path.extname(fileName).toLowerCase();
 
-        let publication: Publication;
         try {
             publication = await _publicationsServer.loadOrGetCachedPublication(publicationFilePath);
         } catch (err) {
             debug(err);
             return;
         }
+    }
 
-        if (publication && publication.LCP) {
-            try {
-                await launchStatusDocumentProcessing(publication.LCP, deviceIDManager,
-                    async (licenseUpdateJson: string | undefined) => {
-                        debug("launchStatusDocumentProcessing DONE.");
+    if (publication && publication.LCP) {
+        debug(publication.LCP);
 
-                        if (licenseUpdateJson) {
-                            let res: string;
-                            try {
-                                res = await lsdLcpUpdateInject(licenseUpdateJson, publication, publicationFilePath);
-                                debug("EPUB SAVED: " + res);
-                            } catch (err) {
-                                debug(err);
-                            }
+        try {
+            await launchStatusDocumentProcessing(publication.LCP, deviceIDManager,
+                async (licenseUpdateJson: string | undefined) => {
+                    debug("launchStatusDocumentProcessing DONE.");
+
+                    if (licenseUpdateJson) {
+                        let res: string;
+                        try {
+                            res = await lsdLcpUpdateInject(
+                                licenseUpdateJson,
+                                publication as Publication,
+                                publicationFilePath);
+                            debug("EPUB SAVED: " + res);
+                        } catch (err) {
+                            debug(err);
                         }
-                    });
-            } catch (err) {
-                debug(err);
-            }
+                    }
+                });
+        } catch (err) {
+            debug(err);
+        }
 
-            if (publication.LCP.Encryption &&
-                publication.LCP.Encryption.UserKey &&
-                publication.LCP.Encryption.UserKey.TextHint) {
-                lcpHint = publication.LCP.Encryption.UserKey.TextHint;
-            }
-            if (!lcpHint) {
-                lcpHint = "LCP passphrase";
-            }
+        if (publication.LCP.Encryption &&
+            publication.LCP.Encryption.UserKey &&
+            publication.LCP.Encryption.UserKey.TextHint) {
+            lcpHint = publication.LCP.Encryption.UserKey.TextHint;
+        }
+        if (!lcpHint) {
+            lcpHint = "LCP passphrase";
         }
     }
 
