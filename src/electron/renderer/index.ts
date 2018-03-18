@@ -70,6 +70,8 @@ import debounce = require("debounce");
 
 const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
 
+const queryParams = getURLQueryParams();
+
 webFrame.registerURLSchemeAsSecure(READIUM2_ELECTRON_HTTP_PROTOCOL);
 // webFrame.registerURLSchemeAsBypassingCSP(READIUM2_ELECTRON_HTTP_PROTOCOL);
 webFrame.registerURLSchemeAsPrivileged(READIUM2_ELECTRON_HTTP_PROTOCOL, {
@@ -105,6 +107,10 @@ const electronStoreLCP: IStore = new StoreElectron("readium2-testapp-lcp", {});
 
 initGlobals();
 
+// tslint:disable-next-line:no-string-literal
+let pubServerRoot = queryParams["pubServerRoot"];
+console.log(pubServerRoot);
+
 const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
 
     const on = electronStore.get("styling.readiumcss");
@@ -131,7 +137,11 @@ const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
             paged,
             sepia,
         };
-        const jsonMsg: IEventPayload_R2_EVENT_READIUMCSS = { injectCSS: "yes", setCSS: cssJson };
+        const jsonMsg: IEventPayload_R2_EVENT_READIUMCSS = {
+            injectCSS: "yes",
+            setCSS: cssJson,
+            urlRoot: pubServerRoot,
+        };
         return jsonMsg;
     } else {
         return { injectCSS: "rollback", setCSS: "rollback" };
@@ -151,8 +161,6 @@ const saveReadingLocation = (doc: string, loc: string) => {
     electronStore.set("readingLocation", obj);
 };
 setReadingLocationSaver(saveReadingLocation);
-
-const queryParams = getURLQueryParams();
 
 // import * as path from "path";
 // import { setLcpNativePluginPath } from "@r2-streamer-js/parser/epub/lcp";
