@@ -1,3 +1,10 @@
+// ==LICENSE-BEGIN==
+// Copyright 2017 European Digital Reading Lab. All rights reserved.
+// Licensed to the Readium Foundation under one or more contributor license agreements.
+// Use of this source code is governed by a BSD-style license
+// that can be found in the LICENSE file exposed on Github (readium) in the project repository.
+// ==LICENSE-END==
+
 /// <referencexx path='../../../node_modules/typescript/lib/lib.es2015.d.ts' />
 /// <referencexx path='../../../node_modules/typescript/lib/lib.webworker.d.ts' />
 /// <referencexx path='../../../node_modules/typescript/lib/lib.dom.d.ts' />
