@@ -1,6 +1,6 @@
 {
   "name": "r2-testapp-js",
-  "version": "v1.0.0-alpha.1",
+  "version": "1.0.0-alpha.1",
   "description": "Readium 2 'testapp' for NodeJS (TypeScript)",
   "keywords": [
     "readium",
