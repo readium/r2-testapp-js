@@ -82,7 +82,7 @@
     "cson": "^5.1.0",
     "eclint": "^2.7.0",
     "electron": "^1.8.4",
-    "electron-builder": "^20.9.0",
+    "electron-builder": "^20.9.2",
     "exorcist": "^1.0.1",
     "git-rev-sync": "^1.11.1",
     "json": "^9.0.6",
