@@ -1,4 +1,4 @@
-#nav-select.mdc-select {
+/* #nav-select.mdc-select {
   width: 100% !important;
 }
 #nav-select-menu.mdc-select__menu {
@@ -25,7 +25,7 @@
   font-family: 'Material Icons';
   font-weight: normal;
   font-style: normal;
-  font-size: 24px;  /* Preferred icon size */
+  font-size: 24px;
   line-height: 1;
   text-transform: none;
   letter-spacing: normal;
@@ -44,7 +44,7 @@
 
   background: transparent;
   opacity: 1;
-}
+} */
 #selectTOC::after {
     content: "\E88A"; /* home */
 }

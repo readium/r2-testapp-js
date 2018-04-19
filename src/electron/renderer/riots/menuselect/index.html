@@ -1,22 +1,15 @@
-<riot-menuselect class="mdc-select" role="listbox">
-  <div class="mdc-select__surface">
-    <!-- float-above ==> https://github.com/material-components/material-components-web/issues/1810 -->
-    <div class="mdc-select__label mdc-select__label--float-above">{ opts.label }</div>
-    <div class="mdc-select__selected-text"></div>
-    <div class="mdc-select__bottom-line"></div>
-  </div>
-  <div class="mdc-menu mdc-select__menu">
-    <ul class="mdc-list mdc-menu__items">
-        <li each="{ opts.options }"
-            class="{ (label === '_' ? 'mdc-list-divider mdc-list-divider--padded' : 'mdc-list-item' ) }"
-            role="{ (label === '_' ? 'presentation' : 'option' ) }"
-            tabindex="{ (label === "_" ? -1 : 0) }"
+<riot-menuselect class="mdc-select">
+
+  <select class="mdc-select__native-control">
+    <option each="{ opts.options }"
+            value="{ label }"
             id="{ id }"
-            aria-selected="{ id === parent.opts.selected }"
-            disabled="{ label === '_' }"
-            style="{ style ? style : '' }">{ (label === "_" ? "" : label) }</li>
-    </ul>
-  </div>
+            selected="{ id === parent.opts.selected }"
+            disabled="{ label === '_' }">{ (label === "_" ? "" : label) }</option>
+  </select>
+
+  <label class="mdc-floating-label mdc-floating-label--float-above">{ opts.label }</label>
+  <div class="mdc-line-ripple"></div>
 
   <script>window.riot_menuselect.call(this, this.opts);</script>
 </riot-menuselect>

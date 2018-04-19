@@ -43,41 +43,37 @@
     <aside id="drawer" class="mdc-drawer--temporary">
       <nav id="drawerNav" class="mdc-drawer__drawer">
 
-          <div id="nav-select" class="mdc-select" role="listbox">
-            <div class="mdc-select__surface" tabindex="0">
-              <!-- float-above ==> https://github.com/material-components/material-components-web/issues/1810 -->
-              <div class="mdc-select__label mdc-select__label--float-above">Main menu</div>
-              <div class="mdc-select__selected-text"></div>
-              <div class="mdc-select__bottom-line"></div>
-            </div>
-            <div id="nav-select-menu" class="mdc-menu mdc-select__menu">
-              <ul class="mdc-list mdc-menu__items">
+          <div id="nav-select" class="mdc-select">
 
-                  <!-- <i class="material-icons" style="vertical-align: bottom; display: inline; padding-right: 0.5em;" role="presentation" aria-hidden="true">home</i>  -->
-                  <li class="mdc-list-item" role="option" id="selectTOC" tabindex="0" aria-selected>Table of contents</li>
+            <select class="mdc-select__native-control" id="nav-select-menu">
+              <option
+                value="Table of contents"
+                id="selectTOC" selected>Table of contents</option>
+              <option
+                value="Landmarks"
+                id="selectLandmarks">Landmarks</option>
+              <option
+                value="Page list"
+                id="selectPageList">Page list</option>
+              <option
+                value="Publication spine"
+                id="selectSpine">Publication spine</option>
 
-                  <!-- <i class="material-icons" style="vertical-align: bottom; display: inline; padding-right: 0.5em;" role="presentation" aria-hidden="true">place</i>  -->
-                  <li class="mdc-list-item" role="option" id="selectLandmarks" tabindex="0">Landmarks</li>
+              <option
+                value="Styles"
+                id="selectStyles">Styles</option>
+              <option
+                value="Advanced"
+                id="selectAdvanced">Advanced</option>
 
-                  <!-- <i class="material-icons" style="vertical-align: bottom; display: inline; padding-right: 0.5em;" role="presentation" aria-hidden="true">format_list_bulleted</i>  -->
-                  <li class="mdc-list-item" role="option" id="selectPageList" tabindex="0">Page list</li>
+              <option
+                value="Developer tools"
+                id="selectTools">Developer tools</option>
+            </select>
 
-                  <!-- <i class="material-icons" style="vertical-align: bottom; display: inline; padding-right: 0.5em;" role="presentation" aria-hidden="true">linear_scale</i>  -->
-                  <li class="mdc-list-item" role="option" id="selectSpine" tabindex="0">Publication spine</li>
+            <label class="mdc-floating-label mdc-floating-label--float-above">Main menu</label>
+            <div class="mdc-line-ripple"></div>
 
-                  <li class="mdc-list-divider mdc-list-divider--padded" role="presentation" disabled> </li>
-
-                  <!-- <i class="material-icons" style="vertical-align: bottom; display: inline; padding-right: 0.5em;" role="presentation" aria-hidden="true">tune</i>  -->
-                  <li class="mdc-list-item" role="option" id="selectStyles" tabindex="0">Styles</li>
-
-                  <!-- <i class="material-icons" style="vertical-align: bottom; display: inline; padding-right: 0.5em;" role="presentation" aria-hidden="true">settings</i>  -->
-                  <li class="mdc-list-item" role="option" id="selectAdvanced" tabindex="0">Advanced</li>
-
-                  <li class="mdc-list-divider mdc-list-divider--padded" role="presentation" disabled> </li>
-
-                  <li class="mdc-list-item" role="option" id="selectTools" tabindex="0">Developer tools</li>
-              </ul>
-            </div>
           </div>
 
           <div id="tabsPanels">

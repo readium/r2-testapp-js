@@ -701,11 +701,11 @@ const initFontSelector = () => {
         }
         if (_sysFonts && _sysFonts.length) {
             const arr = ((tag.opts as IRiotOptsMenuSelect).options as IRiotOptsMenuSelectItem[]);
-            const divider: IRiotOptsMenuSelectItem = {
-                id: ID_PREFIX + "_",
-                label: "_",
-            };
-            arr.push(divider);
+            // const divider: IRiotOptsMenuSelectItem = {
+            //     id: ID_PREFIX + "_",
+            //     label: "_",
+            // };
+            // arr.push(divider);
             _sysFonts.forEach((sysFont) => {
                 const option: IRiotOptsMenuSelectItem = {
                     id: ID_PREFIX + sysFont, // .replace(/ /g, "_"),
@@ -874,27 +874,29 @@ window.addEventListener("DOMContentLoaded", () => {
     //         console.log("MDCTemporaryDrawer:close");
     //     });
 
-    const menuFactory = (menuEl: HTMLElement) => {
-        const menu = new (window as any).mdc.menu.MDCMenu(menuEl);
-        (menuEl as any).mdcSimpleMenu = menu;
-        return menu;
-    };
+    // const menuFactory = (menuEl: HTMLElement) => {
+    //     console.log("menuEl:");
+    //     console.log(menuEl);
+    //     const menu = new (window as any).mdc.menu.MDCMenu(menuEl);
+    //     (menuEl as any).mdcSimpleMenu = menu;
+    //     return menu;
+    // };
 
     const selectElement = document.getElementById("nav-select") as HTMLElement;
-    const navSelector = new (window as any).mdc.select.MDCSelect(selectElement, undefined, menuFactory);
+    const navSelector = new (window as any).mdc.select.MDCSelect(selectElement); // , undefined, menuFactory
     (selectElement as any).mdcSelect = navSelector;
-    navSelector.listen("MDCSelect:change", (ev: any) => {
+    navSelector.listen("change", (ev: any) => {
         // console.log("MDCSelect:change");
         // console.log(ev);
-        // console.log(ev.detail.selectedOptions[0].textContent);
-        // console.log(ev.detail.selectedIndex);
-        // console.log(ev.detail.value);
+        // console.log(ev.target.selectedOptions[0].textContent);
+        // console.log(ev.target.selectedIndex);
+        // console.log(ev.target.value);
 
         const activePanel = document.querySelector(".tabPanel.active");
         if (activePanel) {
             activePanel.classList.remove("active");
         }
-        const newActivePanel = document.querySelector(".tabPanel:nth-child(" + (ev.detail.selectedIndex + 1) + ")");
+        const newActivePanel = document.querySelector(".tabPanel:nth-child(" + (ev.target.selectedIndex + 1) + ")");
         if (newActivePanel) {
             newActivePanel.classList.add("active");
 

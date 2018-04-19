@@ -120,32 +120,36 @@ export const riotMountMenuSelect = (selector: string, opts: IRiotOptsMenuSelect)
 
     that.on("mount", () => {
 
-        const menuFactory = (menuEl: HTMLElement) => {
-            const menu = new (window as any).mdc.menu.MDCMenu(menuEl);
-            (menuEl as any).mdcSimpleMenu = menu;
-            return menu;
-        };
+        // const menuFactory = (menuEl: HTMLElement) => {
+        //     console.log("menuEl:");
+        //     console.log(menuEl);
+        //     const menu = new (window as any).mdc.menu.MDCMenu(menuEl);
+        //     (menuEl as any).mdcSimpleMenu = menu;
+        //     return menu;
+        // };
+        console.log("that.root:");
+        console.log(that.root);
         // MDCSelect.attachTo(that.root)
-        const mdcSelector = new (window as any).mdc.select.MDCSelect(that.root, undefined, menuFactory);
+        const mdcSelector = new (window as any).mdc.select.MDCSelect(that.root); //, undefined, menuFactory);
         (that.root as any).mdcSelect = mdcSelector;
 
         mdcSelector.disabled = that.opts.disabled;
 
-        mdcSelector.listen("MDCSelect:change", (ev: any) => {
+        mdcSelector.listen("change", (ev: any) => {
             // console.log("MDCSelect:change: " + that.root.id);
             // console.log(ev);
-            // console.log(ev.detail.selectedOptions[0].textContent);
-            // console.log(ev.detail.selectedIndex);
-            // console.log(ev.detail.value);
+            // console.log(ev.target.selectedOptions[0].textContent);
+            // console.log(ev.target.selectedIndex);
+            // console.log(ev.target.value);
 
-            // let label = ev.detail.value;
+            // let label = ev.target.value;
             // const element = that.root.ownerDocument.getElementById(label);
             // if (element) {
             //     console.log(element.textContent);
             //     label = element.textContent;
             // }
 
-            that.trigger("selectionChanged", ev.detail.value);
+            that.trigger("selectionChanged", ev.target.value);
         });
     });
 };
