@@ -130,7 +130,7 @@ export const riotMountMenuSelect = (selector: string, opts: IRiotOptsMenuSelect)
         console.log("that.root:");
         console.log(that.root);
         // MDCSelect.attachTo(that.root)
-        const mdcSelector = new (window as any).mdc.select.MDCSelect(that.root); //, undefined, menuFactory);
+        const mdcSelector = new (window as any).mdc.select.MDCSelect(that.root); // , undefined, menuFactory);
         (that.root as any).mdcSelect = mdcSelector;
 
         mdcSelector.disabled = that.opts.disabled;
