@@ -22,9 +22,11 @@ import {
     installNavigatorDOM,
     navLeftOrRight,
     readiumCssOnOff as readiumCssOnOff_,
+    setEpubReadingSystemJsonGetter,
     setReadingLocationSaver,
     setReadiumCssJsonGetter,
 } from "@r2-navigator-js/electron/renderer/index";
+import { INameVersion } from "@r2-navigator-js/electron/renderer/webview/epubReadingSystem";
 import { initGlobals } from "@r2-shared-js/init-globals";
 import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
 import { ipcRenderer, webFrame } from "electron";
@@ -155,6 +157,11 @@ const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
     }
 };
 setReadiumCssJsonGetter(computeReadiumCssJsonMessage);
+
+const getEpubReadingSystem: () => INameVersion = () => {
+    return { name: "Readium2 test app", version: "0.0.1-alpha.1" };
+};
+setEpubReadingSystemJsonGetter(getEpubReadingSystem);
 
 const saveReadingLocation = (doc: string, loc: string) => {
     let obj = electronStore.get("readingLocation");
