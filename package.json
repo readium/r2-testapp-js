@@ -61,7 +61,7 @@
     "r2-utils-js": "github:edrlab/r2-utils-js-dist#develop",
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
-    "riot": "^3.10.2",
+    "riot": "^3.10.3",
     "system-font-families": "^0.5.0",
     "ta-json": "github:danielweck/ta-json#dist",
     "tslib": "^1.9.2",
