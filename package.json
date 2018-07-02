@@ -65,7 +65,7 @@
     "system-font-families": "^0.5.0",
     "ta-json": "github:danielweck/ta-json#dist",
     "tslib": "^1.9.3",
-    "uuid": "^3.3.0"
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "@types/debounce": "^1.0.0",
@@ -82,7 +82,7 @@
     "cson": "^5.1.0",
     "eclint": "^2.7.0",
     "electron": "1.*.*",
-    "electron-builder": "^20.16.4",
+    "electron-builder": "^20.18.0",
     "exorcist": "^1.0.1",
     "git-rev-sync": "^1.12.0",
     "json": "^9.0.6",
