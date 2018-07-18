@@ -9,7 +9,10 @@ import * as path from "path";
 
 import { IStringMap } from "@models/metadata-multilang";
 import { Publication } from "@models/publication";
-import { IEventPayload_R2_EVENT_READIUMCSS } from "@r2-navigator-js/electron/common/events";
+import {
+    IEventPayload_R2_EVENT_READING_LOCATION,
+    IEventPayload_R2_EVENT_READIUMCSS,
+} from "@r2-navigator-js/electron/common/events";
 import {
     READIUM2_ELECTRON_HTTP_PROTOCOL,
     convertCustomSchemeToHttpUrl,
@@ -163,15 +166,24 @@ const getEpubReadingSystem: () => INameVersion = () => {
 };
 setEpubReadingSystemJsonGetter(getEpubReadingSystem);
 
-const saveReadingLocation = (doc: string, loc: string) => {
+interface IReadingLocation {
+    doc: string;
+    loc: string | undefined; // legacy
+    locCfi: string;
+    locCssSelector: string;
+}
+
+const saveReadingLocation = (doc: string, location: IEventPayload_R2_EVENT_READING_LOCATION) => {
     let obj = electronStore.get("readingLocation");
     if (!obj) {
         obj = {};
     }
     obj[pathDecoded] = {
         doc,
-        loc,
-    };
+        loc: undefined,
+        locCfi: location.cfi,
+        locCssSelector: location.cssSelector,
+    } as IReadingLocation;
     electronStore.set("readingLocation", obj);
 };
 setReadingLocationSaver(saveReadingLocation);
@@ -1242,14 +1254,24 @@ function startNavigatorExperiment() {
         }
 
         const readStore = electronStore.get("readingLocation");
+        let location: IEventPayload_R2_EVENT_READING_LOCATION | undefined;
         let pubDocHrefToLoad: string | undefined;
-        let pubDocSelectorToGoto: string | undefined;
         if (readStore) {
-            const obj = readStore[pathDecoded];
+            const obj = readStore[pathDecoded] as IReadingLocation;
             if (obj && obj.doc) {
                 pubDocHrefToLoad = obj.doc;
+
                 if (obj.loc) {
-                    pubDocSelectorToGoto = obj.loc;
+                    location = { cfi: undefined, cssSelector: obj.loc };
+                } else if (obj.locCssSelector) {
+                    location = { cfi: undefined, cssSelector: obj.locCssSelector };
+                }
+                if (obj.locCfi) {
+                    if (!location) {
+                        location = { cfi: obj.locCfi, cssSelector: "body" };
+                    } else {
+                        location.cfi = obj.locCfi;
+                    }
                 }
             }
         }
@@ -1302,7 +1324,7 @@ function startNavigatorExperiment() {
             installNavigatorDOM(_publication, publicationJsonUrl,
                 rootHtmlElementID,
                 preloadPath,
-                pubDocHrefToLoad, pubDocSelectorToGoto);
+                pubDocHrefToLoad, location);
         }, 500);
     })();
 }
