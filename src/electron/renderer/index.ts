@@ -80,6 +80,11 @@ import SystemFonts = require("system-font-families");
 
 import debounce = require("debounce");
 
+import { consoleRedirect } from "@r2-navigator-js/electron/renderer/console-redirect";
+
+// const releaseConsoleRedirect =
+consoleRedirect("r2:testapp#electron/renderer/index", process.stdout, process.stderr, true);
+
 const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
 
 const queryParams = getURLQueryParams();
@@ -315,7 +320,8 @@ let snackBar: any;
 let drawer: any;
 
 window.onerror = (err) => {
-    console.log("Error", err);
+    console.log("window.onerror:");
+    console.log(err);
 };
 
 ipcRenderer.on(R2_EVENT_TRY_LCP_PASS_RES, (
