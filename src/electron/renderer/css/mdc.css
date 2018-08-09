@@ -1,11 +1,11 @@
-/* switch/toggle control: shrinks the oversized keyboard/mouse focus "ring" (knob ring) */
+/* switch/toggle control: shrinks the oversized keyboard/mouse focus "ring" (knob ring)
 .mdc-switch__native-control:focus ~ .mdc-switch__background .mdc-switch__knob::before {
   width: 30px;
   height: 30px;
   border-radius: 15px;
   top: -5px;
   left: -5px;
-}
+} */
 
 /* .mdc-snackbar {
   z-index: 7;

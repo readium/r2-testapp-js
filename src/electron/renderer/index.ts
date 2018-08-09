@@ -229,7 +229,9 @@ electronStore.onChanged("styling.night", (newValue: any, oldValue: any) => {
         return;
     }
 
-    const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
+    // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
+    const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
+    const nightSwitch = (nightSwitchEl as any).mdcSwitch;
     nightSwitch.checked = newValue;
 
     // TODO DARK THEME
@@ -247,8 +249,10 @@ electronStore.onChanged("styling.align", (newValue: any, oldValue: any) => {
         return;
     }
 
-    const nightSwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
-    nightSwitch.checked = (newValue === "justify");
+    // const justifySwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
+    const justifySwitchEl = document.getElementById("justify_switch") as HTMLElement;
+    const justifySwitch = (justifySwitchEl as any).mdcSwitch;
+    justifySwitch.checked = (newValue === "justify");
 
     readiumCssOnOff();
 });
@@ -258,7 +262,9 @@ electronStore.onChanged("styling.paged", (newValue: any, oldValue: any) => {
         return;
     }
 
-    const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
+    // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
+    const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
+    const paginateSwitch = (paginateSwitchEl as any).mdcSwitch;
     paginateSwitch.checked = newValue;
 
     readiumCssOnOff();
@@ -290,18 +296,26 @@ electronStore.onChanged("styling.readiumcss", (newValue: any, oldValue: any) => 
         ensureSliderLayout();
     }
 
-    const readiumcssSwitch = document.getElementById("readiumcss_switch-input") as HTMLInputElement;
+    // const readiumcssSwitch = document.getElementById("readiumcss_switch-input") as HTMLInputElement;
+    const readiumcssSwitchEl = document.getElementById("readiumcss_switch") as HTMLElement;
+    const readiumcssSwitch = (readiumcssSwitchEl as any).mdcSwitch;
     readiumcssSwitch.checked = newValue;
 
     readiumCssOnOff();
 
-    const justifySwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
+    // const justifySwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
+    const justifySwitchEl = document.getElementById("justify_switch") as HTMLElement;
+    const justifySwitch = (justifySwitchEl as any).mdcSwitch;
     justifySwitch.disabled = !newValue;
 
-    const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
+    // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
+    const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
+    const paginateSwitch = (paginateSwitchEl as any).mdcSwitch;
     paginateSwitch.disabled = !newValue;
 
-    const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
+    // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
+    const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
+    const nightSwitch = (nightSwitchEl as any).mdcSwitch;
     nightSwitch.disabled = !newValue;
     if (!newValue) {
         electronStore.set("styling.night", false);
@@ -312,7 +326,9 @@ electronStore.onChanged("basicLinkTitles", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
     }
-    const basicSwitch = document.getElementById("nav_basic_switch-input") as HTMLInputElement;
+    // const basicSwitch = document.getElementById("nav_basic_switch-input") as HTMLInputElement;
+    const basicSwitchEl = document.getElementById("nav_basic_switch") as HTMLElement;
+    const basicSwitch = (basicSwitchEl as any).mdcSwitch;
     basicSwitch.checked = !newValue;
 });
 
@@ -844,45 +860,65 @@ window.addEventListener("DOMContentLoaded", () => {
     initFontSizeSelector();
     initLineHeightSelector();
 
-    const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
+    // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
+    const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
+    const nightSwitch = new (window as any).mdc.switchControl.MDCSwitch(nightSwitchEl);
+    (nightSwitchEl as any).mdcSwitch = nightSwitch;
     nightSwitch.checked = electronStore.get("styling.night");
-    nightSwitch.addEventListener("change", (_event) => {
+    nightSwitchEl.addEventListener("change", (_event: any) => {
+    // nightSwitch.handleChange("change", (_event: any) => {
         const checked = nightSwitch.checked;
         electronStore.set("styling.night", checked);
     });
     nightSwitch.disabled = !electronStore.get("styling.readiumcss");
 
-    const justifySwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
+    // const justifySwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
+    const justifySwitchEl = document.getElementById("justify_switch") as HTMLElement;
+    const justifySwitch = new (window as any).mdc.switchControl.MDCSwitch(justifySwitchEl);
+    (justifySwitchEl as any).mdcSwitch = justifySwitch;
     justifySwitch.checked = electronStore.get("styling.align") === "justify";
-    justifySwitch.addEventListener("change", (_event) => {
+    justifySwitchEl.addEventListener("change", (_event: any) => {
+    // justifySwitch.handleChange("change", (_event: any) => {
         const checked = justifySwitch.checked;
         electronStore.set("styling.align", checked ? "justify" : "initial");
     });
     justifySwitch.disabled = !electronStore.get("styling.readiumcss");
 
-    const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
+    // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
+    const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
+    const paginateSwitch = new (window as any).mdc.switchControl.MDCSwitch(paginateSwitchEl);
+    (paginateSwitchEl as any).mdcSwitch = paginateSwitch;
     paginateSwitch.checked = electronStore.get("styling.paged");
-    paginateSwitch.addEventListener("change", (_event) => {
+    paginateSwitchEl.addEventListener("change", (_event: any) => {
+    // paginateSwitch.handleChange("change", (_event: any) => {
         const checked = paginateSwitch.checked;
         electronStore.set("styling.paged", checked);
     });
     paginateSwitch.disabled = !electronStore.get("styling.readiumcss");
 
-    const readiumcssSwitch = document.getElementById("readiumcss_switch-input") as HTMLInputElement;
+    // const readiumcssSwitch = document.getElementById("readiumcss_switch-input") as HTMLInputElement;
+    const readiumcssSwitchEl = document.getElementById("readiumcss_switch") as HTMLElement;
+    const readiumcssSwitch = new (window as any).mdc.switchControl.MDCSwitch(readiumcssSwitchEl);
+    (readiumcssSwitchEl as any).mdcSwitch = readiumcssSwitch;
     readiumcssSwitch.checked = electronStore.get("styling.readiumcss");
     const stylingWrapper = document.getElementById("stylingWrapper") as HTMLElement;
     stylingWrapper.style.display = readiumcssSwitch.checked ? "block" : "none";
     if (readiumcssSwitch.checked) {
         ensureSliderLayout();
     }
-    readiumcssSwitch.addEventListener("change", (_event) => {
+    readiumcssSwitchEl.addEventListener("change", (_event: any) => {
+    // readiumcssSwitch.handleChange("change", (_event: any) => {
         const checked = readiumcssSwitch.checked;
         electronStore.set("styling.readiumcss", checked);
     });
 
-    const basicSwitch = document.getElementById("nav_basic_switch-input") as HTMLInputElement;
+    // const basicSwitch = document.getElementById("nav_basic_switch-input") as HTMLInputElement;
+    const basicSwitchEl = document.getElementById("nav_basic_switch") as HTMLElement;
+    const basicSwitch = new (window as any).mdc.switchControl.MDCSwitch(basicSwitchEl);
+    (basicSwitchEl as any).mdcSwitch = basicSwitch;
     basicSwitch.checked = !electronStore.get("basicLinkTitles");
-    basicSwitch.addEventListener("change", (_event) => {
+    basicSwitchEl.addEventListener("change", (_event: any) => {
+    // basicSwitch.handleChange("change", (_event: any) => {
         const checked = basicSwitch.checked;
         electronStore.set("basicLinkTitles", !checked);
     });
