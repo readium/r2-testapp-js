@@ -14,7 +14,7 @@
   'postinstallxx': '
     npm rebuild
       --runtime=electron
-      --target=1.8.2
+      --target=1.8.7
       --disturl=https://atom.io/download/atom-shell
       --build-from-source
   '
@@ -22,6 +22,8 @@
   'electron-pack:prepare': '
     rimraf dist/electron/ &&
     mkdirp dist/electron/ &&
+    (ls ./dist/es8-es2017/ || npm run build:es8-es2017) &&
+    (ls ./dist/bundle-es8-es2017/ || npm run bundle:es8-es2017) &&
     cpy "./**/*" ../electron/  --cwd=./dist/bundle-es8-es2017/ --parents --no-dir &&
     rimraf dist/electron/node_modules/ &&
     cpy ./package.json dist/electron/ &&
