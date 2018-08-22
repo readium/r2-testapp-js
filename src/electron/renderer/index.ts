@@ -1205,7 +1205,7 @@ function startNavigatorExperiment() {
                 basic: true,
                 fixBasic: true, // always single-line list items (no title)
                 handleLink: handleLink_,
-                links: _publicationJSON.spine as IRiotOptsLinkListItem[],
+                links: (_publicationJSON.spine || _publicationJSON.readingOrder) as IRiotOptsLinkListItem[],
                 url: publicationJsonUrl,
             };
             // const tag =
