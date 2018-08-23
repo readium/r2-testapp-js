@@ -18,6 +18,7 @@ import {
     convertCustomSchemeToHttpUrl,
 } from "@r2-navigator-js/electron/common/sessions";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
+import { consoleRedirect } from "@r2-navigator-js/electron/renderer/console-redirect";
 import {
     DOM_EVENT_HIDE_VIEWPORT,
     DOM_EVENT_SHOW_VIEWPORT,
@@ -30,7 +31,13 @@ import {
     setReadiumCssJsonGetter,
 } from "@r2-navigator-js/electron/renderer/index";
 import { INameVersion } from "@r2-navigator-js/electron/renderer/webview/epubReadingSystem";
-import { initGlobals } from "@r2-shared-js/init-globals";
+import {
+    initGlobalConverters_OPDS,
+} from "@r2-opds-js/opds/init-globals";
+import {
+    initGlobalConverters_GENERIC,
+    initGlobalConverters_SHARED,
+} from "@r2-shared-js/init-globals";
 import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
 import { ipcRenderer, webFrame } from "electron";
 import { JSON as TAJSON } from "ta-json";
@@ -80,8 +87,6 @@ import SystemFonts = require("system-font-families");
 
 import debounce = require("debounce");
 
-import { consoleRedirect } from "@r2-navigator-js/electron/renderer/console-redirect";
-
 // const releaseConsoleRedirect =
 consoleRedirect("r2:testapp#electron/renderer/index", process.stdout, process.stderr, true);
 
@@ -122,7 +127,9 @@ const electronStoreLCP: IStore = new StoreElectron("readium2-testapp-lcp", {});
 // console.log(document.baseURI);
 // console.log(document.URL);
 
-initGlobals();
+initGlobalConverters_GENERIC();
+initGlobalConverters_SHARED();
+initGlobalConverters_OPDS();
 
 // tslint:disable-next-line:no-string-literal
 const pubServerRoot = queryParams["pubServerRoot"];
@@ -866,7 +873,7 @@ window.addEventListener("DOMContentLoaded", () => {
     (nightSwitchEl as any).mdcSwitch = nightSwitch;
     nightSwitch.checked = electronStore.get("styling.night");
     nightSwitchEl.addEventListener("change", (_event: any) => {
-    // nightSwitch.handleChange("change", (_event: any) => {
+        // nightSwitch.handleChange("change", (_event: any) => {
         const checked = nightSwitch.checked;
         electronStore.set("styling.night", checked);
     });
@@ -878,7 +885,7 @@ window.addEventListener("DOMContentLoaded", () => {
     (justifySwitchEl as any).mdcSwitch = justifySwitch;
     justifySwitch.checked = electronStore.get("styling.align") === "justify";
     justifySwitchEl.addEventListener("change", (_event: any) => {
-    // justifySwitch.handleChange("change", (_event: any) => {
+        // justifySwitch.handleChange("change", (_event: any) => {
         const checked = justifySwitch.checked;
         electronStore.set("styling.align", checked ? "justify" : "initial");
     });
@@ -890,7 +897,7 @@ window.addEventListener("DOMContentLoaded", () => {
     (paginateSwitchEl as any).mdcSwitch = paginateSwitch;
     paginateSwitch.checked = electronStore.get("styling.paged");
     paginateSwitchEl.addEventListener("change", (_event: any) => {
-    // paginateSwitch.handleChange("change", (_event: any) => {
+        // paginateSwitch.handleChange("change", (_event: any) => {
         const checked = paginateSwitch.checked;
         electronStore.set("styling.paged", checked);
     });
@@ -907,7 +914,7 @@ window.addEventListener("DOMContentLoaded", () => {
         ensureSliderLayout();
     }
     readiumcssSwitchEl.addEventListener("change", (_event: any) => {
-    // readiumcssSwitch.handleChange("change", (_event: any) => {
+        // readiumcssSwitch.handleChange("change", (_event: any) => {
         const checked = readiumcssSwitch.checked;
         electronStore.set("styling.readiumcss", checked);
     });
@@ -918,7 +925,7 @@ window.addEventListener("DOMContentLoaded", () => {
     (basicSwitchEl as any).mdcSwitch = basicSwitch;
     basicSwitch.checked = !electronStore.get("basicLinkTitles");
     basicSwitchEl.addEventListener("change", (_event: any) => {
-    // basicSwitch.handleChange("change", (_event: any) => {
+        // basicSwitch.handleChange("change", (_event: any) => {
         const checked = basicSwitch.checked;
         electronStore.set("basicLinkTitles", !checked);
     });

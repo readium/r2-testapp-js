@@ -33,7 +33,13 @@ import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-windo
 import { lsdLcpUpdateInject } from "@r2-navigator-js/electron/main/lsd-injectlcpl";
 import { setupReadiumCSS } from "@r2-navigator-js/electron/main/readium-css";
 import { initSessions, secureSessions } from "@r2-navigator-js/electron/main/sessions";
-import { initGlobals } from "@r2-shared-js/init-globals";
+import {
+    initGlobalConverters_OPDS,
+} from "@r2-opds-js/opds/init-globals";
+import {
+    initGlobalConverters_GENERIC,
+    initGlobalConverters_SHARED,
+} from "@r2-shared-js/init-globals";
 import { Server } from "@r2-streamer-js/http/server";
 import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
 import { streamToBufferPromise } from "@utils/stream/BufferUtils";
@@ -58,7 +64,9 @@ const deviceIDManager = getDeviceIDManager(electronStoreLSD, "Readium2 Electron 
 
 // import * as mime from "mime-types";
 
-initGlobals();
+initGlobalConverters_GENERIC();
+initGlobalConverters_SHARED();
+initGlobalConverters_OPDS();
 
 const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
 
