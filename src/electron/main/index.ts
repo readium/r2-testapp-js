@@ -64,9 +64,9 @@ const deviceIDManager = getDeviceIDManager(electronStoreLSD, "Readium2 Electron 
 
 // import * as mime from "mime-types";
 
-initGlobalConverters_GENERIC();
-initGlobalConverters_SHARED();
 initGlobalConverters_OPDS();
+initGlobalConverters_SHARED();
+initGlobalConverters_GENERIC();
 
 const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
 

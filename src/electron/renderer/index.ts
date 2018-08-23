@@ -127,9 +127,9 @@ const electronStoreLCP: IStore = new StoreElectron("readium2-testapp-lcp", {});
 // console.log(document.baseURI);
 // console.log(document.URL);
 
-initGlobalConverters_GENERIC();
-initGlobalConverters_SHARED();
 initGlobalConverters_OPDS();
+initGlobalConverters_SHARED();
+initGlobalConverters_GENERIC();
 
 // tslint:disable-next-line:no-string-literal
 const pubServerRoot = queryParams["pubServerRoot"];
