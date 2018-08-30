@@ -818,7 +818,7 @@ window.addEventListener("DOMContentLoaded", () => {
     // }
 
     const drawerElement = document.getElementById("drawer") as HTMLElement;
-    drawer = new (window as any).mdc.drawer.MDCTemporaryDrawer(drawerElement);
+    drawer = new (window as any).mdc.drawer.MDCDrawer(drawerElement);
     (drawerElement as any).mdcTemporaryDrawer = drawer;
     const drawerButton = document.getElementById("drawerButton") as HTMLElement;
     drawerButton.addEventListener("click", () => {
