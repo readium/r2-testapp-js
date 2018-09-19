@@ -47,7 +47,7 @@
   "homepage": "https://github.com/readium/r2-testapp-js",
   "dependencies": {
     "debounce": "^1.2.0",
-    "debug": "^3.1.0",
+    "debug": "^4.0.1",
     "electron-store": "1.*.*",
     "filehound": "^1.16.4",
     "material-components-web": "^0.39.1",
