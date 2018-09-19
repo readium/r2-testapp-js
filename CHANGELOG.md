@@ -1,7 +1,22 @@
 # Next
 
 Git diff:
-* https://github.com/readium/r2-testapp-js/compare/v1.0.0-alpha.4...develop
+* https://github.com/readium/r2-testapp-js/compare/v1.0.0-alpha.5...develop
+
+# 1.0.0-alpha.5
+
+Changes:
+* NPM update r2-navigator-js (fixes console redirect)
+
+Git revision info:
+* https://unpkg.com/r2-testapp-js@1.0.0-alpha.5/dist/gitrev.json
+* https://github.com/edrlab/r2-testapp-js-dist/blob/v1.0.0-alpha.5/dist/gitrev.json
+
+Git commit history:
+* https://github.com/readium/r2-testapp-js/commits/v1.0.0-alpha.5
+
+Git diff:
+* https://github.com/readium/r2-testapp-js/compare/v1.0.0-alpha.4...v1.0.0-alpha.5
 
 # 1.0.0-alpha.4
 
