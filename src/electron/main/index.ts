@@ -674,7 +674,7 @@ app.on("ready", () => {
                 }
             }
 
-            if (filePathToLoadOnLaunch) {
+            if (filePathToLoadOnLaunch && !fs.lstatSync(filePathToLoadOnLaunch).isDirectory()) {
                 await openFileDownload(filePathToLoadOnLaunch);
                 return;
             }
