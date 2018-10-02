@@ -50,7 +50,7 @@ import * as filehound from "filehound";
 import * as portfinder from "portfinder";
 import * as request from "request";
 import * as requestPromise from "request-promise-native";
-import { JSON as TAJSON } from "ta-json";
+import { JSON as TAJSON } from "ta-json-x";
 
 import { R2_EVENT_DEVTOOLS } from "../common/events";
 import { IStore } from "../common/store";

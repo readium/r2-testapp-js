@@ -249,14 +249,14 @@
     ((ls ./node_modules/reflect-metadata/ &&
     cpy ./Reflect.ts ./node_modules/reflect-metadata/) || echo "OK") &&
 
-    ((ls ./node_modules/ta-json/node_modules/reflect-metadata/ &&
-    cpy ./Reflect.ts ./node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK") &&
+    ((ls ./node_modules/ta-json-x/node_modules/reflect-metadata/ &&
+    cpy ./Reflect.ts ./node_modules/ta-json-x/node_modules/reflect-metadata/) || echo "OK") &&
 
-    ((ls ./node_modules/r2-navigator-js/node_modules/ta-json/node_modules/reflect-metadata/ &&
-    cpy ./Reflect.ts ./node_modules/r2-navigator-js/node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK") &&
+    ((ls ./node_modules/r2-navigator-js/node_modules/ta-json-x/node_modules/reflect-metadata/ &&
+    cpy ./Reflect.ts ./node_modules/r2-navigator-js/node_modules/ta-json-x/node_modules/reflect-metadata/) || echo "OK") &&
 
-    ((ls ./node_modules/r2-streamer-js/node_modules/ta-json/node_modules/reflect-metadata/ &&
-    cpy ./Reflect.ts ./node_modules/r2-streamer-js/node_modules/ta-json/node_modules/reflect-metadata/) || echo "OK") &&
+    ((ls ./node_modules/r2-streamer-js/node_modules/ta-json-x/node_modules/reflect-metadata/ &&
+    cpy ./Reflect.ts ./node_modules/r2-streamer-js/node_modules/ta-json-x/node_modules/reflect-metadata/) || echo "OK") &&
 
     rimraf Reflect.ts &&
 

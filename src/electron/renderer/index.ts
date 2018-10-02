@@ -40,7 +40,7 @@ import {
 } from "@r2-shared-js/init-globals";
 import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
 import { ipcRenderer, webFrame } from "electron";
-import { JSON as TAJSON } from "ta-json";
+import { JSON as TAJSON } from "ta-json-x";
 
 import {
     IEventPayload_R2_EVENT_LCP_LSD_RENEW,
