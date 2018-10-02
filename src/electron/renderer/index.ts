@@ -487,7 +487,7 @@ function showLcpDialog(message?: string) {
         lcpPassMessage.textContent = message;
     }
 
-    lcpDialog.show();
+    lcpDialog.open();
     setTimeout(() => {
         const lcpPassInput = document.getElementById("lcpPassInput") as HTMLElement;
         lcpPassInput.focus();
@@ -979,23 +979,41 @@ window.addEventListener("DOMContentLoaded", () => {
     const lcpPassInput = document.getElementById("lcpPassInput") as HTMLInputElement;
     lcpDialog = new (window as any).mdc.dialog.MDCDialog(diagElem);
     (diagElem as any).mdcDialog = lcpDialog;
-    lcpDialog.listen("MDCDialog:accept", () => {
 
-        const lcpPass = lcpPassInput.value;
-
-        const payload: IEventPayload_R2_EVENT_TRY_LCP_PASS = {
-            isSha256Hex: false,
-            lcpPass,
-            publicationFilePath: pathDecoded,
-        };
-        ipcRenderer.send(R2_EVENT_TRY_LCP_PASS, payload);
+    lcpDialog.listen("MDCDialog:opened", () => {
+        console.log("MDCDialog:opened");
     });
-    lcpDialog.listen("MDCDialog:cancel", () => {
 
-        setTimeout(() => {
-            showLcpDialog();
-        }, 10);
+    lcpDialog.listen("MDCDialog:closed", (event: any) => {
+        console.log("MDCDialog:closed");
+
+        if (event.detail.action === "close") {
+            console.log("MDCDialog:ACTION:close");
+
+            setTimeout(() => {
+                showLcpDialog();
+            }, 10);
+        } else if (event.detail.action === "accept") {
+
+            console.log("MDCDialog:ACTION:accept");
+
+            const lcpPass = lcpPassInput.value;
+
+            const payload: IEventPayload_R2_EVENT_TRY_LCP_PASS = {
+                isSha256Hex: false,
+                lcpPass,
+                publicationFilePath: pathDecoded,
+            };
+            ipcRenderer.send(R2_EVENT_TRY_LCP_PASS, payload);
+        } else {
+            console.log("!! MDCDialog:ACTION:" + event.detail.action);
+
+            setTimeout(() => {
+                showLcpDialog();
+            }, 10);
+        }
     });
+
     if (lcpPassInput) {
         lcpPassInput.addEventListener("keyup", (ev) => {
             if (ev.keyCode === 13) {
