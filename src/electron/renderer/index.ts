@@ -85,7 +85,7 @@ import {
 
 import SystemFonts = require("system-font-families");
 
-import debounce = require("debounce");
+import { debounce } from "debounce";
 
 // const releaseConsoleRedirect =
 consoleRedirect("r2:testapp#electron/renderer/index", process.stdout, process.stderr, true);
