@@ -68,7 +68,7 @@ A [yarn.lock](https://github.com/readium/r2-testapp-js/blob/develop/yarn.lock) f
 
 ## Continuous Integration
 
-TODO (unit tests?)  
+TODO (unit tests?)
 https://travis-ci.org/readium/r2-testapp-js
 
 Badge: `[![Travis](https://travis-ci.org/readium/r2-testapp-js.svg?branch=develop)](https://travis-ci.org/readium/r2-testapp-js)`
