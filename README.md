@@ -56,20 +56,7 @@ http://node.green
 
 Note that web-browser Javascript is currently not supported (only NodeJS runtimes).
 
- The type definitions (aka "typings") are included as `*.d.ts` files in `./node_modules/r2-testapp-js/dist/**`, so this package can be used directly in a TypeScript project.
- 
- Example usage:
-
-```javascript
-// currently no index file
-// import { * } from "r2-testapp-js";
-
-// ES5 import (assuming node_modules/r2-testapp-js/):
-import { sortObject } from "r2-testapp-js/dist/es5/src/_utils/JsonUtils";
-
-// ... or alternatively using a convenient path alias in the TypeScript config (+ WebPack etc.):
-import { sortObject } from "@r2-testapp-js/JsonUtils";
-```
+The type definitions (aka "typings") are included as `*.d.ts` files in `./node_modules/r2-testapp-js/dist/**`, so this package can be used directly in a TypeScript project.
 
 ## Dependencies
 
