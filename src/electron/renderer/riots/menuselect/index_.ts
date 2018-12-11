@@ -25,7 +25,9 @@ export interface IRiotTagMenuSelect extends
     setDisabled: (disabled: boolean) => void;
     setSelectedItem: (item: string) => void;
     getIndexForId: (id: string) => number | undefined;
+    getIdForIndex: (index: number) => string | undefined;
     getIndexForLabel: (label: string) => number | undefined;
+    getLabelForIndex: (index: number) => string | undefined;
     getIdForLabel: (label: string) => string | undefined;
     getLabelForId: (id: string) => string | undefined;
 }
@@ -95,6 +97,22 @@ export const riotMountMenuSelect = (selector: string, opts: IRiotOptsMenuSelect)
     };
 
     // tslint:disable-next-line:space-before-function-paren
+    that.getIdForIndex = function (index: number): string | undefined {
+        const found = (this.opts as IRiotOptsMenuSelect).options.find((_option, i) => {
+            return index === i;
+        });
+        return found ? found.id : undefined;
+    };
+
+    // tslint:disable-next-line:space-before-function-paren
+    that.getLabelForIndex = function (index: number): string | undefined {
+        const found = (this.opts as IRiotOptsMenuSelect).options.find((_option, i) => {
+            return index === i;
+        });
+        return found ? found.label : undefined;
+    };
+
+    // tslint:disable-next-line:space-before-function-paren
     that.setSelectedItem = function (item: string) {
 
         let index = that.getIndexForId(item);
@@ -149,7 +167,7 @@ export const riotMountMenuSelect = (selector: string, opts: IRiotOptsMenuSelect)
             //     label = element.textContent;
             // }
 
-            that.trigger("selectionChanged", ev.target.value);
+            that.trigger("selectionChanged", ev.target.selectedIndex);
         });
     });
 };

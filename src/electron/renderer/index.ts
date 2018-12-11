@@ -752,14 +752,18 @@ const initFontSelector = () => {
     };
     const tag = riotMountMenuSelect("#fontSelect", opts)[0] as IRiotTagMenuSelect;
 
-    tag.on("selectionChanged", (val: string) => {
-        // console.log("selectionChanged");
-        // console.log(val);
+    tag.on("selectionChanged", (index: number) => {
+        console.log("selectionChanged");
+        console.log(index);
+        let id = tag.getIdForIndex(index);
+        console.log(id);
+        if (!id) {
+            return;
+        }
         // const element = tag.root.ownerDocument.getElementById(val) as HTMLElement;
         //     console.log(element.textContent);
-        val = val.replace(ID_PREFIX, "");
-        // console.log(val);
-        electronStore.set("styling.font", val);
+        id = id.replace(ID_PREFIX, "");
+        electronStore.set("styling.font", id);
     });
 
     electronStore.onChanged("styling.font", (newValue: any, oldValue: any) => {
