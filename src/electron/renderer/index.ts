@@ -1440,6 +1440,9 @@ function startNavigatorExperiment() {
 const ELEMENT_ID_HIDE_PANEL = "r2_navigator_reader_chrome_HIDE";
 let _viewHideInterval: NodeJS.Timer | undefined;
 const unhideWebView = () => {
+    if (window) { // skip this
+        return;
+    }
     if (_viewHideInterval) {
         clearInterval(_viewHideInterval);
         _viewHideInterval = undefined;
@@ -1453,6 +1456,9 @@ const unhideWebView = () => {
     }
 };
 const hideWebView = () => {
+    if (window) { // skip this
+        return;
+    }
     const hidePanel = document.getElementById(ELEMENT_ID_HIDE_PANEL) as HTMLElement;
     if (hidePanel && hidePanel.style.display !== "block") {
         hidePanel.style.display = "block";
