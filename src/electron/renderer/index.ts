@@ -10,9 +10,14 @@ import * as path from "path";
 import { IStringMap } from "@models/metadata-multilang";
 import { Publication } from "@models/publication";
 import {
-    IEventPayload_R2_EVENT_READING_LOCATION,
     IEventPayload_R2_EVENT_READIUMCSS,
 } from "@r2-navigator-js/electron/common/events";
+import {
+    IReadiumCSS,
+    colCountEnum,
+    readiumCSSDefaults,
+    textAlignEnum,
+} from "@r2-navigator-js/electron/common/readium-css-settings";
 import {
     READIUM2_ELECTRON_HTTP_PROTOCOL,
     convertCustomSchemeToHttpUrl,
@@ -22,7 +27,8 @@ import { consoleRedirect } from "@r2-navigator-js/electron/renderer/console-redi
 import {
     DOM_EVENT_HIDE_VIEWPORT,
     DOM_EVENT_SHOW_VIEWPORT,
-    handleLink,
+    LocatorExtended,
+    handleLinkUrl,
     installNavigatorDOM,
     navLeftOrRight,
     readiumCssOnOff as readiumCssOnOff_,
@@ -38,7 +44,9 @@ import {
     initGlobalConverters_GENERIC,
     initGlobalConverters_SHARED,
 } from "@r2-shared-js/init-globals";
+import { Locator } from "@r2-shared-js/models/locator";
 import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
+import { debounce } from "debounce";
 import { ipcRenderer, webFrame } from "electron";
 import { JSON as TAJSON } from "ta-json-x";
 
@@ -84,8 +92,6 @@ import {
 } from "./riots/menuselect/index_";
 
 import SystemFonts = require("system-font-families");
-
-import { debounce } from "debounce";
 
 // const releaseConsoleRedirect =
 consoleRedirect("r2:testapp#electron/renderer/index", process.stdout, process.stderr, true);
@@ -139,9 +145,9 @@ const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
 
     const on = electronStore.get("styling.readiumcss");
     if (on) {
-        const align = electronStore.get("styling.align") as string;
+        const textAlign = electronStore.get("styling.textAlign") as string;
         const colCount = electronStore.get("styling.colCount") as string;
-        const dark = electronStore.get("styling.dark") as boolean;
+        const darken = electronStore.get("styling.darken") as boolean;
         const font = electronStore.get("styling.font") as string;
         const fontSize = electronStore.get("styling.fontSize") as string;
         const lineHeight = electronStore.get("styling.lineHeight") as string;
@@ -149,26 +155,60 @@ const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
         const night = electronStore.get("styling.night") as boolean;
         const paged = electronStore.get("styling.paged") as boolean;
         const sepia = electronStore.get("styling.sepia") as boolean;
-        const cssJson = {
-            align,
-            colCount,
-            dark,
+        const cssJson: IReadiumCSS = {
+
+            a11yNormalize: readiumCSSDefaults.a11yNormalize,
+
+            backgroundColor: readiumCSSDefaults.backgroundColor,
+
+            bodyHyphens: readiumCSSDefaults.bodyHyphens,
+
+            colCount: colCount === "1" ? colCountEnum.one : (colCount === "2" ? colCountEnum.two : colCountEnum.auto),
+
+            darken,
+
             font,
+
             fontSize,
+
             invert,
+
+            letterSpacing: readiumCSSDefaults.letterSpacing,
+
+            ligatures: readiumCSSDefaults.ligatures,
+
             lineHeight,
+
             night,
+
+            pageMargins: readiumCSSDefaults.pageMargins,
+
             paged,
+
+            paraIndent: readiumCSSDefaults.paraIndent,
+
+            paraSpacing: readiumCSSDefaults.paraSpacing,
+
             sepia,
+
+            textAlign: textAlign === "left" ? textAlignEnum.left :
+                (textAlign === "right" ? textAlignEnum.right :
+                (textAlign === "justify" ? textAlignEnum.justify : textAlignEnum.start)),
+
+            textColor: readiumCSSDefaults.textColor,
+
+            typeScale: readiumCSSDefaults.typeScale,
+
+            wordSpacing: readiumCSSDefaults.wordSpacing,
         };
+
         const jsonMsg: IEventPayload_R2_EVENT_READIUMCSS = {
-            injectCSS: "yes",
             setCSS: cssJson,
             urlRoot: pubServerRoot,
         };
         return jsonMsg;
     } else {
-        return { injectCSS: "rollback", setCSS: "rollback" };
+        return { setCSS: undefined }; // reset all (disable ReadiumCSS)
     }
 };
 setReadiumCssJsonGetter(computeReadiumCssJsonMessage);
@@ -183,18 +223,22 @@ interface IReadingLocation {
     loc: string | undefined; // legacy
     locCfi: string;
     locCssSelector: string;
+    locProgression: number;
+    locPosition: number;
 }
 
-const saveReadingLocation = (doc: string, location: IEventPayload_R2_EVENT_READING_LOCATION) => {
+const saveReadingLocation = (location: LocatorExtended) => {
     let obj = electronStore.get("readingLocation");
     if (!obj) {
         obj = {};
     }
     obj[pathDecoded] = {
-        doc,
+        doc: location.locator.href,
         loc: undefined,
-        locCfi: location.cfi,
-        locCssSelector: location.cssSelector,
+        locCfi: location.locator.locations.cfi,
+        locCssSelector: location.locator.locations.cssSelector,
+        locPosition: location.locator.locations.position,
+        locProgression: location.locator.locations.progression,
     } as IReadingLocation;
     electronStore.set("readingLocation", obj);
 };
@@ -251,7 +295,7 @@ electronStore.onChanged("styling.night", (newValue: any, oldValue: any) => {
     readiumCssOnOff();
 });
 
-electronStore.onChanged("styling.align", (newValue: any, oldValue: any) => {
+electronStore.onChanged("styling.textAlign", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
     }
@@ -883,11 +927,11 @@ window.addEventListener("DOMContentLoaded", () => {
     const justifySwitchEl = document.getElementById("justify_switch") as HTMLElement;
     const justifySwitch = new (window as any).mdc.switchControl.MDCSwitch(justifySwitchEl);
     (justifySwitchEl as any).mdcSwitch = justifySwitch;
-    justifySwitch.checked = electronStore.get("styling.align") === "justify";
+    justifySwitch.checked = electronStore.get("styling.textAlign") === "justify";
     justifySwitchEl.addEventListener("change", (_event: any) => {
         // justifySwitch.handleChange("change", (_event: any) => {
         const checked = justifySwitch.checked;
-        electronStore.set("styling.align", checked ? "justify" : "initial");
+        electronStore.set("styling.textAlign", checked ? "justify" : "initial");
     });
     justifySwitch.disabled = !electronStore.get("styling.readiumcss");
 
@@ -1321,23 +1365,20 @@ function startNavigatorExperiment() {
         }
 
         const readStore = electronStore.get("readingLocation");
-        let location: IEventPayload_R2_EVENT_READING_LOCATION | undefined;
-        let pubDocHrefToLoad: string | undefined;
+        let location: Locator | undefined;
         if (readStore) {
             const obj = readStore[pathDecoded] as IReadingLocation;
             if (obj && obj.doc) {
-                pubDocHrefToLoad = obj.doc;
-
                 if (obj.loc) {
-                    location = { cfi: undefined, cssSelector: obj.loc };
+                    location = { href: obj.doc, locations: { cfi: undefined, cssSelector: obj.loc } };
                 } else if (obj.locCssSelector) {
-                    location = { cfi: undefined, cssSelector: obj.locCssSelector };
+                    location = { href: obj.doc, locations: { cfi: undefined, cssSelector: obj.locCssSelector } };
                 }
                 if (obj.locCfi) {
                     if (!location) {
-                        location = { cfi: obj.locCfi, cssSelector: "body" };
+                        location = { href: obj.doc, locations: { cfi: obj.locCfi, cssSelector: "body" } };
                     } else {
-                        location.cfi = obj.locCfi;
+                        location.locations.cfi = obj.locCfi;
                     }
                 }
             }
@@ -1391,7 +1432,7 @@ function startNavigatorExperiment() {
             installNavigatorDOM(_publication, publicationJsonUrl,
                 rootHtmlElementID,
                 preloadPath,
-                pubDocHrefToLoad, location);
+                location);
         }, 500);
     })();
 }
@@ -1426,9 +1467,9 @@ function handleLink_(href: string) {
     if (drawer.open) {
         drawer.open = false;
         setTimeout(() => {
-            handleLink(href, undefined, false);
+            handleLinkUrl(href);
         }, 200);
     } else {
-        handleLink(href, undefined, false);
+        handleLinkUrl(href);
     }
 }
