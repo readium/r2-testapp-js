@@ -23,10 +23,9 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { Publication } from "@models/publication";
 import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-processing";
-import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { LCP } from "@r2-lcp-js/parser/epub/lcp";
+import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
 import { convertHttpUrlToCustomScheme } from "@r2-navigator-js/electron/common/sessions";
 import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-window-tracker";
@@ -40,9 +39,10 @@ import {
     initGlobalConverters_GENERIC,
     initGlobalConverters_SHARED,
 } from "@r2-shared-js/init-globals";
+import { Publication } from "@r2-shared-js/models/publication";
 import { Server } from "@r2-streamer-js/http/server";
-import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
-import { streamToBufferPromise } from "@utils/stream/BufferUtils";
+import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
+import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
 import * as debug_ from "debug";
 import { BrowserWindow, Menu, app, dialog, ipcMain, webContents } from "electron";
 import * as express from "express";

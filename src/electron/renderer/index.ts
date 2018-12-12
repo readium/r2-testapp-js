@@ -7,8 +7,6 @@
 
 import * as path from "path";
 
-import { IStringMap } from "@models/metadata-multilang";
-import { Publication } from "@models/publication";
 import {
     IEventPayload_R2_EVENT_READIUMCSS,
 } from "@r2-navigator-js/electron/common/events";
@@ -45,7 +43,9 @@ import {
     initGlobalConverters_SHARED,
 } from "@r2-shared-js/init-globals";
 import { Locator } from "@r2-shared-js/models/locator";
-import { encodeURIComponent_RFC3986 } from "@utils/http/UrlUtils";
+import { IStringMap } from "@r2-shared-js/models/metadata-multilang";
+import { Publication } from "@r2-shared-js/models/publication";
+import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
 import { debounce } from "debounce";
 import { ipcRenderer, webFrame } from "electron";
 import { JSON as TAJSON } from "ta-json-x";
