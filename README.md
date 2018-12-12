@@ -94,8 +94,8 @@ Command line steps (NPM, but similar with YARN):
 5) `npm run build:all` (invoke the main build script: clean, lint, compile)
 6) `ls dist` (that's the build output which gets published as NPM package)
 7) `npm run electron` (use the menu to open bundled EPUBs, or to choose arbitrary publications from the filesystem)
-8) `npm run electron PATH_TO_EPUB` (to save using the menu)
+8) `npm run electron PATH_TO_PACKED_OR_EXPLODED_EPUB_FILE_OR_URI` (gets added to the graphical menu, for re-use later)
 
 ## Documentation
 
-TODO
+See the [index](/docs/index.md).
