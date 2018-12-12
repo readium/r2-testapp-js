@@ -1,10 +1,32 @@
 # Next
 
 Git diff:
-* https://github.com/readium/r2-testapp-js/compare/v1.0.0-alpha.7...develop
+* https://github.com/readium/r2-testapp-js/compare/v1.0.0...develop
 
 Changes:
 * TODO
+
+# 1.0.0
+
+> Build environment: NodeJS `8.14.0`, NPM `6.5.0`
+
+Changes:
+* Fixed broken font menu
+* Removed loader / hide-panel so we can test/observe the ReadiumCSS layout pass (currently not injected at streamer level)
+* Alignment with underlying packages, notably ReadiumCSS and Locator APIs
+* NPM updates (minor)
+* ReadiumCSS updated to latest (minor)
+* Git revision JSON info now includes NodeJS and NPM version (build environment)
+
+Git revision info:
+* https://unpkg.com/r2-testapp-js@1.0.0/dist/gitrev.json
+* https://github.com/edrlab/r2-testapp-js-dist/blob/v1.0.0/dist/gitrev.json
+
+Git commit history:
+* https://github.com/readium/r2-testapp-js/commits/v1.0.0
+
+Git diff:
+* https://github.com/readium/r2-testapp-js/compare/v1.0.0-alpha.7...v1.0.0
 
 # 1.0.0-alpha.7
 
