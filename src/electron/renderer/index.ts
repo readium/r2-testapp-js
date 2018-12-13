@@ -146,9 +146,9 @@ const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
     const on = electronStore.get("readiumCSSEnable");
     if (on) {
         let cssJson = electronStore.get("readiumCSS");
-        // console.log("-----");
-        // console.log(cssJson);
-        // console.log("-----");
+        console.log("---- readiumCSS -----");
+        console.log(cssJson);
+        console.log("-----");
         if (!cssJson) {
             cssJson = readiumCSSDefaults;
         }
@@ -224,6 +224,14 @@ console.log(pathFileName);
 
 // tslint:disable-next-line:no-string-literal
 const lcpHint = queryParams["lcpHint"];
+
+electronStore.onChanged("readiumCSS.colCount", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+    console.log("readiumCSS.colCount: ", oldValue, " => ", newValue);
+    readiumCssOnOff();
+});
 
 electronStore.onChanged("readiumCSS.night", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
@@ -1093,7 +1101,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const buttonClearSettingsStyle = document.getElementById("buttonClearSettingsStyle") as HTMLElement;
     buttonClearSettingsStyle.addEventListener("click", () => {
 
-        electronStore.set("styling", electronStore.getDefaults().styling);
+        electronStore.set("readiumCSS", electronStore.getDefaults().readiumCSS);
 
         drawer.open = false;
         setTimeout(() => {
