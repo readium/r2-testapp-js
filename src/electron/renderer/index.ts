@@ -12,9 +12,7 @@ import {
 } from "@r2-navigator-js/electron/common/events";
 import {
     IReadiumCSS,
-    colCountEnum,
     readiumCSSDefaults,
-    textAlignEnum,
 } from "@r2-navigator-js/electron/common/readium-css-settings";
 import {
     READIUM2_ELECTRON_HTTP_PROTOCOL,
@@ -110,21 +108,23 @@ webFrame.registerURLSchemeAsPrivileged(READIUM2_ELECTRON_HTTP_PROTOCOL, {
     supportFetchAPI: true,
 });
 
+const readiumCssDefaultsJson: IReadiumCSS = readiumCSSDefaults;
+const readiumCssKeys = Object.keys(readiumCSSDefaults);
+// console.log(readiumCssKeys);
+readiumCssKeys.forEach((key: string) => {
+    const value = (readiumCSSDefaults as any)[key];
+    // console.log(key, " => ", value);
+    if (typeof value === "undefined") {
+        (readiumCssDefaultsJson as any)[key] = null;
+    } else {
+        (readiumCssDefaultsJson as any)[key] = value;
+    }
+});
+
 const electronStore: IStore = new StoreElectron("readium2-testapp", {
     basicLinkTitles: true,
-    styling: {
-        align: "left",
-        colCount: "auto",
-        dark: false,
-        font: "DEFAULT",
-        fontSize: "100%",
-        invert: false,
-        lineHeight: "1.5",
-        night: false,
-        paged: false,
-        readiumcss: false,
-        sepia: false,
-    },
+    readiumCSS: readiumCssDefaultsJson,
+    readiumCSSEnable: false,
 });
 
 const electronStoreLCP: IStore = new StoreElectron("readium2-testapp-lcp", {});
@@ -143,65 +143,15 @@ console.log(pubServerRoot);
 
 const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
 
-    const on = electronStore.get("styling.readiumcss");
+    const on = electronStore.get("readiumCSSEnable");
     if (on) {
-        const textAlign = electronStore.get("styling.textAlign") as string;
-        const colCount = electronStore.get("styling.colCount") as string;
-        const darken = electronStore.get("styling.darken") as boolean;
-        const font = electronStore.get("styling.font") as string;
-        const fontSize = electronStore.get("styling.fontSize") as string;
-        const lineHeight = electronStore.get("styling.lineHeight") as string;
-        const invert = electronStore.get("styling.invert") as boolean;
-        const night = electronStore.get("styling.night") as boolean;
-        const paged = electronStore.get("styling.paged") as boolean;
-        const sepia = electronStore.get("styling.sepia") as boolean;
-        const cssJson: IReadiumCSS = {
-
-            a11yNormalize: readiumCSSDefaults.a11yNormalize,
-
-            backgroundColor: readiumCSSDefaults.backgroundColor,
-
-            bodyHyphens: readiumCSSDefaults.bodyHyphens,
-
-            colCount: colCount === "1" ? colCountEnum.one : (colCount === "2" ? colCountEnum.two : colCountEnum.auto),
-
-            darken,
-
-            font,
-
-            fontSize,
-
-            invert,
-
-            letterSpacing: readiumCSSDefaults.letterSpacing,
-
-            ligatures: readiumCSSDefaults.ligatures,
-
-            lineHeight,
-
-            night,
-
-            pageMargins: readiumCSSDefaults.pageMargins,
-
-            paged,
-
-            paraIndent: readiumCSSDefaults.paraIndent,
-
-            paraSpacing: readiumCSSDefaults.paraSpacing,
-
-            sepia,
-
-            textAlign: textAlign === "left" ? textAlignEnum.left :
-                (textAlign === "right" ? textAlignEnum.right :
-                (textAlign === "justify" ? textAlignEnum.justify : textAlignEnum.start)),
-
-            textColor: readiumCSSDefaults.textColor,
-
-            typeScale: readiumCSSDefaults.typeScale,
-
-            wordSpacing: readiumCSSDefaults.wordSpacing,
-        };
-
+        let cssJson = electronStore.get("readiumCSS");
+        // console.log("-----");
+        // console.log(cssJson);
+        // console.log("-----");
+        if (!cssJson) {
+            cssJson = readiumCSSDefaults;
+        }
         const jsonMsg: IEventPayload_R2_EVENT_READIUMCSS = {
             setCSS: cssJson,
             urlRoot: pubServerRoot,
@@ -275,7 +225,7 @@ console.log(pathFileName);
 // tslint:disable-next-line:no-string-literal
 const lcpHint = queryParams["lcpHint"];
 
-electronStore.onChanged("styling.night", (newValue: any, oldValue: any) => {
+electronStore.onChanged("readiumCSS.night", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
     }
@@ -295,7 +245,7 @@ electronStore.onChanged("styling.night", (newValue: any, oldValue: any) => {
     readiumCssOnOff();
 });
 
-electronStore.onChanged("styling.textAlign", (newValue: any, oldValue: any) => {
+electronStore.onChanged("readiumCSS.textAlign", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
     }
@@ -308,7 +258,7 @@ electronStore.onChanged("styling.textAlign", (newValue: any, oldValue: any) => {
     readiumCssOnOff();
 });
 
-electronStore.onChanged("styling.paged", (newValue: any, oldValue: any) => {
+electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
     }
@@ -337,7 +287,7 @@ function ensureSliderLayout() {
     }, 100);
 }
 
-electronStore.onChanged("styling.readiumcss", (newValue: any, oldValue: any) => {
+electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
     }
@@ -369,7 +319,7 @@ electronStore.onChanged("styling.readiumcss", (newValue: any, oldValue: any) => 
     const nightSwitch = (nightSwitchEl as any).mdcSwitch;
     nightSwitch.disabled = !newValue;
     if (!newValue) {
-        electronStore.set("styling.night", false);
+        electronStore.set("readiumCSS.night", false);
     }
 });
 
@@ -597,8 +547,8 @@ const initLineHeightSelector = () => {
     // slider.step = parseFloat(step);
     // console.log("slider.step: " + slider.step);
 
-    slider.disabled = !electronStore.get("styling.readiumcss");
-    const val = electronStore.get("styling.lineHeight");
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.lineHeight");
     if (val) {
         slider.value = parseFloat(val) * 100;
     } else {
@@ -610,7 +560,7 @@ const initLineHeightSelector = () => {
     // console.log(slider.value);
     // console.log(slider.step);
 
-    electronStore.onChanged("styling.readiumcss", (newValue: any, oldValue: any) => {
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
         if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
             return;
         }
@@ -621,11 +571,11 @@ const initLineHeightSelector = () => {
     //     console.log(event.detail.value);
     // });
     slider.listen("MDCSlider:change", (event: any) => {
-        electronStore.set("styling.lineHeight",
+        electronStore.set("readiumCSS.lineHeight",
             "" + (event.detail.value / 100));
     });
 
-    electronStore.onChanged("styling.lineHeight", (newValue: any, oldValue: any) => {
+    electronStore.onChanged("readiumCSS.lineHeight", (newValue: any, oldValue: any) => {
         if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
             return;
         }
@@ -660,8 +610,8 @@ const initFontSizeSelector = () => {
     // };
     // drawerElement.addEventListener("MDCTemporaryDrawer:close", funcClose);
 
-    slider.disabled = !electronStore.get("styling.readiumcss");
-    const val = electronStore.get("styling.fontSize");
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.fontSize");
     if (val) {
         slider.value = parseInt(val.replace("%", ""), 10);
     } else {
@@ -673,7 +623,7 @@ const initFontSizeSelector = () => {
     // console.log(slider.value);
     // console.log(slider.step);
 
-    electronStore.onChanged("styling.readiumcss", (newValue: any, oldValue: any) => {
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
         if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
             return;
         }
@@ -685,10 +635,10 @@ const initFontSizeSelector = () => {
     // });
     slider.listen("MDCSlider:change", (event: any) => {
         // console.log(event.detail.value);
-        electronStore.set("styling.fontSize", event.detail.value + "%");
+        electronStore.set("readiumCSS.fontSize", event.detail.value + "%");
     });
 
-    electronStore.onChanged("styling.fontSize", (newValue: any, oldValue: any) => {
+    electronStore.onChanged("readiumCSS.fontSize", (newValue: any, oldValue: any) => {
         if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
             return;
         }
@@ -737,7 +687,7 @@ const initFontSelector = () => {
             label: "Monospace",
             style: "font-family: \"Andale Mono\", Consolas, monospace;",
         }];
-    let selectedID = ID_PREFIX + electronStore.get("styling.font");
+    let selectedID = ID_PREFIX + electronStore.get("readiumCSS.font");
     const foundItem = options.find((item) => {
         return item.id === selectedID;
     });
@@ -745,7 +695,7 @@ const initFontSelector = () => {
         selectedID = options[0].id;
     }
     const opts: IRiotOptsMenuSelect = {
-        disabled: !electronStore.get("styling.readiumcss"),
+        disabled: !electronStore.get("readiumCSSEnable"),
         label: "Font name",
         options,
         selected: selectedID,
@@ -763,10 +713,10 @@ const initFontSelector = () => {
         // const element = tag.root.ownerDocument.getElementById(val) as HTMLElement;
         //     console.log(element.textContent);
         id = id.replace(ID_PREFIX, "");
-        electronStore.set("styling.font", id);
+        electronStore.set("readiumCSS.font", id);
     });
 
-    electronStore.onChanged("styling.font", (newValue: any, oldValue: any) => {
+    electronStore.onChanged("readiumCSS.font", (newValue: any, oldValue: any) => {
         if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
             return;
         }
@@ -777,7 +727,7 @@ const initFontSelector = () => {
         readiumCssOnOff();
     });
 
-    electronStore.onChanged("styling.readiumcss", (newValue: any, oldValue: any) => {
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
         if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
             return;
         }
@@ -810,7 +760,7 @@ const initFontSelector = () => {
                 };
                 arr.push(option);
             });
-            let newSelectedID = ID_PREFIX + electronStore.get("styling.font");
+            let newSelectedID = ID_PREFIX + electronStore.get("readiumCSS.font");
             const newFoundItem = options.find((item) => {
                 return item.id === newSelectedID;
             });
@@ -859,7 +809,7 @@ window.addEventListener("DOMContentLoaded", () => {
     installKeyboardMouseFocusHandler();
 
     // TODO DARK THEME
-    // if (electronStore.get("styling.night")) {
+    // if (electronStore.get("readiumCSS.night")) {
     //     document.body.classList.add("mdc-theme--dark");
     // } else {
     //     document.body.classList.remove("mdc-theme--dark");
@@ -919,43 +869,43 @@ window.addEventListener("DOMContentLoaded", () => {
     const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
     const nightSwitch = new (window as any).mdc.switchControl.MDCSwitch(nightSwitchEl);
     (nightSwitchEl as any).mdcSwitch = nightSwitch;
-    nightSwitch.checked = electronStore.get("styling.night");
+    nightSwitch.checked = electronStore.get("readiumCSS.night");
     nightSwitchEl.addEventListener("change", (_event: any) => {
         // nightSwitch.handleChange("change", (_event: any) => {
         const checked = nightSwitch.checked;
-        electronStore.set("styling.night", checked);
+        electronStore.set("readiumCSS.night", checked);
     });
-    nightSwitch.disabled = !electronStore.get("styling.readiumcss");
+    nightSwitch.disabled = !electronStore.get("readiumCSSEnable");
 
     // const justifySwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
     const justifySwitchEl = document.getElementById("justify_switch") as HTMLElement;
     const justifySwitch = new (window as any).mdc.switchControl.MDCSwitch(justifySwitchEl);
     (justifySwitchEl as any).mdcSwitch = justifySwitch;
-    justifySwitch.checked = electronStore.get("styling.textAlign") === "justify";
+    justifySwitch.checked = electronStore.get("readiumCSS.textAlign") === "justify";
     justifySwitchEl.addEventListener("change", (_event: any) => {
         // justifySwitch.handleChange("change", (_event: any) => {
         const checked = justifySwitch.checked;
-        electronStore.set("styling.textAlign", checked ? "justify" : "initial");
+        electronStore.set("readiumCSS.textAlign", checked ? "justify" : "initial");
     });
-    justifySwitch.disabled = !electronStore.get("styling.readiumcss");
+    justifySwitch.disabled = !electronStore.get("readiumCSSEnable");
 
     // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
     const paginateSwitch = new (window as any).mdc.switchControl.MDCSwitch(paginateSwitchEl);
     (paginateSwitchEl as any).mdcSwitch = paginateSwitch;
-    paginateSwitch.checked = electronStore.get("styling.paged");
+    paginateSwitch.checked = electronStore.get("readiumCSS.paged");
     paginateSwitchEl.addEventListener("change", (_event: any) => {
         // paginateSwitch.handleChange("change", (_event: any) => {
         const checked = paginateSwitch.checked;
-        electronStore.set("styling.paged", checked);
+        electronStore.set("readiumCSS.paged", checked);
     });
-    paginateSwitch.disabled = !electronStore.get("styling.readiumcss");
+    paginateSwitch.disabled = !electronStore.get("readiumCSSEnable");
 
     // const readiumcssSwitch = document.getElementById("readiumcss_switch-input") as HTMLInputElement;
     const readiumcssSwitchEl = document.getElementById("readiumcss_switch") as HTMLElement;
     const readiumcssSwitch = new (window as any).mdc.switchControl.MDCSwitch(readiumcssSwitchEl);
     (readiumcssSwitchEl as any).mdcSwitch = readiumcssSwitch;
-    readiumcssSwitch.checked = electronStore.get("styling.readiumcss");
+    readiumcssSwitch.checked = electronStore.get("readiumCSSEnable");
     const stylingWrapper = document.getElementById("stylingWrapper") as HTMLElement;
     stylingWrapper.style.display = readiumcssSwitch.checked ? "block" : "none";
     if (readiumcssSwitch.checked) {
@@ -964,7 +914,7 @@ window.addEventListener("DOMContentLoaded", () => {
     readiumcssSwitchEl.addEventListener("change", (_event: any) => {
         // readiumcssSwitch.handleChange("change", (_event: any) => {
         const checked = readiumcssSwitch.checked;
-        electronStore.set("styling.readiumcss", checked);
+        electronStore.set("readiumCSSEnable", checked);
     });
 
     // const basicSwitch = document.getElementById("nav_basic_switch-input") as HTMLInputElement;
