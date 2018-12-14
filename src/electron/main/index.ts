@@ -27,6 +27,11 @@ import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-p
 import { LCP } from "@r2-lcp-js/parser/epub/lcp";
 import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
+import { IEventPayload_R2_EVENT_READIUMCSS } from "@r2-navigator-js/electron/common/events";
+import {
+    IReadiumCSS,
+    readiumCSSDefaults,
+} from "@r2-navigator-js/electron/common/readium-css-settings";
 import { convertHttpUrlToCustomScheme } from "@r2-navigator-js/electron/common/sessions";
 import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-window-tracker";
 import { lsdLcpUpdateInject } from "@r2-navigator-js/electron/main/lsd-injectlcpl";
@@ -40,6 +45,7 @@ import {
     initGlobalConverters_SHARED,
 } from "@r2-shared-js/init-globals";
 import { Publication } from "@r2-shared-js/models/publication";
+import { Link } from "@r2-shared-js/models/publication-link";
 import { Server } from "@r2-streamer-js/http/server";
 import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
 import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
@@ -449,6 +455,67 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
 
 initSessions();
 
+function isFixedLayout(publication: Publication, link: Link | undefined): boolean {
+    if (link && link.Properties) {
+        if (link.Properties.Layout === "fixed") {
+            return true;
+        }
+        if (typeof link.Properties.Layout !== "undefined") {
+            return false;
+        }
+    }
+    if (publication &&
+        publication.Metadata &&
+        publication.Metadata.Rendition) {
+        return publication.Metadata.Rendition.Layout === "fixed";
+    }
+    return false;
+}
+
+const readiumCssDefaultsJson: IReadiumCSS = readiumCSSDefaults;
+const readiumCssKeys = Object.keys(readiumCSSDefaults);
+// console.log(readiumCssKeys);
+readiumCssKeys.forEach((key: string) => {
+    const value = (readiumCSSDefaults as any)[key];
+    // console.log(key, " => ", value);
+    if (typeof value === "undefined") {
+        (readiumCssDefaultsJson as any)[key] = null;
+    } else {
+        (readiumCssDefaultsJson as any)[key] = value;
+    }
+});
+
+const electronStore: IStore = new StoreElectron("readium2-testapp", {
+    basicLinkTitles: true,
+    readiumCSS: readiumCssDefaultsJson,
+    readiumCSSEnable: false,
+});
+
+function __computeReadiumCssJsonMessage(publication: Publication, link: Link | undefined):
+    IEventPayload_R2_EVENT_READIUMCSS {
+
+    if (isFixedLayout(publication, link)) {
+        return { setCSS: undefined, isFixedLayout: true };
+    }
+
+    const pubServerRoot = _publicationsServer.serverUrl() as string;
+
+    const on = electronStore.get("readiumCSSEnable");
+    if (on) {
+        let cssJson = electronStore.get("readiumCSS");
+        if (!cssJson) {
+            cssJson = readiumCSSDefaults;
+        }
+        const jsonMsg: IEventPayload_R2_EVENT_READIUMCSS = {
+            setCSS: cssJson,
+            urlRoot: pubServerRoot,
+        };
+        return jsonMsg;
+    } else {
+        return { setCSS: undefined }; // reset all (disable ReadiumCSS)
+    }
+}
+
 app.on("ready", () => {
     debug("app ready");
 
@@ -498,7 +565,7 @@ app.on("ready", () => {
             path.join(process.cwd(), "dist", "ReadiumCSS").replace(/\\/g, "/") :
             path.join(__dirname, "ReadiumCSS").replace(/\\/g, "/");
 
-        setupReadiumCSS(_publicationsServer, readiumCSSPath);
+        setupReadiumCSS(_publicationsServer, readiumCSSPath, __computeReadiumCssJsonMessage);
 
         // For the webview preload sourcemaps (local file URL)
         if (IS_DEV) {
