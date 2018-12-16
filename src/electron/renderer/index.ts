@@ -43,7 +43,6 @@ import {
 import { Locator } from "@r2-shared-js/models/locator";
 import { IStringMap } from "@r2-shared-js/models/metadata-multilang";
 import { Publication } from "@r2-shared-js/models/publication";
-import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
 import { debounce } from "debounce";
 import { ipcRenderer, webFrame } from "electron";
 import { JSON as TAJSON } from "ta-json-x";
@@ -206,14 +205,14 @@ setReadingLocationSaver(saveReadingLocation);
 // }
 
 // tslint:disable-next-line:no-string-literal
-let publicationJsonUrl = queryParams["pub"];
+const publicationJsonUrl = queryParams["pub"];
 console.log(publicationJsonUrl);
 const publicationJsonUrl_ = publicationJsonUrl.startsWith(READIUM2_ELECTRON_HTTP_PROTOCOL) ?
     convertCustomSchemeToHttpUrl(publicationJsonUrl) : publicationJsonUrl;
 console.log(publicationJsonUrl_);
 const pathBase64 = publicationJsonUrl_.
-    replace(/.*\/pub\/(.*)\/manifest.json/, "$1").
-    replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
+    replace(/.*\/[x]?pub\/(.*)\/manifest.json/, "$1");
+// replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
 console.log(pathBase64);
 const pathDecoded = window.atob(pathBase64);
 console.log(pathDecoded);
@@ -464,12 +463,12 @@ ipcRenderer.on(R2_EVENT_TRY_LCP_PASS_RES, (
             electronStoreLCP.set("lcp", lcpStore);
         }
 
-        if (publicationJsonUrl.indexOf("URL_LCP_PASS_PLACEHOLDER") > 0) {
-            let pazz = Buffer.from(payload.passSha256Hex).toString("base64");
-            pazz = encodeURIComponent_RFC3986(pazz);
-            publicationJsonUrl = publicationJsonUrl.replace("URL_LCP_PASS_PLACEHOLDER", pazz);
-            console.log(publicationJsonUrl);
-        }
+        // if (publicationJsonUrl.indexOf("URL_LCP_PASS_PLACEHOLDER") > 0) {
+        //     let pazz = Buffer.from(payload.passSha256Hex).toString("base64");
+        //     pazz = encodeURIComponent_RFC3986(pazz);
+        //     publicationJsonUrl = publicationJsonUrl.replace("URL_LCP_PASS_PLACEHOLDER", pazz);
+        //     console.log(publicationJsonUrl);
+        // }
     }
 
     startNavigatorExperiment();

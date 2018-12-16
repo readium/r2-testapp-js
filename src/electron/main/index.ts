@@ -22,6 +22,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { URL } from "url";
 
 import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-processing";
 import { LCP } from "@r2-lcp-js/parser/epub/lcp";
@@ -46,9 +47,12 @@ import {
 } from "@r2-shared-js/init-globals";
 import { Publication } from "@r2-shared-js/models/publication";
 import { Link } from "@r2-shared-js/models/publication-link";
+import { isEPUBlication } from "@r2-shared-js/parser/epub";
 import { Server } from "@r2-streamer-js/http/server";
 import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
+import { isHTTP } from "@r2-utils-js/_utils/http/UrlUtils";
 import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
+import { ZipExploded } from "@r2-utils-js/_utils/zip/zip-ex";
 import * as debug_ from "debug";
 import { BrowserWindow, Menu, app, dialog, ipcMain, webContents } from "electron";
 import * as express from "express";
@@ -64,6 +68,8 @@ import { StoreElectron } from "../common/store-electron";
 import { installLcpHandler } from "./lcp";
 import { installLsdHandler } from "./lsd";
 import { getDeviceIDManager } from "./lsd-deviceid-manager";
+
+const SECURE = false;
 
 const electronStoreLSD: IStore = new StoreElectron("readium2-testapp-lsd", {});
 const deviceIDManager = getDeviceIDManager(electronStoreLSD, "Readium2 Electron desktop app");
@@ -129,6 +135,16 @@ ipcMain.on(R2_EVENT_DEVTOOLS, (_event: any, _arg: any) => {
     openAllDevTools();
 });
 
+function isManifestJSON(urlOrPath: string): boolean {
+    let p = urlOrPath;
+    if (isHTTP(urlOrPath)) {
+        const url = new URL(urlOrPath);
+        p = url.pathname;
+    }
+    // const fileName = path.basename(p);
+    return /manifest\.json$/.test(p); // TODO: hacky!
+}
+
 async function createElectronBrowserWindow(publicationFilePath: string, publicationUrl: string) {
 
     debug("createElectronBrowserWindow() " + publicationFilePath + " : " + publicationUrl);
@@ -136,11 +152,57 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
     let lcpHint: string | undefined;
     let publication: Publication | undefined;
 
-    if (publicationFilePath.indexOf("http") === 0 &&
-        publicationFilePath.endsWith(".json") // TODO: hacky!
-    ) {
+    if (isManifestJSON(publicationFilePath)) {
+        // if (!isHTTP(publicationFilePath)) {
+        //     debug("**** isManifestJSON && !isHTTP");
+        //     const manifestJsonDir = path.dirname(publicationFilePath);
+        //     debug(manifestJsonDir);
+        //     const publicationFilePathBase64 = Buffer.from(publicationFilePath).toString("base64");
+        //     const routePath = "/xpub/" + publicationFilePathBase64;
+        //     debug(routePath);
+        //     // https://expressjs.com/en/4x/api.html#express.static
+        //     const staticOptions = {
+        //         dotfiles: "ignore",
+        //         etag: false,
+        //         fallthrough: false,
+        //         immutable: true,
+        //         index: false,
+        //         maxAge: "1d",
+        //         redirect: false,
+        //         // extensions: ["css", "otf"],
+        //         // setHeaders: function (res, path, stat) {
+        //         //   res.set('x-timestamp', Date.now())
+        //         // }
+        //     };
+        //     _publicationsServer.expressUse(routePath,
+        //         express.static(manifestJsonDir, staticOptions));
+        //     publicationUrl = `${_publicationsServer.serverUrl()}${routePath}/manifest.json`;
+        //     debug(publicationUrl);
+        // }
+
         const failure = async (err: any) => {
             debug(err);
+        };
+
+        const handleLCP = (responseStr: string, pub: Publication) => {
+            const responseJson = global.JSON.parse(responseStr);
+            debug(responseJson);
+
+            let lcpl: LCP | undefined;
+            lcpl = TAJSON.deserialize<LCP>(responseJson, LCP);
+            lcpl.ZipPath = "META-INF/license.lcpl";
+            lcpl.JsonSource = responseStr;
+            lcpl.init();
+
+            // breakLength: 100  maxArrayLength: undefined
+            // console.log(util.inspect(lcpl,
+            //     { showHidden: false, depth: 1000, colors: true, customInspect: true }));
+
+            pub.LCP = lcpl;
+            // publicationUrl = publicationUrl.replace("/pub/",
+            //     "/pub/" + _publicationsServer.lcpBeginToken +
+            //     "URL_LCP_PASS_PLACEHOLDER" + _publicationsServer.lcpEndToken);
+            // debug(publicationUrl);
         };
 
         const successLCP = async (response: request.RequestResponse, pub: Publication) => {
@@ -173,56 +235,14 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                 responseStr = responseData.toString("utf8");
             }
 
-            const responseJson = global.JSON.parse(responseStr);
-            debug(responseJson);
-
-            let lcpl: LCP | undefined;
-            lcpl = TAJSON.deserialize<LCP>(responseJson, LCP);
-            lcpl.ZipPath = "META-INF/license.lcpl";
-            lcpl.JsonSource = responseStr;
-            lcpl.init();
-
-            // breakLength: 100  maxArrayLength: undefined
-            // console.log(util.inspect(lcpl,
-            //     { showHidden: false, depth: 1000, colors: true, customInspect: true }));
-
-            pub.LCP = lcpl;
-            publicationUrl = publicationUrl.replace("/pub/",
-                "/pub/" + _publicationsServer.lcpBeginToken +
-                "URL_LCP_PASS_PLACEHOLDER" + _publicationsServer.lcpEndToken);
-            debug(publicationUrl);
+            handleLCP(responseStr, pub);
         };
 
-        const success = async (response: request.RequestResponse) => {
+        // No response streaming! :(
+        // https://github.com/request/request-promise/issues/90
+        const needsStreamingResponse = true;
 
-            // Object.keys(response.headers).forEach((header: string) => {
-            //     debug(header + " => " + response.headers[header]);
-            // });
-
-            // debug(response);
-            // debug(response.body);
-
-            if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
-                await failure("HTTP CODE " + response.statusCode);
-                return;
-            }
-
-            let responseStr: string;
-            if (response.body) {
-                debug("RES BODY");
-                responseStr = response.body;
-            } else {
-                debug("RES STREAM");
-                let responseData: Buffer;
-                try {
-                    responseData = await streamToBufferPromise(response);
-                } catch (err) {
-                    debug(err);
-                    return;
-                }
-                responseStr = responseData.toString("utf8");
-            }
-
+        const handleManifestJson = async (responseStr: string) => {
             const responseJson = global.JSON.parse(responseStr);
             debug(responseJson);
 
@@ -234,20 +254,43 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             }
             debug(publication);
 
-            const pathBase64 = decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
-            debug(pathBase64);
-            const pathDecoded = new Buffer(pathBase64, "base64").toString("utf8");
-            debug(pathDecoded);
-            // const pathFileName = pathDecoded.substr(
-            //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
-            //     pathDecoded.length - 1);
-            // debug(pathFileName);
+            let p = publicationFilePath;
+            if (isHTTP(publicationFilePath)) {
+                const url = new URL(publicationFilePath);
+                p = url.pathname;
+            }
+            publication.AddToInternal("filename", path.basename(p));
+            publication.AddToInternal("type", "epub");
+
+            if (!isHTTP(publicationFilePath)) {
+                const dirPath = path.dirname(publicationFilePath);
+                const zip = await ZipExploded.loadPromise(dirPath);
+                publication.AddToInternal("zip", zip);
+            } else {
+                // TODO: zip-ex.ts for HTTP
+            }
+
+            const pathDecoded = publicationFilePath;
+            // const pathBase64 = decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
+            // debug(pathBase64);
+            // const pathDecoded = new Buffer(pathBase64, "base64").toString("utf8");
+            // debug(pathDecoded);
+            // // const pathFileName = pathDecoded.substr(
+            // //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
+            // //     pathDecoded.length - 1);
+            // // debug(pathFileName);
+
             debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath);
+            const publicationUrls = _publicationsServer.addPublications([pathDecoded]);
             _publicationsServer.cachePublication(pathDecoded, publication);
             const pubCheck = _publicationsServer.cachedPublication(pathDecoded);
             if (!pubCheck) {
                 debug("PUB CHECK FAIL?");
             }
+            // const publicationFilePathBase64 = Buffer.from(pathDecoded).toString("base64");
+            // publicationUrl = `${_publicationsServer.serverUrl()}/pub/${publicationFilePathBase64}/manifest.json`;
+            publicationUrl = `${_publicationsServer.serverUrl()}${publicationUrls[0]}`;
+            debug(publicationUrl);
 
             if (publication.Links) {
                 const licenseLink = publication.Links.find((link) => {
@@ -255,96 +298,145 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                         link.TypeLink === "application/vnd.readium.lcp.license.v1.0+json";
                 });
                 if (licenseLink && licenseLink.Href) {
-                    // const lcplHref = publicationFilePath + "/../" + licenseLink.Href;
-                    const lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href);
+                    let lcplHref = licenseLink.Href;
+                    if (!isHTTP(lcplHref)) {
+                        // lcplHref = publicationFilePath + "/../" + licenseLink.Href;
+                        lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href);
+                    }
                     debug(lcplHref);
 
-                    // No response streaming! :(
-                    // https://github.com/request/request-promise/issues/90
-                    // const needsStreamingResponse = true;
-                    if (needsStreamingResponse) {
-                        const promise = new Promise((resolve, reject) => {
-                            request.get({
-                                headers: {},
-                                method: "GET",
-                                uri: lcplHref,
-                            })
-                                .on("response", async (responsez: request.RequestResponse) => {
-                                    await successLCP(responsez, publication as Publication);
-                                    resolve();
+                    if (isHTTP(lcplHref)) {
+                        // No response streaming! :(
+                        // https://github.com/request/request-promise/issues/90
+                        // const needsStreamingResponse = true;
+                        if (needsStreamingResponse) {
+                            const promise = new Promise((resolve, reject) => {
+                                request.get({
+                                    headers: {},
+                                    method: "GET",
+                                    uri: lcplHref,
                                 })
-                                .on("error", async (err: any) => {
-                                    await failure(err);
-                                    reject();
+                                    .on("response", async (responsez: request.RequestResponse) => {
+                                        await successLCP(responsez, publication as Publication);
+                                        resolve();
+                                    })
+                                    .on("error", async (err: any) => {
+                                        await failure(err);
+                                        reject();
+                                    });
+                            });
+                            try {
+                                await promise;
+                            } catch (err) {
+                                return;
+                            }
+                        } else {
+                            let responsez: requestPromise.FullResponse;
+                            try {
+                                // tslint:disable-next-line:await-promise no-floating-promises
+                                responsez = await requestPromise({
+                                    headers: {},
+                                    method: "GET",
+                                    resolveWithFullResponse: true,
+                                    uri: lcplHref,
                                 });
-                        });
-                        try {
-                            await promise;
-                        } catch (err) {
-                            return;
+                            } catch (err) {
+                                await failure(err);
+                                return;
+                            }
+                            await successLCP(responsez, publication);
                         }
                     } else {
-                        let responsez: requestPromise.FullResponse;
-                        try {
-                            // tslint:disable-next-line:await-promise no-floating-promises
-                            responsez = await requestPromise({
-                                headers: {},
-                                method: "GET",
-                                resolveWithFullResponse: true,
-                                uri: lcplHref,
-                            });
-                        } catch (err) {
-                            await failure(err);
+                        const responsezStr = fs.readFileSync(lcplHref, { encoding: "utf8" });
+                        if (!responsezStr) {
+                            await failure("Cannot read local file: " + lcplHref);
                             return;
                         }
-                        await successLCP(responsez, publication);
+                        handleLCP(responsezStr, publication);
                     }
                 }
             }
         };
 
-        // No response streaming! :(
-        // https://github.com/request/request-promise/issues/90
-        const needsStreamingResponse = true;
-        if (needsStreamingResponse) {
-            const promise = new Promise((resolve, reject) => {
-                request.get({
-                    headers: {},
-                    method: "GET",
-                    uri: publicationFilePath,
-                })
-                    .on("response", async (response: request.RequestResponse) => {
-                        await success(response);
-                        resolve();
+        if (isHTTP(publicationFilePath)) {
+            const success = async (response: request.RequestResponse) => {
+
+                // Object.keys(response.headers).forEach((header: string) => {
+                //     debug(header + " => " + response.headers[header]);
+                // });
+
+                // debug(response);
+                // debug(response.body);
+
+                if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
+                    await failure("HTTP CODE " + response.statusCode);
+                    return;
+                }
+
+                let responseStr: string;
+                if (response.body) {
+                    debug("RES BODY");
+                    responseStr = response.body;
+                } else {
+                    debug("RES STREAM");
+                    let responseData: Buffer;
+                    try {
+                        responseData = await streamToBufferPromise(response);
+                    } catch (err) {
+                        debug(err);
+                        return;
+                    }
+                    responseStr = responseData.toString("utf8");
+                }
+                await handleManifestJson(responseStr);
+            };
+
+            if (needsStreamingResponse) {
+                const promise = new Promise((resolve, reject) => {
+                    request.get({
+                        headers: {},
+                        method: "GET",
+                        uri: publicationFilePath,
                     })
-                    .on("error", async (err: any) => {
-                        await failure(err);
-                        reject();
+                        .on("response", async (response: request.RequestResponse) => {
+                            await success(response);
+                            resolve();
+                        })
+                        .on("error", async (err: any) => {
+                            await failure(err);
+                            reject();
+                        });
+                });
+                try {
+                    await promise;
+                } catch (err) {
+                    return;
+                }
+            } else {
+                let response: requestPromise.FullResponse;
+                try {
+                    // tslint:disable-next-line:await-promise no-floating-promises
+                    response = await requestPromise({
+                        headers: {},
+                        method: "GET",
+                        resolveWithFullResponse: true,
+                        uri: publicationFilePath,
                     });
-            });
-            try {
-                await promise;
-            } catch (err) {
-                return;
+                } catch (err) {
+                    await failure(err);
+                    return;
+                }
+                await success(response);
             }
         } else {
-            let response: requestPromise.FullResponse;
-            try {
-                // tslint:disable-next-line:await-promise no-floating-promises
-                response = await requestPromise({
-                    headers: {},
-                    method: "GET",
-                    resolveWithFullResponse: true,
-                    uri: publicationFilePath,
-                });
-            } catch (err) {
-                await failure(err);
+            const responseStr = fs.readFileSync(publicationFilePath, { encoding: "utf8" });
+            if (!responseStr) {
+                await failure("Cannot read local file: " + publicationFilePath);
                 return;
             }
-            await success(response);
+            await handleManifestJson(responseStr);
         }
-    } else if (publicationFilePath.indexOf("http") !== 0 ||
-        publicationFilePath.endsWith(".epub")) {
+    } else if (isEPUBlication(publicationFilePath)) {
 
         // const fileName = path.basename(publicationFilePath);
         // const ext = path.extname(fileName).toLowerCase();
@@ -430,7 +522,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         // electronBrowserWindow.webContents.openDevTools();
     });
 
-    if (publicationFilePath.indexOf("http") !== 0) {
+    if (SECURE && isHTTP(publicationUrl)) { // && !isManifestJSON(publicationFilePath)
         // This triggers the origin-sandbox for localStorage, etc.
         publicationUrl = convertHttpUrlToCustomScheme(publicationUrl);
     }
@@ -556,7 +648,9 @@ app.on("ready", () => {
             disableRemotePubUrl: true,
         });
 
-        secureSessions(_publicationsServer); // port 443 ==> HTTPS
+        if (SECURE) {
+            secureSessions(_publicationsServer); // port 443 ==> HTTPS
+        }
 
         installLcpHandler(_publicationsServer);
         installLsdHandler(_publicationsServer, deviceIDManager);
@@ -692,7 +786,7 @@ app.on("ready", () => {
 
         // Force HTTPS, see secureSessions()
         // const serverInfo =
-        await _publicationsServer.start(_publicationsServerPort, true);
+        await _publicationsServer.start(_publicationsServerPort, SECURE);
         // debug(serverInfo);
 
         _publicationsRootUrl = _publicationsServer.serverUrl() as string;
@@ -715,7 +809,7 @@ app.on("ready", () => {
                 const argPath = args[0].trim();
                 let filePath = argPath;
                 debug(filePath);
-                if (filePath.indexOf("http") === 0) {
+                if (isHTTP(filePath)) {
                     await openFile(filePath);
                     return;
                 } else {
@@ -741,9 +835,14 @@ app.on("ready", () => {
                 }
             }
 
-            if (filePathToLoadOnLaunch && !fs.lstatSync(filePathToLoadOnLaunch).isDirectory()) {
-                await openFileDownload(filePathToLoadOnLaunch);
-                return;
+            if (filePathToLoadOnLaunch) {
+                if (isEPUBlication(filePathToLoadOnLaunch) || isManifestJSON(filePathToLoadOnLaunch)) {
+                    await openFile(filePathToLoadOnLaunch);
+                    return;
+                } else if (!fs.lstatSync(filePathToLoadOnLaunch).isDirectory()) {
+                    await openFileDownload(filePathToLoadOnLaunch);
+                    return;
+                }
             }
 
             const detail = "Note that this is only a developer application (" +
@@ -928,9 +1027,7 @@ async function openFileDownload(filePath: string) {
 async function openFile(filePath: string) {
     let n = _publicationsFilePaths.indexOf(filePath);
     if (n < 0) {
-        if (filePath.indexOf("http") === 0 &&
-            filePath.endsWith(".json") // TODO: hacky!
-        ) {
+        if (isManifestJSON(filePath)) {
             _publicationsFilePaths.push(filePath);
             debug(_publicationsFilePaths);
 

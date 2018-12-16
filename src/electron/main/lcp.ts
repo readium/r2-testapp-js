@@ -27,8 +27,9 @@ export function installLcpHandler(publicationsServer: Server) {
         event: any,
         payload: IEventPayload_R2_EVENT_TRY_LCP_PASS) => {
 
-        // debug(publicationFilePath);
-        // debug(lcpPass);
+        debug("]]]]]]]] publicationFilePath");
+        debug(payload.publicationFilePath);
+        // debug(payload.lcpPass);
 
         // let passSha256Hex: string;
         try {
