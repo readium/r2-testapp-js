@@ -68,6 +68,7 @@ import { StoreElectron } from "../common/store-electron";
 import { installLcpHandler } from "./lcp";
 import { installLsdHandler } from "./lsd";
 import { getDeviceIDManager } from "./lsd-deviceid-manager";
+import { ZipExplodedHTTP } from "./zip-ex-http";
 
 const SECURE = false;
 
@@ -243,11 +244,49 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         const needsStreamingResponse = true;
 
         const handleManifestJson = async (responseStr: string) => {
-            const responseJson = global.JSON.parse(responseStr);
-            debug(responseJson);
+            const manifestJson = global.JSON.parse(responseStr);
+            debug(manifestJson);
+
+            // hacky! assumes obfuscated fonts are transformed on the server side
+            // (yet crypto info is present in manifest).
+            // Note that local manifest.json generated with the r2-shared-js CLI does not contain crypto info
+            // when resources are actually produced in plain text.
+            if (isHTTP(publicationFilePath)) {
+
+                const arrLinks = [];
+                if (manifestJson.readingOrder) {
+                    arrLinks.push(...manifestJson.readingOrder);
+                }
+                if (manifestJson.resources) {
+                    arrLinks.push(...manifestJson.resources);
+                }
+
+                arrLinks.forEach((link: any) => {
+                    if (link.properties && link.properties.encrypted &&
+                        (link.properties.encrypted.algorithm === "http://www.idpf.org/2008/embedding" ||
+                        link.properties.encrypted.algorithm === "http://ns.adobe.com/pdf/enc#RC")) {
+                        delete link.properties.encrypted;
+
+                        let atLeastOne = false;
+                        const jsonProps = Object.keys(link.properties);
+                        if (jsonProps) {
+                            jsonProps.forEach((jsonProp) => {
+                                if (link.properties.hasOwnProperty(jsonProp)) {
+                                    atLeastOne = true;
+                                    return false;
+                                }
+                                return true;
+                            });
+                        }
+                        if (!atLeastOne) {
+                            delete link.properties;
+                        }
+                    }
+                });
+            }
 
             try {
-                publication = TAJSON.deserialize<Publication>(responseJson, Publication);
+                publication = TAJSON.deserialize<Publication>(manifestJson, Publication);
             } catch (erorz) {
                 debug(erorz);
                 return;
@@ -267,7 +306,11 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                 const zip = await ZipExploded.loadPromise(dirPath);
                 publication.AddToInternal("zip", zip);
             } else {
-                // TODO: zip-ex.ts for HTTP
+                const url = new URL(publicationFilePath);
+                const dirPath = path.dirname(p);
+                url.pathname = dirPath;
+                const zip = await ZipExplodedHTTP.loadPromise(url.toString());
+                publication.AddToInternal("zip", zip);
             }
 
             const pathDecoded = publicationFilePath;
