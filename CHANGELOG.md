@@ -1,10 +1,31 @@
 # Next
 
 Git diff:
-* https://github.com/readium/r2-testapp-js/compare/v1.0.0...develop
+* https://github.com/readium/r2-testapp-js/compare/v1.0.1...develop
 
 Changes:
 * TODO
+
+# 1.0.1
+
+> Build environment: NodeJS `8.14.0`, NPM `6.5.0`
+
+Changes:
+* NPM updates (`r2-xxx-js` packages)
+* Replaced deprecated RawGit URLs
+* Removed unnecessary TypeScript import aliases
+* Improved ReadiumCSS integration (updated API with defaults and all params, and streamer-based injection)
+* Experimental support for direct loading of remote/local ReadiumWebPubManifest JSON, with LCP support (will migrate to core fetcher/zip when further tested)
+
+Git revision info:
+* https://unpkg.com/r2-testapp-js@1.0.1/dist/gitrev.json
+* https://github.com/edrlab/r2-testapp-js-dist/blob/v1.0.1/dist/gitrev.json
+
+Git commit history:
+* https://github.com/readium/r2-testapp-js/commits/v1.0.1
+
+Git diff:
+* https://github.com/readium/r2-testapp-js/compare/v1.0.0...v1.0.1
 
 # 1.0.0
 
