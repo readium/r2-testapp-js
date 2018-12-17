@@ -211,7 +211,7 @@ const publicationJsonUrl_ = publicationJsonUrl.startsWith(READIUM2_ELECTRON_HTTP
     convertCustomSchemeToHttpUrl(publicationJsonUrl) : publicationJsonUrl;
 console.log(publicationJsonUrl_);
 const pathBase64 = publicationJsonUrl_.
-    replace(/.*\/[x]?pub\/(.*)\/manifest.json/, "$1");
+    replace(/.*\/pub\/(.*)\/manifest.json/, "$1");
 // replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
 console.log(pathBase64);
 const pathDecoded = window.atob(pathBase64);
