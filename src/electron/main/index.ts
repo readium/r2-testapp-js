@@ -70,7 +70,7 @@ import { installLcpHandler } from "./lcp";
 import { installLsdHandler } from "./lsd";
 import { getDeviceIDManager } from "./lsd-deviceid-manager";
 
-const SECURE = false;
+const SECURE = true;
 
 const electronStoreLSD: IStore = new StoreElectron("readium2-testapp-lsd", {});
 const deviceIDManager = getDeviceIDManager(electronStoreLSD, "Readium2 Electron desktop app");
@@ -1078,7 +1078,7 @@ async function openFile(filePath: string) {
             _publicationsFilePaths.push(filePath);
             debug(_publicationsFilePaths);
 
-            _publicationsUrls.push(decodeURIComponent(filePath));
+            _publicationsUrls.push(filePath);
             debug(_publicationsUrls);
 
             n = _publicationsFilePaths.length - 1; // === _publicationsUrls.length - 1

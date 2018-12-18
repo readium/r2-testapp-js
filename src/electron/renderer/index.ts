@@ -198,7 +198,7 @@ setReadingLocationSaver(saveReadingLocation);
 // // tslint:disable-next-line:no-string-literal
 // const lcpPluginBase64 = queryParams["lcpPlugin"];
 // if (lcpPluginBase64) {
-//     const lcpPlugin = new Buffer(decodeURIComponent(lcpPluginBase64), "base64").toString("utf8");
+//     const lcpPlugin = new Buffer(lcpPluginBase64, "base64").toString("utf8");
 //     setLcpNativePluginPath(lcpPlugin);
 // } else {
 //     setLcpNativePluginPath(path.join(process.cwd(), "LCP", "lcp.node"));
