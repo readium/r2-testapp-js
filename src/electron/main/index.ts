@@ -53,6 +53,7 @@ import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
 import { isHTTP } from "@r2-utils-js/_utils/http/UrlUtils";
 import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
 import { ZipExploded } from "@r2-utils-js/_utils/zip/zip-ex";
+import { ZipExplodedHTTP } from "@r2-utils-js/_utils/zip/zip-ex-http";
 import * as debug_ from "debug";
 import { BrowserWindow, Menu, app, dialog, ipcMain, webContents } from "electron";
 import * as express from "express";
@@ -68,7 +69,6 @@ import { StoreElectron } from "../common/store-electron";
 import { installLcpHandler } from "./lcp";
 import { installLsdHandler } from "./lsd";
 import { getDeviceIDManager } from "./lsd-deviceid-manager";
-import { ZipExplodedHTTP } from "./zip-ex-http";
 
 const SECURE = false;
 
@@ -143,7 +143,9 @@ function isManifestJSON(urlOrPath: string): boolean {
         p = url.pathname;
     }
     // const fileName = path.basename(p);
-    return /manifest\.json$/.test(p); // TODO: hacky!
+    const isMan = /.*manifest\.json[\?]?.*/.test(p); // TODO: hacky!
+    debug("########### IS MANIFEST: " + isMan);
+    return isMan;
 }
 
 async function createElectronBrowserWindow(publicationFilePath: string, publicationUrl: string) {
@@ -158,7 +160,8 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         //     debug("**** isManifestJSON && !isHTTP");
         //     const manifestJsonDir = path.dirname(publicationFilePath);
         //     debug(manifestJsonDir);
-        //     const publicationFilePathBase64 = Buffer.from(publicationFilePath).toString("base64");
+        //     const publicationFilePathBase64 =
+        //         encodeURIComponent_RFC3986(Buffer.from(publicationFilePath).toString("base64"));
         //     const routePath = "/xpub/" + publicationFilePathBase64;
         //     debug(routePath);
         //     // https://expressjs.com/en/4x/api.html#express.static
@@ -308,7 +311,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             } else {
                 const url = new URL(publicationFilePath);
                 const dirPath = path.dirname(p);
-                url.pathname = dirPath;
+                url.pathname = dirPath + "/";
                 const zip = await ZipExplodedHTTP.loadPromise(url.toString());
                 publication.AddToInternal("zip", zip);
             }
@@ -330,7 +333,8 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             if (!pubCheck) {
                 debug("PUB CHECK FAIL?");
             }
-            // const publicationFilePathBase64 = Buffer.from(pathDecoded).toString("base64");
+            // const publicationFilePathBase64 =
+            //     encodeURIComponent_RFC3986(Buffer.from(pathDecoded).toString("base64"));
             // publicationUrl = `${_publicationsServer.serverUrl()}/pub/${publicationFilePathBase64}/manifest.json`;
             publicationUrl = `${_publicationsServer.serverUrl()}${publicationUrls[0]}`;
             debug(publicationUrl);

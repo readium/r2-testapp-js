@@ -198,7 +198,7 @@ setReadingLocationSaver(saveReadingLocation);
 // // tslint:disable-next-line:no-string-literal
 // const lcpPluginBase64 = queryParams["lcpPlugin"];
 // if (lcpPluginBase64) {
-//     const lcpPlugin = window.atob(lcpPluginBase64);
+//     const lcpPlugin = new Buffer(decodeURIComponent(lcpPluginBase64), "base64").toString("utf8");
 //     setLcpNativePluginPath(lcpPlugin);
 // } else {
 //     setLcpNativePluginPath(path.join(process.cwd(), "LCP", "lcp.node"));
@@ -211,10 +211,10 @@ const publicationJsonUrl_ = publicationJsonUrl.startsWith(READIUM2_ELECTRON_HTTP
     convertCustomSchemeToHttpUrl(publicationJsonUrl) : publicationJsonUrl;
 console.log(publicationJsonUrl_);
 const pathBase64 = publicationJsonUrl_.
-    replace(/.*\/pub\/(.*)\/manifest.json/, "$1");
+    replace(/.*\/pub\/(.*)\/manifest.json.*/, "$1");
 // replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
 console.log(pathBase64);
-const pathDecoded = window.atob(pathBase64);
+const pathDecoded = new Buffer(decodeURIComponent(pathBase64), "base64").toString("utf8");
 console.log(pathDecoded);
 const pathFileName = pathDecoded.substr(
     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
