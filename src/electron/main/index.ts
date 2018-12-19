@@ -594,24 +594,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
 
 initSessions();
 
-function isFixedLayout(publication: Publication, link: Link | undefined): boolean {
-    if (link && link.Properties) {
-        if (link.Properties.Layout === "fixed") {
-            return true;
-        }
-        if (typeof link.Properties.Layout !== "undefined") {
-            return false;
-        }
-    }
-    if (publication &&
-        publication.Metadata &&
-        publication.Metadata.Rendition) {
-        return publication.Metadata.Rendition.Layout === "fixed";
-    }
-    return false;
-}
-
-const readiumCssDefaultsJson: IReadiumCSS = readiumCSSDefaults;
+const readiumCssDefaultsJson: IReadiumCSS = Object.assign({}, readiumCSSDefaults);
 const readiumCssKeys = Object.keys(readiumCSSDefaults);
 // console.log(readiumCssKeys);
 readiumCssKeys.forEach((key: string) => {
@@ -633,12 +616,6 @@ const electronStore: IStore = new StoreElectron("readium2-testapp", {
 function __computeReadiumCssJsonMessage(publication: Publication, link: Link | undefined):
     IEventPayload_R2_EVENT_READIUMCSS {
 
-    if (isFixedLayout(publication, link)) {
-        return { setCSS: undefined, isFixedLayout: true };
-    }
-
-    const pubServerRoot = _publicationsServer.serverUrl() as string;
-
     const on = electronStore.get("readiumCSSEnable");
     if (on) {
         let cssJson = electronStore.get("readiumCSS");
@@ -647,7 +624,6 @@ function __computeReadiumCssJsonMessage(publication: Publication, link: Link | u
         }
         const jsonMsg: IEventPayload_R2_EVENT_READIUMCSS = {
             setCSS: cssJson,
-            urlRoot: pubServerRoot,
         };
         return jsonMsg;
     } else {
