@@ -21,8 +21,8 @@ import {
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import { consoleRedirect } from "@r2-navigator-js/electron/renderer/console-redirect";
 import {
-    DOM_EVENT_HIDE_VIEWPORT,
-    DOM_EVENT_SHOW_VIEWPORT,
+    // DOM_EVENT_HIDE_VIEWPORT,
+    // DOM_EVENT_SHOW_VIEWPORT,
     LocatorExtended,
     handleLinkUrl,
     installNavigatorDOM,
@@ -1383,12 +1383,12 @@ function startNavigatorExperiment() {
                 return;
             }
 
-            rootHtmlElement.addEventListener(DOM_EVENT_HIDE_VIEWPORT, () => {
-                hideWebView();
-            });
-            rootHtmlElement.addEventListener(DOM_EVENT_SHOW_VIEWPORT, () => {
-                unhideWebView();
-            });
+            // rootHtmlElement.addEventListener(DOM_EVENT_HIDE_VIEWPORT, () => {
+            //     hideWebView();
+            // });
+            // rootHtmlElement.addEventListener(DOM_EVENT_SHOW_VIEWPORT, () => {
+            //     unhideWebView();
+            // });
 
             installNavigatorDOM(_publication, publicationJsonUrl,
                 rootHtmlElementID,
@@ -1398,37 +1398,37 @@ function startNavigatorExperiment() {
     })();
 }
 
-const ELEMENT_ID_HIDE_PANEL = "r2_navigator_reader_chrome_HIDE";
-let _viewHideInterval: NodeJS.Timer | undefined;
-const unhideWebView = () => {
-    if (window) { // skip this
-        return;
-    }
-    if (_viewHideInterval) {
-        clearInterval(_viewHideInterval);
-        _viewHideInterval = undefined;
-    }
-    const hidePanel = document.getElementById(ELEMENT_ID_HIDE_PANEL) as HTMLElement;
-    if (!hidePanel || hidePanel.style.display === "none") {
-        return;
-    }
-    if (hidePanel) {
-        hidePanel.style.display = "none";
-    }
-};
-const hideWebView = () => {
-    if (window) { // skip this
-        return;
-    }
-    const hidePanel = document.getElementById(ELEMENT_ID_HIDE_PANEL) as HTMLElement;
-    if (hidePanel && hidePanel.style.display !== "block") {
-        hidePanel.style.display = "block";
-        _viewHideInterval = setInterval(() => {
-            console.log("unhideWebView FORCED");
-            unhideWebView();
-        }, 5000);
-    }
-};
+// const ELEMENT_ID_HIDE_PANEL = "r2_navigator_reader_chrome_HIDE";
+// let _viewHideInterval: NodeJS.Timer | undefined;
+// const unhideWebView = () => {
+//     if (window) { // skip this
+//         return;
+//     }
+//     if (_viewHideInterval) {
+//         clearInterval(_viewHideInterval);
+//         _viewHideInterval = undefined;
+//     }
+//     const hidePanel = document.getElementById(ELEMENT_ID_HIDE_PANEL) as HTMLElement;
+//     if (!hidePanel || hidePanel.style.display === "none") {
+//         return;
+//     }
+//     if (hidePanel) {
+//         hidePanel.style.display = "none";
+//     }
+// };
+// const hideWebView = () => {
+//     if (window) { // skip this
+//         return;
+//     }
+//     const hidePanel = document.getElementById(ELEMENT_ID_HIDE_PANEL) as HTMLElement;
+//     if (hidePanel && hidePanel.style.display !== "block") {
+//         hidePanel.style.display = "block";
+//         _viewHideInterval = setInterval(() => {
+//             console.log("unhideWebView FORCED");
+//             unhideWebView();
+//         }, 5000);
+//     }
+// };
 
 function handleLink_(href: string) {
     if (drawer.open) {
