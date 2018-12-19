@@ -27,12 +27,11 @@ import {
     handleLinkUrl,
     installNavigatorDOM,
     navLeftOrRight,
-    readiumCssOnOff as readiumCssOnOff_,
-    setEpubReadingSystemJsonGetter,
+    readiumCssOnOff,
+    setEpubReadingSystemInfo,
     setReadingLocationSaver,
     setReadiumCssJsonGetter,
 } from "@r2-navigator-js/electron/renderer/index";
-import { INameVersion } from "@r2-navigator-js/electron/renderer/webview/epubReadingSystem";
 import {
     initGlobalConverters_OPDS,
 } from "@r2-opds-js/opds/init-globals";
@@ -162,10 +161,7 @@ const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
 };
 setReadiumCssJsonGetter(computeReadiumCssJsonMessage);
 
-const getEpubReadingSystem: () => INameVersion = () => {
-    return { name: "Readium2 test app", version: "0.0.1-alpha.1" };
-};
-setEpubReadingSystemJsonGetter(getEpubReadingSystem);
+setEpubReadingSystemInfo({ name: "Readium2 test app", version: "0.0.1-alpha.1" });
 
 interface IReadingLocation {
     doc: string;
@@ -229,7 +225,7 @@ electronStore.onChanged("readiumCSS.colCount", (newValue: any, oldValue: any) =>
         return;
     }
     console.log("readiumCSS.colCount: ", oldValue, " => ", newValue);
-    readiumCssOnOff();
+    refreshReadiumCSS();
 });
 
 electronStore.onChanged("readiumCSS.night", (newValue: any, oldValue: any) => {
@@ -249,7 +245,7 @@ electronStore.onChanged("readiumCSS.night", (newValue: any, oldValue: any) => {
     //     document.body.classList.remove("mdc-theme--dark");
     // }
 
-    readiumCssOnOff();
+    refreshReadiumCSS();
 });
 
 electronStore.onChanged("readiumCSS.textAlign", (newValue: any, oldValue: any) => {
@@ -262,7 +258,7 @@ electronStore.onChanged("readiumCSS.textAlign", (newValue: any, oldValue: any) =
     const justifySwitch = (justifySwitchEl as any).mdcSwitch;
     justifySwitch.checked = (newValue === "justify");
 
-    readiumCssOnOff();
+    refreshReadiumCSS();
 });
 
 electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
@@ -275,11 +271,11 @@ electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
     const paginateSwitch = (paginateSwitchEl as any).mdcSwitch;
     paginateSwitch.checked = newValue;
 
-    readiumCssOnOff();
+    refreshReadiumCSS();
 });
 
-const readiumCssOnOff = debounce(() => {
-    readiumCssOnOff_();
+const refreshReadiumCSS = debounce(() => {
+    readiumCssOnOff();
 }, 500);
 
 // super hacky, but necessary :(
@@ -309,7 +305,7 @@ electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
     const readiumcssSwitch = (readiumcssSwitchEl as any).mdcSwitch;
     readiumcssSwitch.checked = newValue;
 
-    readiumCssOnOff();
+    refreshReadiumCSS();
 
     // const justifySwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
     const justifySwitchEl = document.getElementById("justify_switch") as HTMLElement;
@@ -589,7 +585,7 @@ const initLineHeightSelector = () => {
 
         slider.value = parseFloat(newValue) * 100;
 
-        readiumCssOnOff();
+        refreshReadiumCSS();
     });
 };
 
@@ -652,7 +648,7 @@ const initFontSizeSelector = () => {
 
         slider.value = parseInt(newValue.replace("%", ""), 10);
 
-        readiumCssOnOff();
+        refreshReadiumCSS();
     });
 };
 
@@ -731,7 +727,7 @@ const initFontSelector = () => {
         // console.log(newValue);
         tag.setSelectedItem(ID_PREFIX + newValue);
 
-        readiumCssOnOff();
+        refreshReadiumCSS();
     });
 
     electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
