@@ -12,6 +12,6 @@ export interface IStore {
     set(key: string | undefined, value: any): void;
     onChanged(key: string, callback: (newValue: any, oldValue: any) => void): void;
 }
-declare var IStore: {
-    new (name: string, defaults: any): IStore;
-};
+// declare var IStore: {
+//     new (name: string, defaults: any): IStore;
+// };
