@@ -58,19 +58,24 @@ export function getDeviceIDManager(electronStoreLSD: IStore, name: string): IDev
         },
 
         async recordDeviceID(key: string): Promise<void> {
-
-            const id = this.getDeviceID();
-
-            const lsdStore = electronStoreLSD.get("lsd");
-            if (!lsdStore) {
-                // Should be init'ed at this.getDeviceID()
-                debug("LSD store problem?!");
-                return Promise.reject("Cannot get LSD store?");
+            let id: string | undefined;
+            try {
+                id = await this.getDeviceID();
+            } catch (err) {
+                debug(err);
             }
+            if (id) {
+                const lsdStore = electronStoreLSD.get("lsd");
+                if (!lsdStore) {
+                    // Should be init'ed at this.getDeviceID()
+                    debug("LSD store problem?!");
+                    return Promise.reject("Cannot get LSD store?");
+                }
 
-            const entry = LSD_STORE_DEVICEID_ENTRY_PREFIX + key;
-            lsdStore[entry] = id;
-            electronStoreLSD.set("lsd", lsdStore);
+                const entry = LSD_STORE_DEVICEID_ENTRY_PREFIX + key;
+                lsdStore[entry] = id;
+                electronStoreLSD.set("lsd", lsdStore);
+            }
 
             return Promise.resolve(); // implicit
         },
