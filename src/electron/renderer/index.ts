@@ -19,10 +19,7 @@ import {
     convertCustomSchemeToHttpUrl,
 } from "@r2-navigator-js/electron/common/sessions";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
-import { consoleRedirect } from "@r2-navigator-js/electron/renderer/console-redirect";
 import {
-    // DOM_EVENT_HIDE_VIEWPORT,
-    // DOM_EVENT_SHOW_VIEWPORT,
     LocatorExtended,
     handleLinkUrl,
     installNavigatorDOM,
@@ -89,8 +86,9 @@ import {
 
 import SystemFonts = require("system-font-families");
 
-// const releaseConsoleRedirect =
-consoleRedirect("r2:testapp#electron/renderer/index", process.stdout, process.stderr, true);
+// import { consoleRedirect } from "@r2-navigator-js/electron/renderer/common/console-redirect";
+// // const releaseConsoleRedirect =
+// consoleRedirect("r2:testapp#electron/renderer/index", process.stdout, process.stderr, true);
 
 const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
 
