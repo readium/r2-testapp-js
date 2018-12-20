@@ -98,4 +98,16 @@ Command line steps (NPM, but similar with YARN):
 
 ## Documentation
 
-See the [index](/docs/index.md).
+See:
+
+https://github.com/readium/r2-navigator-js/blob/develop/README.md#documentation
+
+https://github.com/readium/r2-streamer-js/blob/develop/README.md#documentation
+
+https://github.com/readium/r2-opds-js/blob/develop/README.md#documentation
+
+https://github.com/readium/r2-shared-js/blob/develop/README.md#documentation
+
+https://github.com/readium/r2-lcp-js/blob/develop/README.md#documentation
+
+https://github.com/readium/r2-utils-js/blob/develop/README.md#documentation
