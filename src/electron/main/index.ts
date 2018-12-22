@@ -116,18 +116,20 @@ function openAllDevTools() {
         // if (wc.hostWebContents &&
         //     wc.hostWebContents.id === electronBrowserWindow.webContents.id) {
         // }
-        wc.openDevTools();
+        // https://github.com/electron/electron/blob/v3.0.0/docs/api/breaking-changes.md#webcontents
+        wc.openDevTools({ mode: "detach" });
     }
 }
 
+// https://github.com/electron/electron/blob/v3.0.0/docs/api/breaking-changes.md#webcontents
 // function openTopLevelDevTools() {
 //     const bw = BrowserWindow.getFocusedWindow();
 //     if (bw) {
-//         bw.webContents.openDevTools();
+//         bw.webContents.openDevTools({ mode: "detach" });
 //     } else {
 //         const arr = BrowserWindow.getAllWindows();
 //         arr.forEach((bww) => {
-//             bww.webContents.openDevTools();
+//             bww.webContents.openDevTools({ mode: "detach" });
 //         });
 //     }
 // }
@@ -531,6 +533,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         }
     }
 
+    // https://github.com/electron/electron/blob/v4.0.0/docs/api/breaking-changes.md#new-browserwindow-webpreferences-
     const electronBrowserWindow = new BrowserWindow({
         height: 600,
         webPreferences: {
@@ -546,8 +549,10 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         },
         width: 800,
     });
-    trackBrowserWindow(electronBrowserWindow);
+    trackBrowserWindow(electronBrowserWindow); // , _publicationsServer.serverUrl() as string
 
+    // https://github.com/electron/electron/blob/v3.0.0/docs/api/breaking-changes.md#webcontents
+    // https://github.com/electron/electron/blob/v3.0.0/docs/api/breaking-changes.md#webview
     // electronBrowserWindow.on("resize", () => {
     //     const [width, height] = electronBrowserWindow.getContentSize();
 
@@ -566,7 +571,8 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
 
     electronBrowserWindow.webContents.on("dom-ready", () => {
         debug("electronBrowserWindow dom-ready " + publicationFilePath + " : " + publicationUrl);
-        // electronBrowserWindow.webContents.openDevTools();
+        // https://github.com/electron/electron/blob/v3.0.0/docs/api/breaking-changes.md#webcontents
+        // electronBrowserWindow.webContents.openDevTools({ mode: "detach" });
     });
 
     if (SECURE && isHTTP(publicationUrl)) { // && !isManifestJSON(publicationFilePath)
@@ -889,6 +895,8 @@ app.on("ready", () => {
                 }
             } else {
                 const html = `<html><h2>${message}<hr>${detail}</h2></html>`;
+                // tslint:disable-next-line:max-line-length
+                // https://github.com/electron/electron/blob/v4.0.0/docs/api/breaking-changes.md#new-browserwindow-webpreferences-
                 const electronBrowserWindow = new BrowserWindow({
                     height: 300,
                     webPreferences: {
