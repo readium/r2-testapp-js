@@ -40,7 +40,7 @@ import { Locator } from "@r2-shared-js/models/locator";
 import { IStringMap } from "@r2-shared-js/models/metadata-multilang";
 import { Publication } from "@r2-shared-js/models/publication";
 import { debounce } from "debounce";
-import { ipcRenderer, webFrame } from "electron";
+import { ipcRenderer } from "electron";
 import { JSON as TAJSON } from "ta-json-x";
 
 import {
@@ -94,15 +94,8 @@ const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV =
 
 const queryParams = getURLQueryParams();
 
-webFrame.registerURLSchemeAsSecure(READIUM2_ELECTRON_HTTP_PROTOCOL);
-// webFrame.registerURLSchemeAsBypassingCSP(READIUM2_ELECTRON_HTTP_PROTOCOL);
-webFrame.registerURLSchemeAsPrivileged(READIUM2_ELECTRON_HTTP_PROTOCOL, {
-    allowServiceWorkers: false,
-    bypassCSP: false,
-    corsEnabled: false,
-    secure: true,
-    supportFetchAPI: true,
-});
+// import { registerProtocol } from "@r2-navigator-js/electron/renderer/common/protocol";
+// registerProtocol();
 
 const readiumCssDefaultsJson: IReadiumCSS = readiumCSSDefaults;
 const readiumCssKeys = Object.keys(readiumCSSDefaults);
@@ -1170,7 +1163,10 @@ function startNavigatorExperiment() {
 
         let response: Response;
         try {
-            response = await fetch(publicationJsonUrl);
+            // https://github.com/electron/electron/blob/v3.0.0/docs/api/breaking-changes.md#webframe
+            // publicationJsonUrl is READIUM2_ELECTRON_HTTP_PROTOCOL (see convertCustomSchemeToHttpUrl)
+            // publicationJsonUrl_ is https://127.0.0.1:PORT
+            response = await fetch(publicationJsonUrl_);
         } catch (e) {
             console.log(e);
             return;
