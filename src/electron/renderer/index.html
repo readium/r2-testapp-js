@@ -5,6 +5,10 @@
   <title>Readium 2 NodeJS 'streamer' (Electron 'testapp')</title>
   <meta charset="UTF-8" >
 
+  <!-- https://github.com/electron/electron/blob/master/docs/tutorial/security.md#csp-meta-tag -->
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' httpsr2: https://127.0.0.1:* http://127.0.0.1:*">
+
   <link rel="stylesheet" href="./material-components-web.css" >
 
   <!-- <link type="text/css" href="./riots/mytag/index.css" rel="stylesheet" > -->
