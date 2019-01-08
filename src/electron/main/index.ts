@@ -222,7 +222,9 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
     let lcpHint: string | undefined;
     let publication: Publication | undefined;
 
-    if (await isManifestJSON(publicationFilePath)) {
+    const isWebPub = await isManifestJSON(publicationFilePath);
+    const isHttpWebPub = isWebPub && isHTTP(publicationFilePath);
+    if (isWebPub) {
         // if (!isHTTP(publicationFilePath)) {
         //     debug("**** isManifestJSON && !isHTTP");
         //     const manifestJsonDir = path.dirname(publicationFilePath);
@@ -371,40 +373,43 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             publication.AddToInternal("filename", path.basename(p));
             publication.AddToInternal("type", "epub");
 
-            if (!isHTTP(publicationFilePath)) {
-                const dirPath = path.dirname(publicationFilePath);
-                const zip = await ZipExploded.loadPromise(dirPath);
-                publication.AddToInternal("zip", zip);
-            } else {
-                const url = new URL(publicationFilePath);
-                const dirPath = path.dirname(p);
-                url.pathname = dirPath + "/";
-                const zip = await ZipExplodedHTTP.loadPromise(url.toString());
-                publication.AddToInternal("zip", zip);
-            }
+            if (!isHttpWebPub) {
+                if (!isHTTP(publicationFilePath)) {
+                    const dirPath = path.dirname(publicationFilePath);
+                    const zip = await ZipExploded.loadPromise(dirPath);
+                    publication.AddToInternal("zip", zip);
+                } else {
+                    const url = new URL(publicationFilePath);
+                    const dirPath = path.dirname(p);
+                    url.pathname = dirPath + "/";
+                    const zip = await ZipExplodedHTTP.loadPromise(url.toString());
+                    publication.AddToInternal("zip", zip);
+                }
 
-            const pathDecoded = publicationFilePath;
-            // const pathBase64 = decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
-            // debug(pathBase64);
-            // const pathDecoded = new Buffer(pathBase64, "base64").toString("utf8");
-            // debug(pathDecoded);
-            // // const pathFileName = pathDecoded.substr(
-            // //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
-            // //     pathDecoded.length - 1);
-            // // debug(pathFileName);
+                const pathDecoded = publicationFilePath;
+                // const pathBase64 =
+                //      decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
+                // debug(pathBase64);
+                // const pathDecoded = new Buffer(pathBase64, "base64").toString("utf8");
+                // debug(pathDecoded);
+                // // const pathFileName = pathDecoded.substr(
+                // //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
+                // //     pathDecoded.length - 1);
+                // // debug(pathFileName);
 
-            debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath);
-            const publicationUrls = _publicationsServer.addPublications([pathDecoded]);
-            _publicationsServer.cachePublication(pathDecoded, publication);
-            const pubCheck = _publicationsServer.cachedPublication(pathDecoded);
-            if (!pubCheck) {
-                debug("PUB CHECK FAIL?");
+                debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath);
+                const publicationUrls = _publicationsServer.addPublications([pathDecoded]);
+                _publicationsServer.cachePublication(pathDecoded, publication);
+                const pubCheck = _publicationsServer.cachedPublication(pathDecoded);
+                if (!pubCheck) {
+                    debug("PUB CHECK FAIL?");
+                }
+                // const publicationFilePathBase64 =
+                //     encodeURIComponent_RFC3986(Buffer.from(pathDecoded).toString("base64"));
+                // publicationUrl = `${_publicationsServer.serverUrl()}/pub/${publicationFilePathBase64}/manifest.json`;
+                publicationUrl = `${_publicationsServer.serverUrl()}${publicationUrls[0]}`;
+                debug(publicationUrl);
             }
-            // const publicationFilePathBase64 =
-            //     encodeURIComponent_RFC3986(Buffer.from(pathDecoded).toString("base64"));
-            // publicationUrl = `${_publicationsServer.serverUrl()}/pub/${publicationFilePathBase64}/manifest.json`;
-            publicationUrl = `${_publicationsServer.serverUrl()}${publicationUrls[0]}`;
-            debug(publicationUrl);
 
             if (publication.Links) {
                 const licenseLink = publication.Links.find((link) => {
@@ -414,8 +419,12 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                 if (licenseLink && licenseLink.Href) {
                     let lcplHref = licenseLink.Href;
                     if (!isHTTP(lcplHref)) {
-                        // lcplHref = publicationFilePath + "/../" + licenseLink.Href;
-                        lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href);
+                        // TODO: test for trailing slash?
+                        if (isHttpWebPub) {
+                            lcplHref = publicationFilePath + "/../" + licenseLink.Href; // hacky!!
+                        } else {
+                            lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href); // hacky!!
+                        }
                     }
                     debug(lcplHref);
 
@@ -640,7 +649,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         // electronBrowserWindow.webContents.openDevTools({ mode: "detach" });
     });
 
-    if (SECURE && isHTTP(publicationUrl)) { // && !await isManifestJSON(publicationFilePath)
+    if (!isHttpWebPub && SECURE && isHTTP(publicationUrl)) { // && !await isManifestJSON(publicationFilePath)
         // This triggers the origin-sandbox for localStorage, etc.
         publicationUrl = convertHttpUrlToCustomScheme(publicationUrl);
     }
@@ -656,6 +665,9 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
 
     const urlRoot = _publicationsServer.serverUrl() as string;
     fullUrl = fullUrl + "&pubServerRoot=" + encodeURIComponent_RFC3986(urlRoot);
+    if (isHttpWebPub) {
+        fullUrl = fullUrl + "&isHttpWebPub=1";
+    }
 
     // `file://${process.cwd()}/src/electron/renderer/index.html`;
     // `file://${__dirname}/../../../../src/electron/renderer/index.html`

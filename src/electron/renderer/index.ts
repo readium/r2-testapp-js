@@ -197,12 +197,22 @@ console.log(publicationJsonUrl);
 const publicationJsonUrl_ = publicationJsonUrl.startsWith(READIUM2_ELECTRON_HTTP_PROTOCOL) ?
     convertCustomSchemeToHttpUrl(publicationJsonUrl) : publicationJsonUrl;
 console.log(publicationJsonUrl_);
-const pathBase64 = publicationJsonUrl_.
-    replace(/.*\/pub\/(.*)\/manifest.json.*/, "$1");
-// replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
-console.log(pathBase64);
-const pathDecoded = new Buffer(decodeURIComponent(pathBase64), "base64").toString("utf8");
-console.log(pathDecoded);
+
+// tslint:disable-next-line:no-string-literal
+const isHttpWebPub = queryParams["isHttpWebPub"];
+console.log(isHttpWebPub);
+
+let pathDecoded = "";
+if (isHttpWebPub) {
+    pathDecoded = publicationJsonUrl;
+} else {
+    const pathBase64 = publicationJsonUrl_.
+        replace(/.*\/pub\/(.*)\/manifest.json.*/, "$1");
+    // replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
+    console.log(pathBase64);
+    pathDecoded = new Buffer(decodeURIComponent(pathBase64), "base64").toString("utf8");
+    console.log(pathDecoded);
+}
 const pathFileName = pathDecoded.substr(
     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
     pathDecoded.length - 1);
@@ -1169,6 +1179,7 @@ function startNavigatorExperiment() {
             response = await fetch(publicationJsonUrl_);
         } catch (e) {
             console.log(e);
+            console.log(publicationJsonUrl_);
             return;
         }
         if (!response.ok) {
@@ -1384,6 +1395,8 @@ function startNavigatorExperiment() {
             // rootHtmlElement.addEventListener(DOM_EVENT_SHOW_VIEWPORT, () => {
             //     unhideWebView();
             // });
+
+            console.log(location);
 
             installNavigatorDOM(_publication, publicationJsonUrl,
                 rootHtmlElementID,
