@@ -21,6 +21,8 @@
 // https://github.com/electron/electron/blob/master/docs/api/ipc-renderer.md
 
 import * as fs from "fs";
+import * as http from "http";
+import * as https from "https";
 import * as path from "path";
 import { URL } from "url";
 
@@ -49,8 +51,8 @@ import { Publication } from "@r2-shared-js/models/publication";
 import { Link } from "@r2-shared-js/models/publication-link";
 import { isEPUBlication } from "@r2-shared-js/parser/epub";
 import { Server } from "@r2-streamer-js/http/server";
-import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
 import { isHTTP } from "@r2-utils-js/_utils/http/UrlUtils";
+import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
 import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
 import { ZipExploded } from "@r2-utils-js/_utils/zip/zip-ex";
 import { ZipExplodedHTTP } from "@r2-utils-js/_utils/zip/zip-ex-http";
@@ -138,12 +140,75 @@ ipcMain.on(R2_EVENT_DEVTOOLS, (_event: any, _arg: any) => {
     openAllDevTools();
 });
 
-function isManifestJSON(urlOrPath: string): boolean {
+async function isManifestJSON(urlOrPath: string): Promise<boolean> {
     let p = urlOrPath;
     if (isHTTP(urlOrPath)) {
         const url = new URL(urlOrPath);
         p = url.pathname;
+
+        const promise = new Promise<boolean>((resolve, reject) => {
+
+            const isHTTPS = urlOrPath.startsWith("https://");
+            const options = {
+                host: url.host,
+                method: "HEAD",
+                path: urlOrPath.substr(urlOrPath.indexOf(url.pathname)),
+                // port: (isHTTPS ? 443 : 80),
+                // protocol: (isHTTPS ? "https:" : "http:"),
+                // timeout: 1000,
+            };
+            debug(options);
+            (isHTTPS ? https : http).request(options, (response) => {
+                // let str: string | undefined;
+                // let buffs: Buffer[] | undefined;
+
+                debug(response.statusCode);
+
+                if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
+                    reject("STATUS: " + response.statusCode);
+                    return;
+                }
+                debug(response.headers);
+                debug(response.headers["content-type"]);
+
+                const okay = response.headers["content-type"] &&
+                    (response.headers["content-type"].indexOf("application/webpub+json") >= 0 ||
+                    response.headers["content-type"].indexOf("application/audiobook+json") >= 0);
+                resolve(okay as boolean);
+
+                // response.on("data", (chunk) => {
+                //     debug("data");
+                //     if (typeof chunk === "string") {
+                //         if (!str) {
+                //             str = "";
+                //         }
+                //         str += chunk;
+                //     } else {
+                //         if (!buffs) {
+                //             buffs = [];
+                //         }
+                //         buffs.push(chunk);
+                //     }
+                // });
+
+                // response.on("end", async () => {
+                //     debug("end");
+                // });
+            }).on("error", (err) => {
+                reject(err);
+            }).end();
+        });
+
+        let ok: boolean | undefined;
+        try {
+            ok = await promise;
+            debug("########### IS MANIFEST (HTTP): " + ok);
+            return ok; // or we could fallback to below manifest.json test?
+        } catch (err) {
+            debug(err); // fallback below ...
+        }
     }
+
     // const fileName = path.basename(p);
     const isMan = /.*manifest\.json[\?]?.*/.test(p); // TODO: hacky!
     debug("########### IS MANIFEST: " + isMan);
@@ -157,7 +222,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
     let lcpHint: string | undefined;
     let publication: Publication | undefined;
 
-    if (isManifestJSON(publicationFilePath)) {
+    if (await isManifestJSON(publicationFilePath)) {
         // if (!isHTTP(publicationFilePath)) {
         //     debug("**** isManifestJSON && !isHTTP");
         //     const manifestJsonDir = path.dirname(publicationFilePath);
@@ -575,7 +640,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         // electronBrowserWindow.webContents.openDevTools({ mode: "detach" });
     });
 
-    if (SECURE && isHTTP(publicationUrl)) { // && !isManifestJSON(publicationFilePath)
+    if (SECURE && isHTTP(publicationUrl)) { // && !await isManifestJSON(publicationFilePath)
         // This triggers the origin-sandbox for localStorage, etc.
         publicationUrl = convertHttpUrlToCustomScheme(publicationUrl);
     }
@@ -865,7 +930,7 @@ app.on("ready", () => {
             }
 
             if (filePathToLoadOnLaunch) {
-                if (isEPUBlication(filePathToLoadOnLaunch) || isManifestJSON(filePathToLoadOnLaunch)) {
+                if (isEPUBlication(filePathToLoadOnLaunch) || await isManifestJSON(filePathToLoadOnLaunch)) {
                     await openFile(filePathToLoadOnLaunch);
                     return;
                 } else if (!fs.lstatSync(filePathToLoadOnLaunch).isDirectory()) {
@@ -1058,7 +1123,7 @@ async function openFileDownload(filePath: string) {
 async function openFile(filePath: string) {
     let n = _publicationsFilePaths.indexOf(filePath);
     if (n < 0) {
-        if (isManifestJSON(filePath)) {
+        if (await isManifestJSON(filePath)) {
             _publicationsFilePaths.push(filePath);
             debug(_publicationsFilePaths);
 
