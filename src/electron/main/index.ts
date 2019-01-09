@@ -385,31 +385,34 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                     const zip = await ZipExplodedHTTP.loadPromise(url.toString());
                     publication.AddToInternal("zip", zip);
                 }
+            }
 
-                const pathDecoded = publicationFilePath;
-                // const pathBase64 =
-                //      decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
-                // debug(pathBase64);
-                // const pathDecoded = new Buffer(pathBase64, "base64").toString("utf8");
-                // debug(pathDecoded);
-                // // const pathFileName = pathDecoded.substr(
-                // //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
-                // //     pathDecoded.length - 1);
-                // // debug(pathFileName);
+            const pathDecoded = publicationFilePath;
+            // const pathBase64 =
+            //      decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
+            // debug(pathBase64);
+            // const pathDecoded = new Buffer(pathBase64, "base64").toString("utf8");
+            // debug(pathDecoded);
+            // // const pathFileName = pathDecoded.substr(
+            // //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
+            // //     pathDecoded.length - 1);
+            // // debug(pathFileName);
 
-                debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath);
-                const publicationUrls = _publicationsServer.addPublications([pathDecoded]);
-                _publicationsServer.cachePublication(pathDecoded, publication);
-                const pubCheck = _publicationsServer.cachedPublication(pathDecoded);
-                if (!pubCheck) {
-                    debug("PUB CHECK FAIL?");
-                }
+            debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath);
+            const publicationUrls = _publicationsServer.addPublications([pathDecoded]);
+            _publicationsServer.cachePublication(pathDecoded, publication);
+            const pubCheck = _publicationsServer.cachedPublication(pathDecoded);
+            if (!pubCheck) {
+                debug("PUB CHECK FAIL?");
+            }
+
+            if (!isHttpWebPub) {
                 // const publicationFilePathBase64 =
                 //     encodeURIComponent_RFC3986(Buffer.from(pathDecoded).toString("base64"));
                 // publicationUrl = `${_publicationsServer.serverUrl()}/pub/${publicationFilePathBase64}/manifest.json`;
                 publicationUrl = `${_publicationsServer.serverUrl()}${publicationUrls[0]}`;
-                debug(publicationUrl);
             }
+            debug(publicationUrl);
 
             if (publication.Links) {
                 const licenseLink = publication.Links.find((link) => {
