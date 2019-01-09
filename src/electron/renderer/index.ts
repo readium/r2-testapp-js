@@ -42,6 +42,7 @@ import { Publication } from "@r2-shared-js/models/publication";
 import { debounce } from "debounce";
 import { ipcRenderer } from "electron";
 import { JSON as TAJSON } from "ta-json-x";
+import * as throttle from "throttleit";
 
 import {
     IEventPayload_R2_EVENT_LCP_LSD_RENEW,
@@ -1234,6 +1235,19 @@ function startNavigatorExperiment() {
         buttonNavRight.addEventListener("click", (_event) => {
             navLeftOrRight(false);
         });
+
+        const onWheel = throttle((ev: WheelEvent) => {
+
+            console.log("wheel: " + ev.deltaX + " - " + ev.deltaY);
+
+            if (ev.deltaY < 0 || ev.deltaX < 0) {
+                navLeftOrRight(true);
+            } else if (ev.deltaY > 0 || ev.deltaX > 0) {
+                navLeftOrRight(false);
+            }
+        }, 300);
+        buttonNavLeft.addEventListener("wheel", onWheel);
+        buttonNavRight.addEventListener("wheel", onWheel);
 
         if (_publication.Spine && _publication.Spine.length) {
 
