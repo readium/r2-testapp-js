@@ -419,9 +419,8 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                 if (licenseLink && licenseLink.Href) {
                     let lcplHref = licenseLink.Href;
                     if (!isHTTP(lcplHref)) {
-                        // TODO: test for trailing slash?
-                        if (isHttpWebPub) {
-                            lcplHref = publicationFilePath + "/../" + licenseLink.Href; // hacky!!
+                        if (isHTTP(publicationFilePath)) {
+                            lcplHref = new URL(lcplHref, publicationFilePath).toString();
                         } else {
                             lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href); // hacky!!
                         }
