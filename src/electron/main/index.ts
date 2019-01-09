@@ -224,6 +224,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
 
     const isWebPub = await isManifestJSON(publicationFilePath);
     const isHttpWebPub = isWebPub && isHTTP(publicationFilePath);
+    let isHttpWebPubWithoutLCP = isHttpWebPub;
     if (isWebPub) {
         // if (!isHTTP(publicationFilePath)) {
         //     debug("**** isManifestJSON && !isHTTP");
@@ -365,6 +366,12 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             }
             debug(publication);
 
+            const licenseLink = publication.Links ? publication.Links.find((link) => {
+                return link.Rel.indexOf("license") >= 0 &&
+                    link.TypeLink === "application/vnd.readium.lcp.license.v1.0+json";
+            }) : undefined;
+            isHttpWebPubWithoutLCP = isHttpWebPub && !licenseLink;
+
             let p = publicationFilePath;
             if (isHTTP(publicationFilePath)) {
                 const url = new URL(publicationFilePath);
@@ -373,7 +380,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             publication.AddToInternal("filename", path.basename(p));
             publication.AddToInternal("type", "epub");
 
-            if (!isHttpWebPub) {
+            if (!isHttpWebPubWithoutLCP) {
                 if (!isHTTP(publicationFilePath)) {
                     const dirPath = path.dirname(publicationFilePath);
                     const zip = await ZipExploded.loadPromise(dirPath);
@@ -406,7 +413,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                 debug("PUB CHECK FAIL?");
             }
 
-            if (!isHttpWebPub) {
+            if (!isHttpWebPubWithoutLCP) {
                 // const publicationFilePathBase64 =
                 //     encodeURIComponent_RFC3986(Buffer.from(pathDecoded).toString("base64"));
                 // publicationUrl = `${_publicationsServer.serverUrl()}/pub/${publicationFilePathBase64}/manifest.json`;
@@ -414,71 +421,65 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             }
             debug(publicationUrl);
 
-            if (publication.Links) {
-                const licenseLink = publication.Links.find((link) => {
-                    return link.Rel.indexOf("license") >= 0 &&
-                        link.TypeLink === "application/vnd.readium.lcp.license.v1.0+json";
-                });
-                if (licenseLink && licenseLink.Href) {
-                    let lcplHref = licenseLink.Href;
-                    if (!isHTTP(lcplHref)) {
-                        if (isHTTP(publicationFilePath)) {
-                            lcplHref = new URL(lcplHref, publicationFilePath).toString();
-                        } else {
-                            lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href); // hacky!!
-                        }
-                    }
-                    debug(lcplHref);
-
-                    if (isHTTP(lcplHref)) {
-                        // No response streaming! :(
-                        // https://github.com/request/request-promise/issues/90
-                        // const needsStreamingResponse = true;
-                        if (needsStreamingResponse) {
-                            const promise = new Promise((resolve, reject) => {
-                                request.get({
-                                    headers: {},
-                                    method: "GET",
-                                    uri: lcplHref,
-                                })
-                                    .on("response", async (responsez: request.RequestResponse) => {
-                                        await successLCP(responsez, publication as Publication);
-                                        resolve();
-                                    })
-                                    .on("error", async (err: any) => {
-                                        await failure(err);
-                                        reject();
-                                    });
-                            });
-                            try {
-                                await promise;
-                            } catch (err) {
-                                return;
-                            }
-                        } else {
-                            let responsez: requestPromise.FullResponse;
-                            try {
-                                // tslint:disable-next-line:await-promise no-floating-promises
-                                responsez = await requestPromise({
-                                    headers: {},
-                                    method: "GET",
-                                    resolveWithFullResponse: true,
-                                    uri: lcplHref,
-                                });
-                            } catch (err) {
-                                await failure(err);
-                                return;
-                            }
-                            await successLCP(responsez, publication);
-                        }
+            if (licenseLink && licenseLink.Href) {
+                let lcplHref = licenseLink.Href;
+                if (!isHTTP(lcplHref)) {
+                    if (isHTTP(publicationFilePath)) {
+                        lcplHref = new URL(lcplHref, publicationFilePath).toString();
                     } else {
-                        const responsezStr = fs.readFileSync(lcplHref, { encoding: "utf8" });
-                        if (!responsezStr) {
-                            await failure("Cannot read local file: " + lcplHref);
+                        lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href); // hacky!!
+                    }
+                }
+                debug(lcplHref);
+
+                if (isHTTP(lcplHref)) {
+                    // No response streaming! :(
+                    // https://github.com/request/request-promise/issues/90
+                    // const needsStreamingResponse = true;
+                    if (needsStreamingResponse) {
+                        const promise = new Promise((resolve, reject) => {
+                            request.get({
+                                headers: {},
+                                method: "GET",
+                                uri: lcplHref,
+                            })
+                                .on("response", async (responsez: request.RequestResponse) => {
+                                    await successLCP(responsez, publication as Publication);
+                                    resolve();
+                                })
+                                .on("error", async (err: any) => {
+                                    await failure(err);
+                                    reject();
+                                });
+                        });
+                        try {
+                            await promise;
+                        } catch (err) {
                             return;
                         }
-                        handleLCP(responsezStr, publication);
+                    } else {
+                        let responsez: requestPromise.FullResponse;
+                        try {
+                            // tslint:disable-next-line:await-promise no-floating-promises
+                            responsez = await requestPromise({
+                                headers: {},
+                                method: "GET",
+                                resolveWithFullResponse: true,
+                                uri: lcplHref,
+                            });
+                        } catch (err) {
+                            await failure(err);
+                            return;
+                        }
+                        await successLCP(responsez, publication);
                     }
+                } else {
+                    const responsezStr = fs.readFileSync(lcplHref, { encoding: "utf8" });
+                    if (!responsezStr) {
+                        await failure("Cannot read local file: " + lcplHref);
+                        return;
+                    }
+                    handleLCP(responsezStr, publication);
                 }
             }
         };
@@ -651,7 +652,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         // electronBrowserWindow.webContents.openDevTools({ mode: "detach" });
     });
 
-    if (!isHttpWebPub && SECURE && isHTTP(publicationUrl)) { // && !await isManifestJSON(publicationFilePath)
+    if (!isHttpWebPubWithoutLCP && SECURE && isHTTP(publicationUrl)) { // && !await isManifestJSON(publicationFilePath)
         // This triggers the origin-sandbox for localStorage, etc.
         publicationUrl = convertHttpUrlToCustomScheme(publicationUrl);
     }
@@ -667,8 +668,8 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
 
     const urlRoot = _publicationsServer.serverUrl() as string;
     fullUrl = fullUrl + "&pubServerRoot=" + encodeURIComponent_RFC3986(urlRoot);
-    if (isHttpWebPub) {
-        fullUrl = fullUrl + "&isHttpWebPub=1";
+    if (isHttpWebPubWithoutLCP) {
+        fullUrl = fullUrl + "&isHttpWebPubWithoutLCP=1";
     }
 
     // `file://${process.cwd()}/src/electron/renderer/index.html`;

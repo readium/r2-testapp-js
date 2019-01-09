@@ -199,11 +199,11 @@ const publicationJsonUrl_ = publicationJsonUrl.startsWith(READIUM2_ELECTRON_HTTP
 console.log(publicationJsonUrl_);
 
 // tslint:disable-next-line:no-string-literal
-const isHttpWebPub = queryParams["isHttpWebPub"];
-console.log(isHttpWebPub);
+const isHttpWebPubWithoutLCP = queryParams["isHttpWebPub"];
+console.log(isHttpWebPubWithoutLCP);
 
 let pathDecoded = "";
-if (isHttpWebPub) {
+if (isHttpWebPubWithoutLCP) {
     pathDecoded = publicationJsonUrl;
 } else {
     const pathBase64 = publicationJsonUrl_.
