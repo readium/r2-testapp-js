@@ -34,10 +34,12 @@
   direction: ltr;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+  display: inline-block;
 
   vertical-align: bottom;
 
-  display: inline-block;
   position: absolute;
   left: 8px;
   top: 11px;

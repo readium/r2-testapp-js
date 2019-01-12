@@ -39,11 +39,14 @@
 </head>
 
 <body class="mdc-typography">
-
+  <!-- https://github.com/google/material-design-icons/blob/master/iconfont/codepoints -->
+  <!-- https://material.io/tools/icons/?style=baseline -->
+  <!-- https://github.com/jossef/material-design-icons-iconfont -->
     <h3 class="mdc-typography--subheading1" id="pubTitle">TITLE</h3>
 
-    <div id="ttsControls">  
-      <button id="ttsTOGGLE"><i class="material-icons md-36" aria-label="Read aloud Text To Speech">speaker_notes</i></button>
+    <div id="ttsControls">
+      <button id="ttsENABLE"><i class="material-icons md-36" aria-label="Enable Read aloud Text To Speech">record_voice_over</i></button>
+      <button id="ttsDISABLE"><i class="material-icons md-36" aria-label="Disable Read aloud Text To Speech">voice_over_off</i></button>
       <button id="ttsPREVIOUS"><i class="material-icons md-36" aria-label="Previous TTS">skip_previous</i></button>
       <button id="ttsPLAY"><i class="material-icons md-36" aria-label="Play TTS">play_arrow</i></button>
       <button id="ttsPAUSE"><i class="material-icons md-36" aria-label="Pause TTS">pause</i></button>
@@ -142,7 +145,7 @@
                     <label for="night_switch-input" class="mdc-switch-label">Night mode</label>
                   </div>
 
-                  <div style="padding:0;padding-top:1em;padding-bottom:1em">
+                  <div style="padding:0;padding-top:1em;">
                     <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation" aria-hidden="true">format_align_justify</i> <!-- view_headline -->
 
                     <div class="mdc-switch" id="justify_switch">
@@ -154,6 +157,20 @@
                       </div>
                     </div>
                     <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
+                  </div>
+
+                  <div style="padding:0;padding-top:1em;padding-bottom:1em">
+                    <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation" aria-hidden="true">comment</i>
+
+                    <div class="mdc-switch" id="footnotes_switch">
+                      <div class="mdc-switch__track"></div>
+                      <div class="mdc-switch__thumb-underlay">
+                        <div class="mdc-switch__thumb">
+                          <input type="checkbox" id="footnotes_switch-input" class="mdc-switch__native-control" role="switch">
+                        </div>
+                      </div>
+                    </div>
+                    <label for="footnotes_switch-input" class="mdc-switch-label">Footnotes</label>
                   </div>
 
                   <div data-is="riot-menuselect" id="fontSelect"> </div>

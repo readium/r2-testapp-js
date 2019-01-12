@@ -26,7 +26,7 @@
   '
 
   'material:#ECMASCRIPT#': '
-    cpy ./node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2 ./dist/#ECMASCRIPT#/src/electron/renderer/ &&
+    cpy ./node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff2 ./dist/#ECMASCRIPT#/src/electron/renderer/ &&
     cpy ./node_modules/material-components-web/dist/material-components-web.css ./dist/#ECMASCRIPT#/src/electron/renderer/ &&
     cpy ./node_modules/material-components-web/dist/material-components-web.js ./dist/#ECMASCRIPT#/src/electron/renderer/
   '

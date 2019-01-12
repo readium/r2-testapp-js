@@ -26,10 +26,12 @@
   direction: ltr;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+  display: inline-block;
 
   vertical-align: bottom;
 
-  display: inline-block;
   position: relative;
   left: -6px;
   top: -3px;

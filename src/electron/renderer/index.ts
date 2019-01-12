@@ -272,6 +272,19 @@ electronStore.onChanged("readiumCSS.textAlign", (newValue: any, oldValue: any) =
     refreshReadiumCSS();
 });
 
+electronStore.onChanged("readiumCSS.noFootnotes", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    // const footnotesSwitch = document.getElementById("footnotes_switch-input") as HTMLInputElement;
+    const footnotesSwitchEl = document.getElementById("footnotes_switch") as HTMLElement;
+    const footnotesSwitch = (footnotesSwitchEl as any).mdcSwitch;
+    footnotesSwitch.checked = newValue ? false : true;
+
+    refreshReadiumCSS();
+});
+
 electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
@@ -322,6 +335,11 @@ electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
     const justifySwitchEl = document.getElementById("justify_switch") as HTMLElement;
     const justifySwitch = (justifySwitchEl as any).mdcSwitch;
     justifySwitch.disabled = !newValue;
+
+    // const footnotesSwitch = document.getElementById("footnotes_switch-input") as HTMLInputElement;
+    const footnotesSwitchEl = document.getElementById("footnotes_switch") as HTMLElement;
+    const footnotesSwitch = (footnotesSwitchEl as any).mdcSwitch;
+    footnotesSwitch.disabled = !newValue;
 
     // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
@@ -903,6 +921,18 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     justifySwitch.disabled = !electronStore.get("readiumCSSEnable");
 
+    // const footnotesSwitch = document.getElementById("footnotes_switch-input") as HTMLInputElement;
+    const footnotesSwitchEl = document.getElementById("footnotes_switch") as HTMLElement;
+    const footnotesSwitch = new (window as any).mdc.switchControl.MDCSwitch(footnotesSwitchEl);
+    (footnotesSwitchEl as any).mdcSwitch = footnotesSwitch;
+    footnotesSwitch.checked = electronStore.get("readiumCSS.noFootnotes") ? false : true;
+    footnotesSwitchEl.addEventListener("change", (_event: any) => {
+        // footnotesSwitch.handleChange("change", (_event: any) => {
+        const checked = footnotesSwitch.checked;
+        electronStore.set("readiumCSS.noFootnotes", checked ? false : true);
+    });
+    footnotesSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
     // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
     const paginateSwitch = new (window as any).mdc.switchControl.MDCSwitch(paginateSwitchEl);
@@ -1259,55 +1289,82 @@ function startNavigatorExperiment() {
         buttonttsPREVIOUS.addEventListener("click", (_event) => {
             ttsPrevious();
         });
-        let _ttsEnabled = false;
-        const buttonttsTOGGLE = document.getElementById("ttsTOGGLE") as HTMLElement;
-        buttonttsTOGGLE.addEventListener("click", (_event) => {
-            if (_ttsEnabled) {
-                ttsClickEnable(false);
-                ttsStop();
-                setTimeout(() => {
-                    _ttsEnabled = false;
-                    buttonttsPLAY.style.display = "none";
-                }, 300);
-            } else {
-                ttsClickEnable(true);
-                _ttsEnabled = true;
-                buttonttsPLAY.style.display = "inline-block";
-            }
+
+        const buttonttsENABLE = document.getElementById("ttsENABLE") as HTMLElement;
+        buttonttsENABLE.addEventListener("click", (_event) => {
+            ttsEnableToggle();
         });
 
-        buttonttsTOGGLE.style.display = "inline-block";
-        buttonttsPLAY.style.display = "none";
-        buttonttsRESUME.style.display = "none";
-        buttonttsPAUSE.style.display = "none";
-        buttonttsSTOP.style.display = "none";
-        buttonttsPREVIOUS.style.display = "none";
-        buttonttsNEXT.style.display = "none";
+        const buttonttsDISABLE = document.getElementById("ttsDISABLE") as HTMLElement;
+        buttonttsDISABLE.addEventListener("click", (_event) => {
+            ttsEnableToggle();
+        });
+
+        let _ttsState: TTSStateEnum | undefined;
+        refreshTtsUiState();
 
         ttsListen((ttsState: TTSStateEnum) => {
-            if (ttsState === TTSStateEnum.PAUSED) {
+            _ttsState = ttsState;
+            refreshTtsUiState();
+        });
+
+        function refreshTtsUiState() {
+            if (_ttsState === TTSStateEnum.PAUSED) {
                 buttonttsPLAY.style.display = "none";
                 buttonttsRESUME.style.display = "inline-block";
                 buttonttsPAUSE.style.display = "none";
                 buttonttsSTOP.style.display = "inline-block";
                 buttonttsPREVIOUS.style.display = "inline-block";
                 buttonttsNEXT.style.display = "inline-block";
-            } else if (ttsState === TTSStateEnum.STOPPED) {
+            } else if (_ttsState === TTSStateEnum.STOPPED) {
                 buttonttsPLAY.style.display = "inline-block";
                 buttonttsRESUME.style.display = "none";
                 buttonttsPAUSE.style.display = "none";
                 buttonttsSTOP.style.display = "none";
                 buttonttsPREVIOUS.style.display = "none";
                 buttonttsNEXT.style.display = "none";
-            } else if (ttsState === TTSStateEnum.PLAYING) {
+            } else if (_ttsState === TTSStateEnum.PLAYING) {
                 buttonttsPLAY.style.display = "none";
                 buttonttsRESUME.style.display = "none";
                 buttonttsPAUSE.style.display = "inline-block";
                 buttonttsSTOP.style.display = "inline-block";
                 buttonttsPREVIOUS.style.display = "inline-block";
                 buttonttsNEXT.style.display = "inline-block";
+            } else {
+                buttonttsPLAY.style.display = "none";
+                buttonttsRESUME.style.display = "none";
+                buttonttsPAUSE.style.display = "none";
+                buttonttsSTOP.style.display = "none";
+                buttonttsPREVIOUS.style.display = "none";
+                buttonttsNEXT.style.display = "none";
             }
-        });
+        }
+
+        buttonttsDISABLE.style.display = "none";
+        let _ttsEnabled = false;
+        function ttsEnableToggle() {
+            if (_ttsEnabled) {
+                buttonttsENABLE.style.display = "inline-block";
+                buttonttsDISABLE.style.display = "none";
+                ttsClickEnable(false);
+                ttsStop();
+                setTimeout(() => {
+                    _ttsEnabled = false;
+                    _ttsState = undefined;
+                    refreshTtsUiState();
+                }, 100);
+            } else {
+                buttonttsENABLE.style.display = "none";
+                buttonttsDISABLE.style.display = "inline-block";
+                ttsClickEnable(true);
+                ttsStop();
+                setTimeout(() => {
+                    _ttsEnabled = true;
+                    _ttsState = TTSStateEnum.STOPPED;
+                    refreshTtsUiState();
+                }, 100);
+            }
+        }
 
         const buttonNavLeft = document.getElementById("buttonNavLeft") as HTMLElement;
         buttonNavLeft.addEventListener("click", (_event) => {
