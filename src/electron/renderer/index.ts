@@ -21,6 +21,7 @@ import {
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
     LocatorExtended,
+    TTSStateEnum,
     handleLinkUrl,
     installNavigatorDOM,
     navLeftOrRight,
@@ -28,6 +29,14 @@ import {
     setEpubReadingSystemInfo,
     setReadingLocationSaver,
     setReadiumCssJsonGetter,
+    ttsClickEnable,
+    ttsListen,
+    ttsNext,
+    ttsPause,
+    ttsPlay,
+    ttsPrevious,
+    ttsResume,
+    ttsStop,
 } from "@r2-navigator-js/electron/renderer/index";
 import {
     initGlobalConverters_OPDS,
@@ -1225,6 +1234,80 @@ function startNavigatorExperiment() {
                 });
             }
         }
+
+        const buttonttsPLAY = document.getElementById("ttsPLAY") as HTMLElement;
+        buttonttsPLAY.addEventListener("click", (_event) => {
+            ttsPlay();
+        });
+        const buttonttsPAUSE = document.getElementById("ttsPAUSE") as HTMLElement;
+        buttonttsPAUSE.addEventListener("click", (_event) => {
+            ttsPause();
+        });
+        const buttonttsSTOP = document.getElementById("ttsSTOP") as HTMLElement;
+        buttonttsSTOP.addEventListener("click", (_event) => {
+            ttsStop();
+        });
+        const buttonttsRESUME = document.getElementById("ttsRESUME") as HTMLElement;
+        buttonttsRESUME.addEventListener("click", (_event) => {
+            ttsResume();
+        });
+        const buttonttsNEXT = document.getElementById("ttsNEXT") as HTMLElement;
+        buttonttsNEXT.addEventListener("click", (_event) => {
+            ttsNext();
+        });
+        const buttonttsPREVIOUS = document.getElementById("ttsPREVIOUS") as HTMLElement;
+        buttonttsPREVIOUS.addEventListener("click", (_event) => {
+            ttsPrevious();
+        });
+        let _ttsEnabled = false;
+        const buttonttsTOGGLE = document.getElementById("ttsTOGGLE") as HTMLElement;
+        buttonttsTOGGLE.addEventListener("click", (_event) => {
+            if (_ttsEnabled) {
+                ttsClickEnable(false);
+                ttsStop();
+                setTimeout(() => {
+                    _ttsEnabled = false;
+                    buttonttsPLAY.style.display = "none";
+                }, 300);
+            } else {
+                ttsClickEnable(true);
+                _ttsEnabled = true;
+                buttonttsPLAY.style.display = "inline-block";
+            }
+        });
+
+        buttonttsTOGGLE.style.display = "inline-block";
+        buttonttsPLAY.style.display = "none";
+        buttonttsRESUME.style.display = "none";
+        buttonttsPAUSE.style.display = "none";
+        buttonttsSTOP.style.display = "none";
+        buttonttsPREVIOUS.style.display = "none";
+        buttonttsNEXT.style.display = "none";
+
+        ttsListen((ttsState: TTSStateEnum) => {
+            if (ttsState === TTSStateEnum.PAUSED) {
+                buttonttsPLAY.style.display = "none";
+                buttonttsRESUME.style.display = "inline-block";
+                buttonttsPAUSE.style.display = "none";
+                buttonttsSTOP.style.display = "inline-block";
+                buttonttsPREVIOUS.style.display = "inline-block";
+                buttonttsNEXT.style.display = "inline-block";
+            } else if (ttsState === TTSStateEnum.STOPPED) {
+                buttonttsPLAY.style.display = "inline-block";
+                buttonttsRESUME.style.display = "none";
+                buttonttsPAUSE.style.display = "none";
+                buttonttsSTOP.style.display = "none";
+                buttonttsPREVIOUS.style.display = "none";
+                buttonttsNEXT.style.display = "none";
+            } else if (ttsState === TTSStateEnum.PLAYING) {
+                buttonttsPLAY.style.display = "none";
+                buttonttsRESUME.style.display = "none";
+                buttonttsPAUSE.style.display = "inline-block";
+                buttonttsSTOP.style.display = "inline-block";
+                buttonttsPREVIOUS.style.display = "inline-block";
+                buttonttsNEXT.style.display = "inline-block";
+            }
+        });
 
         const buttonNavLeft = document.getElementById("buttonNavLeft") as HTMLElement;
         buttonNavLeft.addEventListener("click", (_event) => {
