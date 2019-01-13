@@ -1,7 +1,7 @@
 #tabsPanels {
-  height: 100%;
+  /* height: 100%; */
   overflow: hidden;
-  borderxx: 2px solid red;
+  /* border: 2px solid red; */
   box-sizing: border-box;
   display: inline-flex;
   margin-top: 1px;
@@ -11,7 +11,7 @@
 
   overflow-x: hidden;
   overflow-y: auto;
-  width: 100%;
+  /* width: 100%; */
 }
 .tabPanel.active {
   display: block;

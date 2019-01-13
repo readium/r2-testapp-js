@@ -29,6 +29,11 @@ form {
 }
 
 #pubTitle {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: var(--R2__specialDimension);
+  right: var(--R2__specialDimension);
   text-align: center;
   width: 100%;
   box-sizing: border-box;
@@ -52,8 +57,9 @@ form {
   overflow: hidden;
 }
 
-#reader_chrome,
-#r2_navigator_reader_chrome_HIDE {
+/* #r2_navigator_reader_chrome_HIDE */
+#reader_chrome
+{
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -67,10 +73,10 @@ form {
   /* border-top: 1px solid silver; */
   z-index: 1;
 }
-#r2_navigator_reader_chrome_HIDE {
+/* #r2_navigator_reader_chrome_HIDE {
   display: none;
   z-index: 2;
-}
+} */
 
 #drawerButton {
   box-sizing: border-box;
@@ -89,9 +95,10 @@ form {
   vertical-align: middle;
 }
 
+/* 
 #drawerNav {
   height: 100%;
-}
+} */
 
 #ttsControls {
   position: absolute;

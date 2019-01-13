@@ -1,8 +1,8 @@
-<riot-menuselect class="mdc-select r2-mdc-select-width">
+<riot-menuselect class="mdc-select">
   <input type="hidden" name="enhanced-select">
   <i class="mdc-select__dropdown-icon"></i>
-  <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox" aria-labelledby="demo-label demo-selected-text">{ getLabelForId(opts.selected) }</div>
-  <div class="mdc-select__menu mdc-menu mdc-menu-surface r2-mdc-select-width" role="listbox">
+  <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox">{ getLabelForId(opts.selected) }</div>
+  <div class="mdc-select__menu mdc-menu mdc-menu-surface" role="listbox">
     <ul class="mdc-list">
       <li each="{ opts.options }"
         id="{ id }"

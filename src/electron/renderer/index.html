@@ -43,29 +43,14 @@
 <!-- https://github.com/jossef/material-design-icons-iconfont -->
 
 <body class="mdc-typography">
-    <h3 class="mdc-typography--subheading1" id="pubTitle">TITLE</h3>
-
-    <div id="ttsControls">
-      <button id="ttsENABLE" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Enable Read aloud Text To Speech">record_voice_over</i></button>
-      <button id="ttsDISABLE" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Disable Read aloud Text To Speech">voice_over_off</i></button>
-      <button id="ttsPREVIOUS" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Previous TTS">skip_previous</i></button>
-      <button id="ttsPLAY" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Play TTS">play_arrow</i></button>
-      <button id="ttsPAUSE" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Pause TTS">pause</i></button>
-      <button id="ttsRESUME" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Resume TTS">play_arrow</i></button>
-      <button id="ttsSTOP" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Stop TTS">stop</i></button>
-      <button id="ttsNEXT" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Next TTS">skip_next</i></button>
-    </div>
-
-    <button id="drawerButton" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Menu">menu</i></button>
-
     <aside id="drawer" class="mdc-drawer mdc-drawer--modal">
-      <nav id="drawerNav" class="mdc-drawer__content">
+      <div id="drawerNav" class="mdc-drawer__content">
 
         <div id="nav-select" class="mdc-select r2-mdc-select-width">
           <input type="hidden" name="enhanced-select">
           <i class="mdc-select__dropdown-icon"></i>
-          <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox" aria-labelledby="demo-label demo-selected-text">Table of contents</div>
-          <div class="mdc-select__menu mdc-menu mdc-menu-surface r2-mdc-select-width" role="listbox">
+          <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox">Table of contents</div>
+          <div id="nav-select-menu" class="mdc-select__menu mdc-menu mdc-menu-surface r2-mdc-select-width" role="listbox">
             <ul class="mdc-list">
               <li
                 aria-selected
@@ -165,7 +150,7 @@
 
             </ul>
           </div>
-          <span class="mdc-floating-label mdc-floating-label--float-above">Main menu</span>
+          <span id="menulabel" class="mdc-floating-label mdc-floating-label--float-above">Main menu</span>
           <div class="mdc-line-ripple"></div>
         
         </div>
@@ -225,7 +210,7 @@
 
                 <!-- <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation"> -->
 
-                <div id="stylingWrapper" style="margin-left: 1em; padding-left: 1em; margin-bottom: 1em;">
+                <div id="stylingWrapper" stylexx="margin-left: 1em; padding-left: 1em; margin-bottom: 1em;">
 
 
                   <div style="padding:0;padding-top:0.6em;">
@@ -330,7 +315,7 @@
 
                 </div>
 
-                <button id="buttonClearSettingsStyle" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple" style="display: block; position: absolute; bottom: 10px; right: 10px;"><span class="mdc-button__label">Restore defaults</span></button>
+                <button id="buttonClearSettingsStyle" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">Restore defaults</span></button>
 
               </div>
               <div class="tabPanel" id="reader_controls_ADVANCED">
@@ -365,10 +350,25 @@
 
               </div>
           </div>
-      </nav>
+      </div>
     </aside>
 
     <div class="mdc-drawer-scrim"></div>
+
+    <h3 class="mdc-typography--subheading1" id="pubTitle">TITLE</h3>
+
+    <button id="drawerButton" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Menu">menu</i></button>
+
+    <div id="ttsControls">
+      <button id="ttsENABLE" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Enable Read aloud Text To Speech">record_voice_over</i></button>
+      <button id="ttsDISABLE" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Disable Read aloud Text To Speech">voice_over_off</i></button>
+      <button id="ttsPREVIOUS" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Previous TTS">skip_previous</i></button>
+      <button id="ttsPLAY" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Play TTS">play_arrow</i></button>
+      <button id="ttsPAUSE" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Pause TTS">pause</i></button>
+      <button id="ttsRESUME" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Resume TTS">play_arrow</i></button>
+      <button id="ttsSTOP" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Stop TTS">stop</i></button>
+      <button id="ttsNEXT" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Next TTS">skip_next</i></button>
+    </div>
 
     <main id="reader_chrome">
 
