@@ -3,20 +3,20 @@
 
 <head>
   <title>Readium 2 NodeJS 'streamer' (Electron 'testapp')</title>
-  <meta charset="UTF-8" >
+  <meta charset="UTF-8">
 
   <!-- https://github.com/electron/electron/blob/master/docs/tutorial/security.md#csp-meta-tag -->
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: http: https: httpsr2: https://127.0.0.1:* http://127.0.0.1:*">
 
-  <link rel="stylesheet" href="./material-components-web.css" >
+  <link rel="stylesheet" href="./material-components-web.css">
 
   <!-- <link type="text/css" href="./riots/mytag/index.css" rel="stylesheet" > -->
   <style type="riot"> </style>
 
-  <link type="text/css" href="./index.css" rel="stylesheet" >
+  <link type="text/css" href="./index.css" rel="stylesheet">
 
-  <script  type="application/javascript" src="./material-components-web.js"> </script>
+  <script type="application/javascript" src="./material-components-web.js"> </script>
 
   <script type="application/javascript" src="./riot.js"> </script>
 
@@ -43,119 +43,46 @@
 <!-- https://github.com/jossef/material-design-icons-iconfont -->
 
 <body class="mdc-typography">
-    <aside id="drawer" class="mdc-drawer mdc-drawer--modal">
-      <div id="drawerNav" class="mdc-drawer__content">
+  <aside id="drawer" class="mdc-drawer mdc-drawer--modal">
+    <div id="drawerNav" class="mdc-drawer__content">
 
-        <div id="nav-select" class="mdc-select r2-mdc-select-width">
-          <input type="hidden" name="enhanced-select">
-          <i class="mdc-select__dropdown-icon"></i>
-          <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox">Table of contents</div>
-          <div id="nav-select-menu" class="mdc-select__menu mdc-menu mdc-menu-surface r2-mdc-select-width" role="listbox">
-            <ul class="mdc-list">
-              <li
-                aria-selected
+      <div id="nav-select" class="mdc-select r2-mdc-select-width">
+        <input type="hidden" name="enhanced-select">
+        <i class="mdc-select__dropdown-icon"></i>
+        <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox">Table of contents</div>
+        <div id="nav-select-menu" class="mdc-select__menu mdc-menu mdc-menu-surface r2-mdc-select-width" role="listbox">
+          <ul class="mdc-list">
+            <li aria-selected id="selectTOC" role="option" tabindex="0" class="mdc-list-item mdc-list-item--selected"
+              data-value="Table of contents">Table of contents</li>
 
-                id="selectTOC"
+            <li id="selectLandmarks" role="option" tabindex="0" class="mdc-list-item" data-value="Landmarks">Landmarks</li>
 
-                role="option"
-                tabindex="0"
-                class="mdc-list-item mdc-list-item--selected"
+            <li id="selectPageList" role="option" tabindex="0" class="mdc-list-item" data-value="Page list">Page list</li>
 
-                data-value="Table of contents"
-                
+            <li id="selectSpine" role="option" tabindex="0" class="mdc-list-item" data-value="Publication spine">Publication
+              spine</li>
 
-                >Table of contents</li>
+            <li role="presentation" tabindex="-1" class="mdc-list-divider mdc-list-divider--padded" disabled> </li>
 
-              <li
-                id="selectLandmarks"
-
-                role="option"
-                tabindex="0"
-                class="mdc-list-item"
-
-                data-value="Landmarks"
-
-                >Landmarks</li>
-
-              <li
-                id="selectPageList"
-
-                role="option"
-                tabindex="0"
-                class="mdc-list-item"
-
-                data-value="Page list"
-
-                >Page list</li>
-
-              <li
-                id="selectSpine"
-
-                role="option"
-                tabindex="0"
-                class="mdc-list-item"
-
-                data-value="Publication spine"
-
-                >Publication spine</li>
-
-                <li
-                role="presentation"
-                tabindex="-1"
-                class="mdc-list-divider mdc-list-divider--padded"
-                disabled
-                > </li>
-
-              <li
-                id="selectStyles"
-
-                role="option"
-                tabindex="0"
-                class="mdc-list-item"
-
-                data-value="Styling"
-
-                >Styling</li>
+            <li id="selectStyles" role="option" tabindex="0" class="mdc-list-item" data-value="Styling">Styling</li>
 
 
-              <li
-              id="selectAdvanced"
+            <li id="selectAdvanced" role="option" tabindex="0" class="mdc-list-item" data-value="Advanced">Advanced</li>
 
-              role="option"
-              tabindex="0"
-              class="mdc-list-item"
+            <li role="presentation" tabindex="-1" class="mdc-list-divider mdc-list-divider--padded" disabled> </li>
 
-              data-value="Advanced"
+            <li id="selectTools" role="option" tabindex="0" class="mdc-list-item" data-value="Developer tools">Developer
+              tools</li>
 
-              >Advanced</li>
 
-              <li
-              role="presentation"
-              tabindex="-1"
-              class="mdc-list-divider mdc-list-divider--padded"
-              disabled
-              > </li>
-
-              <li
-              id="selectTools"
-
-              role="option"
-              tabindex="0"
-              class="mdc-list-item"
-
-              data-value="Developer tools"
-
-              >Developer tools</li>
-  
-
-            </ul>
-          </div>
-          <span id="menulabel" class="mdc-floating-label mdc-floating-label--float-above">Main menu</span>
-          <div class="mdc-line-ripple"></div>
-        
+          </ul>
         </div>
+        <span id="menulabel" class="mdc-floating-label mdc-floating-label--float-above">Main menu</span>
+        <div class="mdc-line-ripple"></div>
 
-<!-- 
+      </div>
+
+      <!--
           <div id="nav-select" class="mdc-select">
 
             <select class="mdc-select__native-control" id="nav-select-menu">
@@ -189,253 +116,269 @@
 
           </div> -->
 
-          <div id="tabsPanels">
-              <div class="tabPanel active mdc-list" style="padding: 0px;"> <ul id="reader_controls_TOC" data-is="riot-linktree"> </ul> </div>
-              <div class="tabPanel" id="reader_controls_LANDMARKS" data-is="riot-linklistgroup"> </div>
-              <div class="tabPanel" id="reader_controls_PAGELIST" data-is="riot-linklist"> </div>
-              <div class="tabPanel" id="reader_controls_SPINE" data-is="riot-linklist"> </div>
-              <div class="tabPanel" id="reader_controls_STYLES">
+      <div id="tabsPanels">
+        <div class="tabPanel active mdc-list" style="padding: 0px;">
+          <ul id="reader_controls_TOC" data-is="riot-linktree"> </ul>
+        </div>
+        <div class="tabPanel" id="reader_controls_LANDMARKS" data-is="riot-linklistgroup"> </div>
+        <div class="tabPanel" id="reader_controls_PAGELIST" data-is="riot-linklist"> </div>
+        <div class="tabPanel" id="reader_controls_SPINE" data-is="riot-linklist"> </div>
+        <div class="tabPanel" id="reader_controls_STYLES">
 
-                <div style="padding:0;padding-bottom:1em">
-                  <div class="mdc-switch" id="readiumcss_switch">
-                    <div class="mdc-switch__track"></div>
-                    <div class="mdc-switch__thumb-underlay">
-                      <div class="mdc-switch__thumb">
-                        <input type="checkbox" id="readiumcss_switch-input" class="mdc-switch__native-control" role="switch">
-                      </div>
-                    </div>
-                  </div>
-                  <label for="readiumcss_switch-input" class="mdc-switch-label">Enable styling</label>
+          <div style="padding:0;padding-bottom:1em">
+            <div class="mdc-switch" id="readiumcss_switch">
+              <div class="mdc-switch__track"></div>
+              <div class="mdc-switch__thumb-underlay">
+                <div class="mdc-switch__thumb">
+                  <input type="checkbox" id="readiumcss_switch-input" class="mdc-switch__native-control" role="switch">
                 </div>
-
-                <!-- <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation"> -->
-
-                <div id="stylingWrapper" stylexx="margin-left: 1em; padding-left: 1em; margin-bottom: 1em;">
-
-
-                  <div style="padding:0;padding-top:0.6em;">
-                    <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation" aria-hidden="true">import_contacts</i> <!-- view_carousel -->
-
-                    <div class="mdc-switch" id="paginate_switch">
-                      <div class="mdc-switch__track"></div>
-                      <div class="mdc-switch__thumb-underlay">
-                        <div class="mdc-switch__thumb">
-                          <input type="checkbox" id="paginate_switch-input" class="mdc-switch__native-control" role="switch">
-                        </div>
-                      </div>
-                    </div>
-                    <label for="paginate_switch-input" class="mdc-switch-label">Pagination</label>
-                  </div>
-
-                  <div style="padding:0;padding-top:1em;">
-                    <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation" aria-hidden="true">brightness_4</i> <!-- invert_colors -->
-
-                    <div class="mdc-switch" id="night_switch">
-                      <div class="mdc-switch__track"></div>
-                      <div class="mdc-switch__thumb-underlay">
-                        <div class="mdc-switch__thumb">
-                          <input type="checkbox" id="night_switch-input" class="mdc-switch__native-control" role="switch">
-                        </div>
-                      </div>
-                    </div>
-                    <label for="night_switch-input" class="mdc-switch-label">Night mode</label>
-                  </div>
-
-                  <div style="padding:0;padding-top:1em;">
-                    <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation" aria-hidden="true">format_align_justify</i> <!-- view_headline -->
-
-                    <div class="mdc-switch" id="justify_switch">
-                      <div class="mdc-switch__track"></div>
-                      <div class="mdc-switch__thumb-underlay">
-                        <div class="mdc-switch__thumb">
-                          <input type="checkbox" id="justify_switch-input" class="mdc-switch__native-control" role="switch">
-                        </div>
-                      </div>
-                    </div>
-                    <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
-                  </div>
-
-                  <div style="padding:0;padding-top:1em;padding-bottom:1em">
-                    <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation" aria-hidden="true">comment</i>
-
-                    <div class="mdc-switch" id="footnotes_switch">
-                      <div class="mdc-switch__track"></div>
-                      <div class="mdc-switch__thumb-underlay">
-                        <div class="mdc-switch__thumb">
-                          <input type="checkbox" id="footnotes_switch-input" class="mdc-switch__native-control" role="switch">
-                        </div>
-                      </div>
-                    </div>
-                    <label for="footnotes_switch-input" class="mdc-switch-label">Footnotes</label>
-                  </div>
-
-                  <div data-is="riot-menuselect" id="fontSelect"> </div>
-
-                  <!-- <i class="material-icons" role="presentation" style="vertical-align: top;" aria-label="font size" aria-hidden>format_size</i> -->
-                  <span class="mdc-typography--text" style="display: block;">Font size (%):</span>
-
-                  <div id="fontSizeSelector" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0" role="slider"
-                    aria-valuemin="75" aria-valuemax="250" aria-valuenow="100" data-step="25"
-                    aria-label="Font size (%)">
-                    <div class="mdc-slider__track-container">
-                      <div class="mdc-slider__track"></div>
-                      <div class="mdc-slider__track-marker-container"></div>
-                    </div>
-                    <div class="mdc-slider__thumb-container">
-                      <div class="mdc-slider__pin">
-                        <span class="mdc-slider__pin-value-marker"></span>
-                      </div>
-                      <svg class="mdc-slider__thumb" width="21" height="21">
-                        <circle cx="10.5" cy="10.5" r="7.875"></circle>
-                      </svg>
-                      <div class="mdc-slider__focus-ring"></div>
-                    </div>
-                  </div>
-
-                  <span class="mdc-typography--text" style="display: block;">Line Height (%):</span>
-
-                  <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
-                  <div id="lineHeightSelector" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0" role="slider"
-                    aria-valuemin="100" aria-valuemax="300" aria-valuenow="150" data-step="25"
-                    aria-label="Line height (%)">
-                    <div class="mdc-slider__track-container">
-                      <div class="mdc-slider__track"></div>
-                      <div class="mdc-slider__track-marker-container"></div>
-                    </div>
-                    <div class="mdc-slider__thumb-container">
-                      <div class="mdc-slider__pin">
-                        <span class="mdc-slider__pin-value-marker"></span>
-                      </div>
-                      <svg class="mdc-slider__thumb" width="21" height="21">
-                        <circle cx="10.5" cy="10.5" r="7.875"></circle>
-                      </svg>
-                      <div class="mdc-slider__focus-ring"></div>
-                    </div>
-                  </div>
-
-                  <button id="buttonClearSettingsStyle" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">Restore defaults</span></button>
-
-                </div>
-
               </div>
-              <div class="tabPanel" id="reader_controls_ADVANCED">
-
-                <div style="padding:0;padding-bottom:1em">
-
-                  <div class="mdc-switch" id="nav_basic_switch">
-                    <div class="mdc-switch__track"></div>
-                    <div class="mdc-switch__thumb-underlay">
-                      <div class="mdc-switch__thumb">
-                        <input type="checkbox" id="nav_basic_switch-input" class="mdc-switch__native-control" role="switch">
-                      </div>
-                    </div>
-                  </div>
-                  <label for="nav_basic_switch-input" class="mdc-switch-label">Show navigation links</label>
-                </div>
-
-                <button id="buttonClearSettings" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">Reset all settings</span></button>
-
-                <button id="buttonClearReadingLocations" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"
-                style="margin:0;margin-top:1em;"><span class="mdc-button__label">Clear reading locations</span></button>
-
-              </div>
-              <div class="tabPanel" id="reader_controls_TOOLS">
-
-                <button id="buttonOpenSettings" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">OPEN SETTINGS</span></button>
-
-                <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation" style="margin:0;margin-top:1em;margin-bottom:1em;">
-
-                <button id="buttonLSDRenew" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">LSD RENEW</span></button>
-                <button id="buttonLSDReturn" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">LSD RETURN</span></button>
-
-              </div>
+            </div>
+            <label for="readiumcss_switch-input" class="mdc-switch-label">Enable styling</label>
           </div>
+
+          <!-- <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation"> -->
+
+          <div id="stylingWrapper" stylexx="margin-left: 1em; padding-left: 1em; margin-bottom: 1em;">
+
+
+            <div style="padding:0;padding-top:0.6em;">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">import_contacts</i> <!-- view_carousel -->
+
+              <div class="mdc-switch" id="paginate_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="paginate_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="paginate_switch-input" class="mdc-switch-label">Pagination</label>
+            </div>
+
+            <div style="padding:0;padding-top:1em;">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">brightness_4</i> <!-- invert_colors -->
+
+              <div class="mdc-switch" id="night_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="night_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="night_switch-input" class="mdc-switch-label">Night mode</label>
+            </div>
+
+            <div style="padding:0;padding-top:1em;">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">format_align_justify</i> <!-- view_headline -->
+
+              <div class="mdc-switch" id="justify_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="justify_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
+            </div>
+
+            <div style="padding:0;padding-top:1em;padding-bottom:1em">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">comment</i>
+
+              <div class="mdc-switch" id="footnotes_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="footnotes_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="footnotes_switch-input" class="mdc-switch-label">Footnotes</label>
+            </div>
+
+            <div data-is="riot-menuselect" id="fontSelect"> </div>
+
+            <!-- <i class="material-icons" role="presentation" style="vertical-align: top;" aria-label="font size" aria-hidden>format_size</i> -->
+            <span class="mdc-typography--text" style="display: block;">Font size (%):</span>
+
+            <div id="fontSizeSelector" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
+              role="slider" aria-valuemin="75" aria-valuemax="250" aria-valuenow="100" data-step="25" aria-label="Font size (%)">
+              <div class="mdc-slider__track-container">
+                <div class="mdc-slider__track"></div>
+                <div class="mdc-slider__track-marker-container"></div>
+              </div>
+              <div class="mdc-slider__thumb-container">
+                <div class="mdc-slider__pin">
+                  <span class="mdc-slider__pin-value-marker"></span>
+                </div>
+                <svg class="mdc-slider__thumb" width="21" height="21">
+                  <circle cx="10.5" cy="10.5" r="7.875"></circle>
+                </svg>
+                <div class="mdc-slider__focus-ring"></div>
+              </div>
+            </div>
+
+            <span class="mdc-typography--text" style="display: block;">Line Height (%):</span>
+
+            <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
+            <div id="lineHeightSelector" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
+              role="slider" aria-valuemin="100" aria-valuemax="300" aria-valuenow="150" data-step="25" aria-label="Line height (%)">
+              <div class="mdc-slider__track-container">
+                <div class="mdc-slider__track"></div>
+                <div class="mdc-slider__track-marker-container"></div>
+              </div>
+              <div class="mdc-slider__thumb-container">
+                <div class="mdc-slider__pin">
+                  <span class="mdc-slider__pin-value-marker"></span>
+                </div>
+                <svg class="mdc-slider__thumb" width="21" height="21">
+                  <circle cx="10.5" cy="10.5" r="7.875"></circle>
+                </svg>
+                <div class="mdc-slider__focus-ring"></div>
+              </div>
+            </div>
+
+            <button id="buttonClearSettingsStyle" class="mdc-button mdc-button--raised mdc-ripple-surfacexx"
+              data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">Restore defaults</span></button>
+
+          </div>
+
+        </div>
+        <div class="tabPanel" id="reader_controls_ADVANCED">
+
+          <div style="padding:0;padding-bottom:1em">
+
+            <div class="mdc-switch" id="nav_basic_switch">
+              <div class="mdc-switch__track"></div>
+              <div class="mdc-switch__thumb-underlay">
+                <div class="mdc-switch__thumb">
+                  <input type="checkbox" id="nav_basic_switch-input" class="mdc-switch__native-control" role="switch">
+                </div>
+              </div>
+            </div>
+            <label for="nav_basic_switch-input" class="mdc-switch-label">Show navigation links</label>
+          </div>
+
+          <button id="buttonClearSettings" class="mdc-button mdc-button--raised mdc-ripple-surfacexx"
+            data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">Reset all settings</span></button>
+
+          <button id="buttonClearReadingLocations" class="mdc-button mdc-button--raised mdc-ripple-surfacexx"
+            data-mdc-auto-initxx="MDCRipple" style="margin:0;margin-top:1em;"><span class="mdc-button__label">Clear
+              reading locations</span></button>
+
+        </div>
+        <div class="tabPanel" id="reader_controls_TOOLS">
+
+          <button id="buttonOpenSettings" class="mdc-button mdc-button--raised mdc-ripple-surfacexx"
+            data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">OPEN SETTINGS</span></button>
+
+          <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation" style="margin:0;margin-top:1em;margin-bottom:1em;">
+
+          <button id="buttonLSDRenew" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"><span
+              class="mdc-button__label">LSD RENEW</span></button>
+          <button id="buttonLSDReturn" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"><span
+              class="mdc-button__label">LSD RETURN</span></button>
+
+        </div>
       </div>
-    </aside>
+    </div>
+  </aside>
 
-    <div class="mdc-drawer-scrim"></div>
+  <div class="mdc-drawer-scrim"></div>
 
-    <h3 class="mdc-typography--subheading1" id="pubTitle">TITLE</h3>
+  <h3 class="mdc-typography--subheading1" id="pubTitle">TITLE</h3>
 
-    <button id="drawerButton" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Menu">menu</i></button>
+  <button id="drawerButton" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36"
+      aria-label="Menu">menu</i></button>
 
-    <div id="ttsControls">
-      <button id="ttsENABLE" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Enable Read aloud Text To Speech">record_voice_over</i></button>
-      <button id="ttsDISABLE" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Disable Read aloud Text To Speech">voice_over_off</i></button>
-      <button id="ttsPREVIOUS" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Previous TTS">skip_previous</i></button>
-      <button id="ttsPLAY" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Play TTS">play_arrow</i></button>
-      <button id="ttsPAUSE" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Pause TTS">pause</i></button>
-      <button id="ttsRESUME" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Resume TTS">play_arrow</i></button>
-      <button id="ttsSTOP" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Stop TTS">stop</i></button>
-      <button id="ttsNEXT" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36" aria-label="Next TTS">skip_next</i></button>
+  <div id="ttsControls">
+    <button id="ttsENABLE" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36"
+        aria-label="Enable Read aloud Text To Speech">record_voice_over</i></button>
+    <button id="ttsDISABLE" class="mdc-button mdc-ripple-surfacexxx" data-mdc-auto-initxxx="MDCRipple"><i class="mdc-button__label material-icons md-36"
+        aria-label="Disable Read aloud Text To Speech">voice_over_off</i></button>
+    <button id="ttsPREVIOUS" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36"
+        aria-label="Previous TTS">skip_previous</i></button>
+    <button id="ttsPLAY" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36"
+        aria-label="Play TTS">play_arrow</i></button>
+    <button id="ttsPAUSE" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36"
+        aria-label="Pause TTS">pause</i></button>
+    <button id="ttsRESUME" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36"
+        aria-label="Resume TTS">play_arrow</i></button>
+    <button id="ttsSTOP" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36"
+        aria-label="Stop TTS">stop</i></button>
+    <button id="ttsNEXT" class="mdc-button mdc-ripple-surfacexxx"><i class="mdc-button__label material-icons md-36"
+        aria-label="Next TTS">skip_next</i></button>
+  </div>
+
+  <main id="reader_chrome">
+
+    <div id="publication_viewport">
+      <!-- <div id="r2_navigator_sliding_viewport">
+        </div> -->
     </div>
 
-    <main id="reader_chrome">
+    <button id="buttonNavLeft" class="mdc-button mdc-ripple-surface" data-mdc-auto-init="MDCRipple"><i class="mdc-button__label material-icons md-36"
+        aria-label="Left arrow">chevron_left</i></button>
+    <button id="buttonNavRight" class="mdc-button mdc-ripple-surface" data-mdc-auto-init="MDCRipple"><i class="mdc-button__label material-icons md-36"
+        aria-label="Right arrow">chevron_right</i></button>
 
-      <div id="publication_viewport">
-        <!-- <div id="r2_navigator_sliding_viewport">
-        </div> -->
-      </div>
-
-      <button id="buttonNavLeft" class="mdc-button mdc-ripple-surface" data-mdc-auto-init="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Left arrow">chevron_left</i></button>
-      <button id="buttonNavRight" class="mdc-button mdc-ripple-surface" data-mdc-auto-init="MDCRipple"><i class="mdc-button__label material-icons md-36" aria-label="Right arrow">chevron_right</i></button>
-
-    </main>
-<!--
+  </main>
+  <!--
     <div id="r2_navigator_reader_chrome_HIDE">
       <div class="loader"> </div>
     </div>
 -->
 
-    <div id="lcpDialog"
-      class="mdc-dialog"
-      role="alertdialog"
-      aria-hidden="true"
-      aria-labelledby="mdc-dialog-default-label"
-      aria-describedby="mdc-dialog-default-description">
+  <div id="lcpDialog" class="mdc-dialog" role="alertdialog" aria-hidden="true" aria-labelledby="mdc-dialog-default-label"
+    aria-describedby="mdc-dialog-default-description">
 
-      <div class="mdc-dialog__container">
-        <div class="mdc-dialog__surface">
+    <div class="mdc-dialog__container">
+      <div class="mdc-dialog__surface">
 
-          <h2 class="mdc-dialog__title">
-            Please enter the publication's passphrase:
-          </h2>
+        <h2 class="mdc-dialog__title">
+          Please enter the publication's passphrase:
+        </h2>
 
-          <div class="mdc-dialog__content">
+        <div class="mdc-dialog__content">
 
-              <div class="mdc-form-field">
-                <div class="mdc-text-field" data-mdc-auto-init="MDCTextField">
-                  <input type="password" name="lcpPassInput" id="lcpPassInput" size="40" class="mdc-text-field__input">
-                  <label for="lcpPassInput" class="mdc-floating-label" id="lcpPassInputLabel">passphrase</label>
-                  <span id="lcpPassMessage" style="color: red; margin-left: 1em;"> </span>
-                </div>
-              </div>
-
-              <p><strong>Hint: </strong><span id="lcpPassHint">-</span></p>
+          <div class="mdc-form-field">
+            <div class="mdc-text-field" data-mdc-auto-init="MDCTextField">
+              <input type="password" name="lcpPassInput" id="lcpPassInput" size="40" class="mdc-text-field__input">
+              <label for="lcpPassInput" class="mdc-floating-label" id="lcpPassInputLabel">passphrase</label>
+              <span id="lcpPassMessage" style="color: red; margin-left: 1em;"> </span>
+            </div>
           </div>
 
-          <footer class="mdc-dialog__actions">
-            <button type="button" id="lcpDialogAcceptButton" class="mdc-button mdc-dialog__button mdc-dialog__button--default" data-mdc-dialog-action="accept">
-              <span class="mdc-button__label">OK</span></button>
-          </footer>
+          <p><strong>Hint: </strong><span id="lcpPassHint">-</span></p>
         </div>
-      </div>
 
-      <div class="mdc-dialog__scrim"></div>
-    </div>
-
-    <div id="snackbar" class="mdc-snackbar">
-      <div class="mdc-snackbar__surface">
-        <div class="mdc-snackbar__label"
-             role="status"
-             aria-live="polite">
-        </div>
-        <div class="mdc-snackbar__actions">
-          <button type="button" class="mdc-button mdc-snackbar__action">
+        <footer class="mdc-dialog__actions">
+          <button type="button" id="lcpDialogAcceptButton" class="mdc-button mdc-dialog__button mdc-dialog__button--default"
+            data-mdc-dialog-action="accept">
             <span class="mdc-button__label">OK</span></button>
-        </div>
+        </footer>
       </div>
     </div>
+
+    <div class="mdc-dialog__scrim"></div>
+  </div>
+
+  <div id="snackbar" class="mdc-snackbar">
+    <div class="mdc-snackbar__surface">
+      <div class="mdc-snackbar__label" role="status" aria-live="polite">
+      </div>
+      <div class="mdc-snackbar__actions">
+        <button type="button" class="mdc-button mdc-snackbar__action">
+          <span class="mdc-button__label">OK</span></button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>
