@@ -735,16 +735,17 @@ const initFontSelector = () => {
     const tag = riotMountMenuSelect("#fontSelect", opts)[0] as IRiotTagMenuSelect;
 
     tag.on("selectionChanged", (index: number) => {
-        console.log("selectionChanged");
-        console.log(index);
+        // console.log("selectionChanged");
+        // console.log(index);
         let id = tag.getIdForIndex(index);
-        console.log(id);
+        // console.log(id);
         if (!id) {
             return;
         }
         // const element = tag.root.ownerDocument.getElementById(val) as HTMLElement;
         //     console.log(element.textContent);
         id = id.replace(ID_PREFIX, "");
+        // console.log(id);
         electronStore.set("readiumCSS.font", id);
     });
 
@@ -779,11 +780,11 @@ const initFontSelector = () => {
         }
         if (_sysFonts && _sysFonts.length) {
             const arr = ((tag.opts as IRiotOptsMenuSelect).options as IRiotOptsMenuSelectItem[]);
-            // const divider: IRiotOptsMenuSelectItem = {
-            //     id: ID_PREFIX + "_",
-            //     label: "_",
-            // };
-            // arr.push(divider);
+            const divider: IRiotOptsMenuSelectItem = {
+                id: ID_PREFIX + "_",
+                label: "_",
+            };
+            arr.push(divider);
             _sysFonts.forEach((sysFont) => {
                 const option: IRiotOptsMenuSelectItem = {
                     id: ID_PREFIX + sysFont, // .replace(/ /g, "_"),

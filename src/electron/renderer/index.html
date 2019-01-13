@@ -7,7 +7,7 @@
 
   <!-- https://github.com/electron/electron/blob/master/docs/tutorial/security.md#csp-meta-tag -->
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: httpsr2: https://127.0.0.1:* http://127.0.0.1:*">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: http: https: httpsr2: https://127.0.0.1:* http://127.0.0.1:*">
 
   <link rel="stylesheet" href="./material-components-web.css" >
 
@@ -38,10 +38,11 @@
 
 </head>
 
+<!-- https://github.com/google/material-design-icons/blob/master/iconfont/codepoints -->
+<!-- https://material.io/tools/icons/?style=baseline -->
+<!-- https://github.com/jossef/material-design-icons-iconfont -->
+
 <body class="mdc-typography">
-  <!-- https://github.com/google/material-design-icons/blob/master/iconfont/codepoints -->
-  <!-- https://material.io/tools/icons/?style=baseline -->
-  <!-- https://github.com/jossef/material-design-icons-iconfont -->
     <h3 class="mdc-typography--subheading1" id="pubTitle">TITLE</h3>
 
     <div id="ttsControls">

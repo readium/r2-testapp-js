@@ -98,7 +98,11 @@ export const riotMountMenuSelect = (selector: string, opts: IRiotOptsMenuSelect)
 
     // tslint:disable-next-line:space-before-function-paren
     that.getIdForIndex = function (index: number): string | undefined {
-        const found = (this.opts as IRiotOptsMenuSelect).options.find((_option, i) => {
+        let i = -1;
+        const found = (this.opts as IRiotOptsMenuSelect).options.find((option, _i) => {
+            if (option.label !== "_") {
+                i++;
+            }
             return index === i;
         });
         return found ? found.id : undefined;
@@ -106,7 +110,11 @@ export const riotMountMenuSelect = (selector: string, opts: IRiotOptsMenuSelect)
 
     // tslint:disable-next-line:space-before-function-paren
     that.getLabelForIndex = function (index: number): string | undefined {
-        const found = (this.opts as IRiotOptsMenuSelect).options.find((_option, i) => {
+        let i = -1;
+        const found = (this.opts as IRiotOptsMenuSelect).options.find((option, _i) => {
+            if (option.label !== "_") {
+                i++;
+            }
             return index === i;
         });
         return found ? found.label : undefined;
@@ -145,29 +153,31 @@ export const riotMountMenuSelect = (selector: string, opts: IRiotOptsMenuSelect)
         //     (menuEl as any).mdcSimpleMenu = menu;
         //     return menu;
         // };
-        console.log("that.root:");
-        console.log(that.root);
+        // console.log("that.root:");
+        // console.log(that.root);
         // MDCSelect.attachTo(that.root)
         const mdcSelector = new (window as any).mdc.select.MDCSelect(that.root); // , undefined, menuFactory);
         (that.root as any).mdcSelect = mdcSelector;
 
         mdcSelector.disabled = that.opts.disabled;
 
-        mdcSelector.listen("change", (ev: any) => {
+        mdcSelector.listen("MDCSelect:change", (ev: any) => {
             // console.log("MDCSelect:change: " + that.root.id);
             // console.log(ev);
-            // console.log(ev.target.selectedOptions[0].textContent);
-            // console.log(ev.target.selectedIndex);
-            // console.log(ev.target.value);
+            // console.log(ev.detail);
+            // console.log(ev.detail.index); // ev.detail.selectedIndex
+            // console.log(ev.detail.value);
 
-            // let label = ev.target.value;
-            // const element = that.root.ownerDocument.getElementById(label);
+            // console.log(ev.detail.selectedOptions[0].textContent);
+
+            // let label = ev.detail.value;
+            // const element = (that.root.ownerDocument as Document).getElementById(label);
             // if (element) {
             //     console.log(element.textContent);
             //     label = element.textContent;
             // }
 
-            that.trigger("selectionChanged", ev.target.selectedIndex);
+            that.trigger("selectionChanged", ev.detail.index); // ev.detail.selectedIndex
         });
     });
 };
