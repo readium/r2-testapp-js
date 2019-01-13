@@ -1123,12 +1123,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
         electronStore.set("readiumCSS", electronStore.getDefaults().readiumCSS);
 
-        drawer.open = false;
-        setTimeout(() => {
-            snackBar.labelText = "Default styles.";
-            snackBar.actionButtonText = "OK";
-            snackBar.open();
-        }, 500);
+        // drawer.open = false;
+        // setTimeout(() => {
+        //     snackBar.labelText = "Default styles.";
+        //     snackBar.actionButtonText = "OK";
+        //     snackBar.open();
+        // }, 500);
     });
 
     const buttonOpenSettings = document.getElementById("buttonOpenSettings") as HTMLElement;
@@ -1148,6 +1148,13 @@ window.addEventListener("DOMContentLoaded", () => {
             publicationFilePath: pathDecoded,
         };
         ipcRenderer.send(R2_EVENT_LCP_LSD_RENEW, payload);
+
+        drawer.open = false;
+        setTimeout(() => {
+            snackBar.labelText = "LCP LSD renew message sent.";
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
+        }, 500);
     });
 
     const buttonLSDReturn = document.getElementById("buttonLSDReturn") as HTMLElement;
@@ -1156,6 +1163,13 @@ window.addEventListener("DOMContentLoaded", () => {
             publicationFilePath: pathDecoded,
         };
         ipcRenderer.send(R2_EVENT_LCP_LSD_RETURN, payload);
+
+        drawer.open = false;
+        setTimeout(() => {
+            snackBar.labelText = "LCP LSD return message sent.";
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
+        }, 500);
     });
 
     // const buttonDevTools = document.getElementById("buttonDevTools") as HTMLElement;
