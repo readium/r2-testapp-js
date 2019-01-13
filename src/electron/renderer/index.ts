@@ -1254,22 +1254,42 @@ function startNavigatorExperiment() {
             }
         }
 
-        const buttonttsPLAY = document.getElementById("ttsPLAY") as HTMLElement;
-        buttonttsPLAY.addEventListener("click", (_event) => {
-            ttsPlay();
+        const buttonttsPLAYPAUSE = document.getElementById("ttsPLAYPAUSE") as HTMLElement;
+        buttonttsPLAYPAUSE.addEventListener("MDCIconButtonToggle:change", (event) => {
+            // console.log("MDCIconButtonToggle:change");
+            // console.log((event as any).detail.isOn);
+
+            if ((event as any).detail.isOn) {
+                if (_ttsState === TTSStateEnum.PAUSED) {
+                    ttsResume();
+                } else {
+                    ttsPlay();
+                }
+            } else {
+                ttsPause();
+            }
         });
-        const buttonttsPAUSE = document.getElementById("ttsPAUSE") as HTMLElement;
-        buttonttsPAUSE.addEventListener("click", (_event) => {
-            ttsPause();
-        });
+        const mdcButtonttsPLAYPAUSE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonttsPLAYPAUSE);
+        (buttonttsPLAYPAUSE as any).mdcButton = mdcButtonttsPLAYPAUSE;
+        // console.log("(buttonttsPLAYPAUSE as any).mdcButton.on");
+        // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+
+        // const buttonttsPLAY = document.getElementById("ttsPLAY") as HTMLElement;
+        // buttonttsPLAY.addEventListener("click", (_event) => {
+        //     ttsPlay();
+        // });
+        // const buttonttsPAUSE = document.getElementById("ttsPAUSE") as HTMLElement;
+        // buttonttsPAUSE.addEventListener("click", (_event) => {
+        //     ttsPause();
+        // });
         const buttonttsSTOP = document.getElementById("ttsSTOP") as HTMLElement;
         buttonttsSTOP.addEventListener("click", (_event) => {
             ttsStop();
         });
-        const buttonttsRESUME = document.getElementById("ttsRESUME") as HTMLElement;
-        buttonttsRESUME.addEventListener("click", (_event) => {
-            ttsResume();
-        });
+        // const buttonttsRESUME = document.getElementById("ttsRESUME") as HTMLElement;
+        // buttonttsRESUME.addEventListener("click", (_event) => {
+        //     ttsResume();
+        // });
         const buttonttsNEXT = document.getElementById("ttsNEXT") as HTMLElement;
         buttonttsNEXT.addEventListener("click", (_event) => {
             ttsNext();
@@ -1279,15 +1299,22 @@ function startNavigatorExperiment() {
             ttsPrevious();
         });
 
-        const buttonttsENABLE = document.getElementById("ttsENABLE") as HTMLElement;
-        buttonttsENABLE.addEventListener("click", (_event) => {
-            ttsEnableToggle();
-        });
+        // const buttonttsENABLE = document.getElementById("ttsENABLE") as HTMLElement;
+        // buttonttsENABLE.addEventListener("click", (_event) => {
+        //     ttsEnableToggle();
+        // });
 
-        const buttonttsDISABLE = document.getElementById("ttsDISABLE") as HTMLElement;
-        buttonttsDISABLE.addEventListener("click", (_event) => {
+        // const buttonttsDISABLE = document.getElementById("ttsDISABLE") as HTMLElement;
+        // buttonttsDISABLE.addEventListener("click", (_event) => {
+        //     ttsEnableToggle();
+        // });
+
+        const buttonttsTOGGLE = document.getElementById("ttsTOGGLE") as HTMLElement;
+        buttonttsTOGGLE.addEventListener("MDCIconButtonToggle:change", (_event) => {
             ttsEnableToggle();
         });
+        const mdcButtonttsTOGGLE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonttsTOGGLE);
+        (buttonttsTOGGLE as any).mdcButton = mdcButtonttsTOGGLE;
 
         let _ttsState: TTSStateEnum | undefined;
         refreshTtsUiState();
@@ -1302,50 +1329,66 @@ function startNavigatorExperiment() {
 
         function refreshTtsUiState() {
             if (_ttsState === TTSStateEnum.PAUSED) {
-                buttonttsPLAY.style.display = "none";
-                buttonttsRESUME.style.display = "inline-block";
-                buttonttsPAUSE.style.display = "none";
+                // console.log("refreshTtsUiState _ttsState === TTSStateEnum.PAUSED");
+                // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+                (buttonttsPLAYPAUSE as any).mdcButton.on = false;
+                // buttonttsPLAY.style.display = "none";
+                // buttonttsRESUME.style.display = "inline-block";
+                // buttonttsPAUSE.style.display = "none";
+                buttonttsPLAYPAUSE.style.display = "inline-block";
                 buttonttsSTOP.style.display = "inline-block";
                 buttonttsPREVIOUS.style.display = "inline-block";
                 buttonttsNEXT.style.display = "inline-block";
             } else if (_ttsState === TTSStateEnum.STOPPED) {
-                buttonttsPLAY.style.display = "inline-block";
-                buttonttsRESUME.style.display = "none";
-                buttonttsPAUSE.style.display = "none";
+                // console.log("refreshTtsUiState _ttsState === TTSStateEnum.STOPPED");
+                // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+                (buttonttsPLAYPAUSE as any).mdcButton.on = false;
+                // buttonttsPLAY.style.display = "inline-block";
+                // buttonttsRESUME.style.display = "none";
+                // buttonttsPAUSE.style.display = "none";
+                buttonttsPLAYPAUSE.style.display = "inline-block";
                 buttonttsSTOP.style.display = "none";
                 buttonttsPREVIOUS.style.display = "none";
                 buttonttsNEXT.style.display = "none";
             } else if (_ttsState === TTSStateEnum.PLAYING) {
-                buttonttsPLAY.style.display = "none";
-                buttonttsRESUME.style.display = "none";
-                buttonttsPAUSE.style.display = "inline-block";
+                // console.log("refreshTtsUiState _ttsState === TTSStateEnum.PLAYING");
+                // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+                (buttonttsPLAYPAUSE as any).mdcButton.on = true;
+                // buttonttsPLAY.style.display = "none";
+                // buttonttsRESUME.style.display = "none";
+                // buttonttsPAUSE.style.display = "inline-block";
+                buttonttsPLAYPAUSE.style.display = "inline-block";
                 buttonttsSTOP.style.display = "inline-block";
                 buttonttsPREVIOUS.style.display = "inline-block";
                 buttonttsNEXT.style.display = "inline-block";
             } else {
-                buttonttsPLAY.style.display = "none";
-                buttonttsRESUME.style.display = "none";
-                buttonttsPAUSE.style.display = "none";
+                // console.log("refreshTtsUiState _ttsState === undefined");
+                // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+                (buttonttsPLAYPAUSE as any).mdcButton.on = false;
+                // buttonttsPLAY.style.display = "none";
+                // buttonttsRESUME.style.display = "none";
+                // buttonttsPAUSE.style.display = "none";
+                buttonttsPLAYPAUSE.style.display = "none";
                 buttonttsSTOP.style.display = "none";
                 buttonttsPREVIOUS.style.display = "none";
                 buttonttsNEXT.style.display = "none";
             }
         }
 
-        buttonttsDISABLE.style.display = "none";
+        // buttonttsDISABLE.style.display = "none";
         let _ttsEnabled = false;
         function ttsEnableToggle() {
             if (_ttsEnabled) {
-                buttonttsENABLE.style.display = "inline-block";
-                buttonttsDISABLE.style.display = "none";
+                // buttonttsENABLE.style.display = "inline-block";
+                // buttonttsDISABLE.style.display = "none";
                 ttsClickEnable(false);
                 _ttsEnabled = false;
                 _ttsState = undefined;
                 refreshTtsUiState();
                 ttsStop();
             } else {
-                buttonttsENABLE.style.display = "none";
-                buttonttsDISABLE.style.display = "inline-block";
+                // buttonttsENABLE.style.display = "none";
+                // buttonttsDISABLE.style.display = "inline-block";
                 ttsClickEnable(true);
                 _ttsEnabled = true;
                 _ttsState = TTSStateEnum.STOPPED;

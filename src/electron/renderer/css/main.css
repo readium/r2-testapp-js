@@ -114,7 +114,8 @@ form {
 
 #ttsControls > button {
   box-sizing: border-box;
-  display:block;
+  display: inline-block;
+  vertical-align: inherit;
   margin: 0;
   padding: 0;
   width: var(--R2__specialDimension);
