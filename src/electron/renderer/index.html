@@ -61,6 +61,116 @@
     <aside id="drawer" class="mdc-drawer mdc-drawer--modal">
       <nav id="drawerNav" class="mdc-drawer__content">
 
+        <div id="nav-select" class="mdc-select r2-mdc-select-width">
+          <input type="hidden" name="enhanced-select">
+          <i class="mdc-select__dropdown-icon"></i>
+          <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox" aria-labelledby="demo-label demo-selected-text">Table of contents</div>
+          <div class="mdc-select__menu mdc-menu mdc-menu-surface r2-mdc-select-width" role="listbox">
+            <ul class="mdc-list">
+              <li
+                aria-selected
+
+                id="selectTOC"
+
+                role="option"
+                tabindex="0"
+                class="mdc-list-item mdc-list-item--selected"
+
+                data-value="Table of contents"
+                
+
+                >Table of contents</li>
+
+              <li
+                id="selectLandmarks"
+
+                role="option"
+                tabindex="0"
+                class="mdc-list-item"
+
+                data-value="Landmarks"
+
+                >Landmarks</li>
+
+              <li
+                id="selectPageList"
+
+                role="option"
+                tabindex="0"
+                class="mdc-list-item"
+
+                data-value="Page list"
+
+                >Page list</li>
+
+              <li
+                id="selectSpine"
+
+                role="option"
+                tabindex="0"
+                class="mdc-list-item"
+
+                data-value="Publication spine"
+
+                >Publication spine</li>
+
+                <li
+                role="presentation"
+                tabindex="-1"
+                class="mdc-list-divider mdc-list-divider--padded"
+                disabled
+                > </li>
+
+              <li
+                id="selectStyles"
+
+                role="option"
+                tabindex="0"
+                class="mdc-list-item"
+
+                data-value="Styling"
+
+                >Styling</li>
+
+
+              <li
+              id="selectAdvanced"
+
+              role="option"
+              tabindex="0"
+              class="mdc-list-item"
+
+              data-value="Advanced"
+
+              >Advanced</li>
+
+              <li
+              role="presentation"
+              tabindex="-1"
+              class="mdc-list-divider mdc-list-divider--padded"
+              disabled
+              > </li>
+
+              <li
+              id="selectTools"
+
+              role="option"
+              tabindex="0"
+              class="mdc-list-item"
+
+              data-value="Developer tools"
+
+              >Developer tools</li>
+  
+
+            </ul>
+          </div>
+          <span class="mdc-floating-label mdc-floating-label--float-above">Main menu</span>
+          <div class="mdc-line-ripple"></div>
+        
+        </div>
+
+<!-- 
           <div id="nav-select" class="mdc-select">
 
             <select class="mdc-select__native-control" id="nav-select-menu">
@@ -92,7 +202,7 @@
             <label class="mdc-floating-label mdc-floating-label--float-above">Main menu</label>
             <div class="mdc-line-ripple"></div>
 
-          </div>
+          </div> -->
 
           <div id="tabsPanels">
               <div class="tabPanel active mdc-list" style="padding: 0px;"> <ul id="reader_controls_TOC" data-is="riot-linktree"> </ul> </div>

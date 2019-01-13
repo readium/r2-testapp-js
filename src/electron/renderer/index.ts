@@ -995,18 +995,20 @@ window.addEventListener("DOMContentLoaded", () => {
     const selectElement = document.getElementById("nav-select") as HTMLElement;
     const navSelector = new (window as any).mdc.select.MDCSelect(selectElement); // , undefined, menuFactory
     (selectElement as any).mdcSelect = navSelector;
-    navSelector.listen("change", (ev: any) => {
+    navSelector.listen("MDCSelect:change", (ev: any) => {
         // console.log("MDCSelect:change");
         // console.log(ev);
-        // console.log(ev.target.selectedOptions[0].textContent);
-        // console.log(ev.target.selectedIndex);
-        // console.log(ev.target.value);
+        // console.log(ev.detail);
+        // console.log(ev.detail.index); // ev.detail.selectedIndex
+        // console.log(ev.detail.value);
+
+        // console.log(ev.detail.selectedOptions[0].textContent);
 
         const activePanel = document.querySelector(".tabPanel.active");
         if (activePanel) {
             activePanel.classList.remove("active");
         }
-        const newActivePanel = document.querySelector(".tabPanel:nth-child(" + (ev.target.selectedIndex + 1) + ")");
+        const newActivePanel = document.querySelector(".tabPanel:nth-child(" + (ev.detail.index + 1) + ")");
         if (newActivePanel) {
             newActivePanel.classList.add("active");
 
