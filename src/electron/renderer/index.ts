@@ -975,7 +975,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const snackBarElem = document.getElementById("snackbar") as HTMLElement;
     snackBar = new (window as any).mdc.snackbar.MDCSnackbar(snackBarElem);
     (snackBarElem as any).mdcSnackbar = snackBar;
-    snackBar.dismissesOnAction = true;
 
     //     drawerElement.addEventListener("MDCTemporaryDrawer:open", () => {
     //         console.log("MDCTemporaryDrawer:open");
@@ -1096,18 +1095,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
         drawer.open = false;
         setTimeout(() => {
-            const message = "Reading locations reset.";
-            const data = {
-                actionHandler: () => {
-                    // console.log("SnackBar OK");
-                },
-                actionOnBottom: false,
-                actionText: "OK",
-                message,
-                multiline: false,
-                timeout: 2000,
-            };
-            snackBar.show(data);
+            snackBar.labelText = "Reading locations reset.";
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
         }, 500);
     });
 
@@ -1119,18 +1109,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
         drawer.open = false;
         setTimeout(() => {
-            const message = "Settings reset.";
-            const data = {
-                actionHandler: () => {
-                    // console.log("SnackBar OK");
-                },
-                actionOnBottom: false,
-                actionText: "OK",
-                message,
-                multiline: false,
-                timeout: 2000,
-            };
-            snackBar.show(data);
+            snackBar.labelText = "Settings reset.";
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
         }, 500);
     });
 
@@ -1141,18 +1122,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
         drawer.open = false;
         setTimeout(() => {
-            const message = "Default styles.";
-            const data = {
-                actionHandler: () => {
-                    // console.log("SnackBar OK");
-                },
-                actionOnBottom: false,
-                actionText: "OK",
-                message,
-                multiline: false,
-                timeout: 2000,
-            };
-            snackBar.show(data);
+            snackBar.labelText = "Default styles.";
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
         }, 500);
     });
 
@@ -1304,6 +1276,9 @@ function startNavigatorExperiment() {
         refreshTtsUiState();
 
         ttsListen((ttsState: TTSStateEnum) => {
+            if (!_ttsEnabled) {
+                return;
+            }
             _ttsState = ttsState;
             refreshTtsUiState();
         });
@@ -1347,22 +1322,18 @@ function startNavigatorExperiment() {
                 buttonttsENABLE.style.display = "inline-block";
                 buttonttsDISABLE.style.display = "none";
                 ttsClickEnable(false);
+                _ttsEnabled = false;
+                _ttsState = undefined;
+                refreshTtsUiState();
                 ttsStop();
-                setTimeout(() => {
-                    _ttsEnabled = false;
-                    _ttsState = undefined;
-                    refreshTtsUiState();
-                }, 100);
             } else {
                 buttonttsENABLE.style.display = "none";
                 buttonttsDISABLE.style.display = "inline-block";
                 ttsClickEnable(true);
+                _ttsEnabled = true;
+                _ttsState = TTSStateEnum.STOPPED;
+                refreshTtsUiState();
                 ttsStop();
-                setTimeout(() => {
-                    _ttsEnabled = true;
-                    _ttsState = TTSStateEnum.STOPPED;
-                    refreshTtsUiState();
-                }, 100);
             }
         }
 

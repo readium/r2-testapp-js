@@ -106,5 +106,12 @@ form {
 }
 
 #ttsControls > button {
-  border: none;
+  box-sizing: border-box;
+  display:block;
+  margin: 0;
+  padding: 0;
+  width: var(--R2__specialDimension);
+  height: var(--R2__specialDimension);
+  min-width: var(--R2__specialDimension);
+  min-height: var(--R2__specialDimension);
 }
