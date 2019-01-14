@@ -51,13 +51,13 @@ import { Publication } from "@r2-shared-js/models/publication";
 import { Link } from "@r2-shared-js/models/publication-link";
 import { isEPUBlication } from "@r2-shared-js/parser/epub";
 import { Server } from "@r2-streamer-js/http/server";
-import { isHTTP } from "@r2-utils-js/_utils/http/UrlUtils";
 import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
+import { isHTTP } from "@r2-utils-js/_utils/http/UrlUtils";
 import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
 import { ZipExploded } from "@r2-utils-js/_utils/zip/zip-ex";
 import { ZipExplodedHTTP } from "@r2-utils-js/_utils/zip/zip-ex-http";
 import * as debug_ from "debug";
-import { BrowserWindow, Menu, app, dialog, ipcMain, webContents } from "electron";
+import { BrowserWindow, Menu, MenuItemConstructorOptions, app, dialog, ipcMain, webContents } from "electron";
 import * as express from "express";
 import * as filehound from "filehound";
 import * as portfinder from "portfinder";
@@ -173,7 +173,7 @@ async function isManifestJSON(urlOrPath: string): Promise<boolean> {
 
                 const okay = response.headers["content-type"] &&
                     (response.headers["content-type"].indexOf("application/webpub+json") >= 0 ||
-                    response.headers["content-type"].indexOf("application/audiobook+json") >= 0);
+                        response.headers["content-type"].indexOf("application/audiobook+json") >= 0);
                 resolve(okay as boolean);
 
                 // response.on("data", (chunk) => {
@@ -337,7 +337,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                 arrLinks.forEach((link: any) => {
                     if (link.properties && link.properties.encrypted &&
                         (link.properties.encrypted.algorithm === "http://www.idpf.org/2008/embedding" ||
-                        link.properties.encrypted.algorithm === "http://ns.adobe.com/pdf/enc#RC")) {
+                            link.properties.encrypted.algorithm === "http://ns.adobe.com/pdf/enc#RC")) {
                         delete link.properties.encrypted;
 
                         let atLeastOne = false;
@@ -1018,6 +1018,18 @@ function resetMenu() {
             ],
         },
         {
+            label: "Edit",
+            submenu: [
+                { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+                { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+                { type: "separator" },
+                { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+                { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+                { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+                { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" },
+            ],
+        },
+        {
             label: "Tools",
             submenu: [
                 {
@@ -1032,7 +1044,7 @@ function resetMenu() {
         },
     ];
 
-    menuTemplate[1].submenu.push({
+    (menuTemplate[1].submenu as any[]).push({
         click: async () => {
             const choice = dialog.showOpenDialog({
                 defaultPath: _lastBookPath || DEFAULT_BOOK_PATH,
@@ -1061,7 +1073,7 @@ function resetMenu() {
         const filePath = _publicationsFilePaths[n];
         debug("MENU ITEM: " + filePath + " : " + pubManifestUrl);
 
-        menuTemplate[1].submenu.push({
+        (menuTemplate[1] as any).submenu.push({
             click: async () => {
                 debug(filePath);
                 await openFileDownload(filePath);
@@ -1069,7 +1081,7 @@ function resetMenu() {
             label: filePath, // + " : " + pubManifestUrl,
         } as any);
     });
-    const menu = Menu.buildFromTemplate(menuTemplate);
+    const menu = Menu.buildFromTemplate(menuTemplate as MenuItemConstructorOptions[]);
     Menu.setApplicationMenu(menu);
 }
 
