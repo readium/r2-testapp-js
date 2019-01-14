@@ -1,11 +1,16 @@
 sudo: required
 dist: trusty
+# https://docs.travis-ci.com/user/deployment/
+# https://docs.travis-ci.com/user/customizing-the-build/
+# https://www.electron.build/multi-platform-build
 branches:
   only:
     - develop
   except:
-    - "/^v\\d+\\.\\d+\\.\\d+$/"
-# https://www.electron.build/multi-platform-build
+    - '/^untagged-/'
+    - '/-preview$/'
+    - '/^(?i:deploy)-.*$/'
+    - '/^v\\d+\\.\\d+\\.\\d+$/'
 matrix:
   include:
     - os: osx
@@ -57,7 +62,19 @@ after_failure:
   - 'pwd && ls -als'
   - 'npm --version'
   - 'node --version'
-# https://docs.travis-ci.com/user/deployment/
+before_deploy:
+  - git config --local user.name "danielweck"
+  - git config --local user.email "daniel.weck@gmail.com"
+  - git tag -l --format='%(refname)   %(taggerdate)'
+  - echo $TRAVIS_BRANCH
+  - export GIT_COMMITTER_DATE="$(git show $TRAVIS_BRANCH --format=%aD | head -1)" && echo $GIT_COMMITTER_DATE
+  - export LATEST_GIT_TAG_VERSION=$(git describe --abbrev=0 --tags) && export LATEST_GIT_TAG_VERSION=${LATEST_GIT_TAG_VERSION:1} && echo $LATEST_GIT_TAG_VERSION
+  - export NEXT_GIT_TAG_VERSION=$((LAST_GIT_TAG_VERSION+1)) && echo $NEXT_GIT_TAG_VERSION
+  - export TRAVIS_TAG="${NEXT_GIT_TAG_VERSION}-preview" && echo $TRAVIS_TAG
+#  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
+  - (git tag -a "${TRAVIS_TAG}" $TRAVIS_BRANCH -m "tag ${TRAVIS_TAG}" && echo "tag ok") || echo "tag fail (already exist?)"
+  - git push -q --tags "https://${GH_TOKEN}@github.com/readium/r2-testapp-js.git" origin $TRAVIS_BRANCH
+  - git tag -l --format='%(refname)   %(taggerdate)'
 deploy:
   provider: releases
   api_key: $GH_TOKEN
@@ -71,4 +88,4 @@ deploy:
   skip_cleanup: true
   on:
     branch: develop
-#    tags: false
+#    tags: true
