@@ -42,7 +42,10 @@
   '
 
   'preelectron-pack': '
-    npm run electron-pack:prepare
+    npm run electron-pack:prepare &&
+    rimraf "./electron-pack/mac/" &&
+    rimraf "./electron-pack/win/" &&
+    rimraf "./electron-pack/linux/"
   '
 
   'electron-pack': '
@@ -52,7 +55,8 @@
   '
 
   'preelectron-pack:win': '
-    npm run electron-pack:prepare
+    npm run electron-pack:prepare &&
+    rimraf "./electron-pack/win/"
   '
 
   'electron-pack:win': '
@@ -62,7 +66,8 @@
   '
 
   'preelectron-pack:linux': '
-    npm run electron-pack:prepare
+    npm run electron-pack:prepare &&
+    rimraf "./electron-pack/linux/"
   '
 
   'electron-pack:linux': '
@@ -71,7 +76,8 @@
   '
 
   'preelectron-pack:mac': '
-    npm run electron-pack:prepare
+    npm run electron-pack:prepare &&
+    rimraf "./electron-pack/mac/"
   '
 
   'electron-pack:mac': '
