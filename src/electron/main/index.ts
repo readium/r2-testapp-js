@@ -27,8 +27,8 @@ import * as path from "path";
 import { URL } from "url";
 
 import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-processing";
-import { LCP } from "@r2-lcp-js/parser/epub/lcp";
 import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
+import { LCP } from "@r2-lcp-js/parser/epub/lcp";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
 import { IEventPayload_R2_EVENT_READIUMCSS } from "@r2-navigator-js/electron/common/events";
 import {
@@ -51,21 +51,26 @@ import { Publication } from "@r2-shared-js/models/publication";
 import { Link } from "@r2-shared-js/models/publication-link";
 import { isEPUBlication } from "@r2-shared-js/parser/epub";
 import { Server } from "@r2-streamer-js/http/server";
-import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
 import { isHTTP } from "@r2-utils-js/_utils/http/UrlUtils";
+import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
 import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
 import { ZipExploded } from "@r2-utils-js/_utils/zip/zip-ex";
 import { ZipExplodedHTTP } from "@r2-utils-js/_utils/zip/zip-ex-http";
 import * as debug_ from "debug";
-import { BrowserWindow, Menu, MenuItemConstructorOptions, app, dialog, ipcMain, webContents } from "electron";
+import { BrowserWindow, Menu, MenuItemConstructorOptions, app, dialog, ipcMain, shell, webContents } from "electron";
 import * as express from "express";
 import * as filehound from "filehound";
 import * as portfinder from "portfinder";
 import * as request from "request";
 import * as requestPromise from "request-promise-native";
 import { JSON as TAJSON } from "ta-json-x";
+import * as uuid from "uuid";
 
-import { R2_EVENT_DEVTOOLS } from "../common/events";
+import {
+    IEventPayload_R2_EVENT_OPEN_URL_OR_PATH,
+    R2_EVENT_DEVTOOLS,
+    R2_EVENT_OPEN_URL_OR_PATH,
+} from "../common/events";
 import { IStore } from "../common/store";
 import { StoreElectron } from "../common/store-electron";
 import { installLcpHandler } from "./lcp";
@@ -717,6 +722,365 @@ function __computeReadiumCssJsonMessage(_publication: Publication, _link: Link |
     }
 }
 
+function loadFileOrUrlDialog(initval: string) {
+
+    const dialogid = uuid.v4().replace(/-/g, "_");
+    const html = `
+<html>
+<head>
+<script type="text/javascript">
+
+const { ipcRenderer } = require('electron');
+
+const cancel = () => {
+const payload = {
+urlOrPath: undefined,
+};
+ipcRenderer.send("${R2_EVENT_OPEN_URL_OR_PATH + dialogid}", payload);
+};
+const submit = () => {
+const dataEl = document.getElementById('data');
+const payload = {
+urlOrPath: dataEl.value,
+};
+ipcRenderer.send("${R2_EVENT_OPEN_URL_OR_PATH + dialogid}", payload);
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+
+document.getElementById('filechoose').addEventListener('click', () => {
+    const payload = {
+        urlOrPath: undefined,
+        fileChooser: true,
+    };
+    ipcRenderer.send("${R2_EVENT_OPEN_URL_OR_PATH + dialogid}", payload);
+});
+
+document.getElementById('ok').addEventListener('click', () => submit());
+document.getElementById('cancel').addEventListener('click', () => cancel());
+
+const dataEl = document.getElementById('data');
+
+dataEl.addEventListener('keyup', e => {
+e.which = e.which || e.keyCode;
+if (e.which === 13) {
+    submit();
+}
+if (e.which === 27) {
+    cancel();
+}
+});
+
+dataEl.focus();
+dataEl.select();
+
+const drag = (ev) => {
+ev.preventDefault();
+return false;
+};
+const drop = (ev) => {
+ev.preventDefault();
+
+if (!ev.dataTransfer) {
+    return;
+}
+
+let urlOrPath = undefined;
+if (ev.dataTransfer.items) {
+    for (const item of ev.dataTransfer.items) {
+        if (item.kind === "file") {
+            const file = item.getAsFile();
+            if (file) {
+                console.log(file.name);
+                console.log(file.path);
+                urlOrPath = file.path;
+                break;
+            }
+        } else if (item.kind === "string") {
+            if (item.type === "text/plain") { /* text/uri-list text/html */
+                const data = ev.dataTransfer.getData(item.type);
+                console.log(data);
+                urlOrPath = data;
+            } else {
+                console.log(item.type);
+                console.log(ev.dataTransfer.getData(item.type));
+            }
+        } else {
+            console.log(item.kind);
+        }
+    }
+} else if (ev.dataTransfer.files) {
+    for (const file of ev.dataTransfer.files) {
+        console.log(file.name);
+        console.log(file.path);
+        urlOrPath = file.path;
+        break;
+    }
+}
+
+if (urlOrPath) {
+    const payload = {
+        urlOrPath
+    };
+    ipcRenderer.send("${R2_EVENT_OPEN_URL_OR_PATH + dialogid}", payload);
+}
+
+};
+
+window.document.addEventListener("dragover", drag, false);
+window.document.addEventListener("drop", drag, false);
+
+const dropEl = document.getElementById('drop');
+
+dropEl.addEventListener("dragover", drag, false);
+dropEl.addEventListener("drop", drop, false);
+});
+
+</script>
+<style>
+body {
+font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+line-height: 1.5em;
+color: #333;
+background-color: #fff;
+}
+
+#container {
+/* align-items: center;
+justify-content: center; */
+display: block;
+overflow: hidden;
+}
+
+#form {
+width: 100%;
+}
+
+#label {
+max-width: 100%;
+max-height: 100%;
+margin-bottom: .8em;
+padding: 0 .5em;
+/* white-space: nowrap; */
+/* overflow: hidden; */
+/* text-overflow: ellipsis; */
+}
+
+#data {
+border-radius: 2px;
+background: #fff;
+width: 260px;
+padding: .4em .5em;
+border: 1px solid black;
+min-height: 2em;
+margin: 0 0 1.2em;
+}
+
+#data-container {
+text-align: center;
+}
+
+#buttons {
+text-align: right;
+padding: 0 .5em 0 0;
+}
+
+#filechoose,
+#buttons > button {
+border-radius: 2px;
+border: 0;
+margin: 0 0 0 .5em;
+font-size: .8em;
+line-height: 1em;
+padding: .6em 1em;
+cursor: pointer;
+}
+
+#filechoose {
+    margin-right: 8px;
+}
+#filechoose, input {
+    display: inline-block;
+}
+
+/*
+#ok {
+background-color: #3879D9;
+color: white;
+}
+
+#cancel {
+background-color: #DDD;
+color: black;
+}
+*/
+
+*:focus {
+outline-style: solid !important;
+outline-width: 2px !important;
+outline-color: blue !important;
+outline-offset: 2px !important;
+}
+
+#drop {
+display: block;
+margin-top: 1em;
+width: 99%;
+height: 100px;
+color: black;
+background-color: #eeffee;
+border: 1px dashed #333333;
+border-radius: 8px;
+vertical-align: middle;
+text-align: center;
+
+display: flex;
+justify-content: center;
+flex-direction: column;
+}
+</style>
+</head>
+<body>
+<div id="container">
+<div id="form">
+<div id="label">Enter URL or filepath:</div>
+<div id="data-container">
+<button id="filechoose">Choose...</button>
+<input id="data" value="${initval}"/>
+</div>
+<div id="buttons">
+<button id="cancel">Cancel</button>
+<button id="ok">OK</button>
+</div>
+</div>
+<div id="drop">
+file drag-and-drop
+</div>
+</div>
+</body>
+</html>
+    `;
+    // tslint:disable-next-line:max-line-length
+    // https://github.com/electron/electron/blob/v4.0.0/docs/api/breaking-changes.md#new-browserwindow-webpreferences-
+    const electronBrowserWindow = new BrowserWindow({
+        alwaysOnTop: true,
+        height: 260,
+        modal: false,
+        resizable: true,
+        skipTaskbar: false,
+        title: "Readium2 Electron/NodeJS test app",
+        useContentSize: false,
+        webPreferences: {
+            allowRunningInsecureContent: false,
+            contextIsolation: false,
+            devTools: true,
+            nodeIntegration: true,
+            nodeIntegrationInWorker: false,
+            sandbox: false,
+            webSecurity: true,
+            webviewTag: false,
+            // preload: __dirname + "/" + "preload.js",
+        },
+        width: 400,
+    });
+    electronBrowserWindow.setMenu(null);
+
+    async function dialogResult(_event: any, payload: IEventPayload_R2_EVENT_OPEN_URL_OR_PATH) {
+
+        if (payload.urlOrPath) {
+            process.nextTick(async () => {
+                await loadFileOrUrl(payload.urlOrPath);
+            });
+        } else if ((payload as any).fileChooser) {
+            process.nextTick(async () => {
+                const choice = dialog.showOpenDialog({
+                    defaultPath: _lastBookPath || DEFAULT_BOOK_PATH,
+                    filters: [
+                        { name: "EPUB publication", extensions: ["epub", "epub3"] },
+                        { name: "LCP license", extensions: ["lcpl"] },
+                        { name: "Comic book", extensions: ["cbz"] },
+                        // {name: "Zip archive", extensions: ["zip"]},
+                        // {name: "Any file", extensions: ["*"]},
+                    ],
+                    message: "Choose a file",
+                    properties: ["openFile"],
+                    title: "Open from filesystem",
+                });
+                if (!choice || !choice.length) {
+                    process.nextTick(async () => {
+                        loadFileOrUrlDialog("");
+                    });
+                    return;
+                }
+                const filePath = choice[0];
+                debug(filePath);
+
+                // await openFileDownload(filePath);
+                process.nextTick(async () => {
+                    loadFileOrUrlDialog(filePath);
+                });
+            });
+        }
+
+        setTimeout(() => {
+            electronBrowserWindow.close();
+        }, 200);
+    }
+    ipcMain.on(R2_EVENT_OPEN_URL_OR_PATH + dialogid, dialogResult);
+
+    electronBrowserWindow.on("closed", () => {
+        ipcMain.removeListener(R2_EVENT_OPEN_URL_OR_PATH + dialogid, dialogResult);
+    });
+
+    electronBrowserWindow.webContents.loadURL("data:text/html," + html);
+}
+
+ipcMain.on(R2_EVENT_OPEN_URL_OR_PATH, async (_event: any, payload: IEventPayload_R2_EVENT_OPEN_URL_OR_PATH) => {
+    await loadFileOrUrl(payload.urlOrPath);
+});
+
+async function loadFileOrUrl(argPath: string): Promise<boolean> {
+
+    let filePathToLoadOnLaunch: string | undefined;
+    let filePath = argPath;
+    debug(filePath);
+    if (isHTTP(filePath)) {
+        await openFile(filePath);
+        return true;
+    } else {
+        if (!fs.existsSync(filePath)) {
+            filePath = path.join(__dirname, argPath);
+            debug(filePath);
+            if (!fs.existsSync(filePath)) {
+                filePath = path.join(process.cwd(), argPath);
+                debug(filePath);
+                if (!fs.existsSync(filePath)) {
+                    debug("FILEPATH DOES NOT EXIST: " + filePath);
+                } else {
+                    filePathToLoadOnLaunch = filePath;
+                }
+            } else {
+                filePathToLoadOnLaunch = filePath;
+            }
+        } else {
+            filePath = fs.realpathSync(filePath);
+            debug(filePath);
+            filePathToLoadOnLaunch = filePath;
+        }
+    }
+
+    if (filePathToLoadOnLaunch) {
+        if (isEPUBlication(filePathToLoadOnLaunch) || await isManifestJSON(filePathToLoadOnLaunch)) {
+            await openFile(filePathToLoadOnLaunch);
+            return true;
+        } else if (!fs.lstatSync(filePathToLoadOnLaunch).isDirectory()) {
+            await openFileDownload(filePathToLoadOnLaunch);
+            return true;
+        }
+    }
+    return false;
+}
+
 app.on("ready", () => {
     debug("app ready");
 
@@ -913,88 +1277,14 @@ app.on("ready", () => {
             const args = process.argv.slice(2);
             debug("args:");
             debug(args);
-            let filePathToLoadOnLaunch: string | undefined;
             if (args && args.length && args[0]) {
                 const argPath = args[0].trim();
-                let filePath = argPath;
-                debug(filePath);
-                if (isHTTP(filePath)) {
-                    await openFile(filePath);
-                    return;
-                } else {
-                    if (!fs.existsSync(filePath)) {
-                        filePath = path.join(__dirname, argPath);
-                        debug(filePath);
-                        if (!fs.existsSync(filePath)) {
-                            filePath = path.join(process.cwd(), argPath);
-                            debug(filePath);
-                            if (!fs.existsSync(filePath)) {
-                                debug("FILEPATH DOES NOT EXIST: " + filePath);
-                            } else {
-                                filePathToLoadOnLaunch = filePath;
-                            }
-                        } else {
-                            filePathToLoadOnLaunch = filePath;
-                        }
-                    } else {
-                        filePath = fs.realpathSync(filePath);
-                        debug(filePath);
-                        filePathToLoadOnLaunch = filePath;
-                    }
-                }
-            }
-
-            if (filePathToLoadOnLaunch) {
-                if (isEPUBlication(filePathToLoadOnLaunch) || await isManifestJSON(filePathToLoadOnLaunch)) {
-                    await openFile(filePathToLoadOnLaunch);
-                    return;
-                } else if (!fs.lstatSync(filePathToLoadOnLaunch).isDirectory()) {
-                    await openFileDownload(filePathToLoadOnLaunch);
+                if (await loadFileOrUrl(argPath)) {
                     return;
                 }
             }
 
-            const detail = "Note that this is only a developer application (" +
-                "test framework) for the Readium2 NodeJS 'streamer' and Electron-based 'navigator'.";
-            const message = "Use the 'Electron' menu to load publications.";
-
-            if (process.platform === "darwin") {
-                const choice = dialog.showMessageBox({
-                    buttons: ["&OK"],
-                    cancelId: 0,
-                    defaultId: 0,
-                    detail,
-                    message,
-                    noLink: true,
-                    normalizeAccessKeys: true,
-                    title: "Readium2 Electron streamer / navigator",
-                    type: "info",
-                });
-                if (choice === 0) {
-                    debug("ok");
-                }
-            } else {
-                const html = `<html><h2>${message}<hr>${detail}</h2></html>`;
-                // tslint:disable-next-line:max-line-length
-                // https://github.com/electron/electron/blob/v4.0.0/docs/api/breaking-changes.md#new-browserwindow-webpreferences-
-                const electronBrowserWindow = new BrowserWindow({
-                    height: 300,
-                    webPreferences: {
-                        allowRunningInsecureContent: false,
-                        contextIsolation: false,
-                        devTools: false,
-                        nodeIntegration: false,
-                        nodeIntegrationInWorker: false,
-                        sandbox: false,
-                        webSecurity: true,
-                        webviewTag: false,
-                        // preload: __dirname + "/" + "preload.js",
-                    },
-                    width: 400,
-                });
-
-                electronBrowserWindow.webContents.loadURL("data:text/html," + html);
-            }
+            loadFileOrUrlDialog("");
         });
     })();
 });
@@ -1005,6 +1295,8 @@ function resetMenu() {
         {
             label: "Readium2 Electron",
             submenu: [
+                { label: "About...", selector: "orderFrontStandardAboutPanel:" },
+                { type: "separator" },
                 {
                     accelerator: "Command+Q",
                     click: () => { app.quit(); },
@@ -1013,7 +1305,7 @@ function resetMenu() {
             ],
         },
         {
-            label: "Open",
+            label: "File",
             submenu: [
             ],
         },
@@ -1030,44 +1322,88 @@ function resetMenu() {
             ],
         },
         {
-            label: "Tools",
+            role: "window",
             submenu: [
                 {
-                    accelerator: "Command+B",
-                    click: () => {
+                    role: "togglefullscreen",
+                },
+                {
+                    role: "minimize",
+                },
+                {
+                    role: "close",
+                },
+            ],
+        },
+        {
+            label: "Tools",
+            submenu: [
+                // {
+                //     accelerator: "CmdOrCtrl+W",
+                //     click: (_item: any, focusedWindow: any) => {
+                //         if (focusedWindow) {
+                //             focusedWindow.close();
+                //         }
+                //     },
+                //     label: "Close",
+                // },
+                {
+                    accelerator: "CmdOrCtrl+R",
+                    click: (_item: any, focusedWindow: any) => {
+                        if (focusedWindow) {
+                            focusedWindow.reload();
+                        }
+                    },
+                    label: "Reload",
+                },
+                {
+                    accelerator: process.platform === "darwin" ? "Alt+Command+I" : "Ctrl+Shift+I",
+                    click: (_item: any, _focusedWindow: any) => {
                         // openTopLevelDevTools();
                         openAllDevTools();
+                        // setTimeout(() => {
+                        //     // console.log(focusedWindow);
+                        //     if (focusedWindow) {
+                        //         focusedWindow.webContents.toggleDevTools();
+                        //     }
+                        // }, 1000);
                     },
-                    label: "Open Dev Tools",
+                    label: "Dev Tools",
+                },
+            ],
+        },
+        {
+            role: "help",
+            submenu: [
+                {
+                    click: (_item: any, _focusedWindow: any) => {
+                        shell.openExternal("https://github.com/readium/r2-testapp-js/");
+                    },
+                    label: "Website...",
                 },
             ],
         },
     ];
 
+    // (menuTemplate[1].submenu as any[]).push({
+    //     click: async () => {
+    //         ...
+    //     },
+    //     label: "Choose from filesystem...",
+    // } as any);
+
     (menuTemplate[1].submenu as any[]).push({
+        accelerator: "CmdOrCtrl+O",
         click: async () => {
-            const choice = dialog.showOpenDialog({
-                defaultPath: _lastBookPath || DEFAULT_BOOK_PATH,
-                filters: [
-                    { name: "EPUB publication", extensions: ["epub", "epub3"] },
-                    { name: "LCP license", extensions: ["lcpl"] },
-                    { name: "Comic book", extensions: ["cbz"] },
-                    // {name: "Zip archive", extensions: ["zip"]},
-                    // {name: "Any file", extensions: ["*"]},
-                ],
-                message: "Choose a file",
-                properties: ["openFile"],
-                title: "Load a publication",
-            });
-            if (!choice || !choice.length) {
-                return;
-            }
-            const filePath = choice[0];
-            debug(filePath);
-            await openFileDownload(filePath);
+            loadFileOrUrlDialog("");
         },
-        label: "Load file...",
+        label: "Open...",
     } as any);
+
+    (menuTemplate[1].submenu as any[]).push(
+        {
+            type: "separator",
+        } as any);
 
     _publicationsUrls.forEach((pubManifestUrl, n) => {
         const filePath = _publicationsFilePaths[n];
@@ -1192,9 +1528,10 @@ app.on("before-quit", () => {
 
 app.on("window-all-closed", () => {
     debug("app window-all-closed");
-    if (process.platform !== "darwin") {
-        app.quit();
-    }
+    loadFileOrUrlDialog("");
+    // if (process.platform !== "darwin") {
+    //     app.quit();
+    // }
 });
 
 app.on("quit", () => {

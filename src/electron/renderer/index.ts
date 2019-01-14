@@ -69,6 +69,7 @@ import {
 } from "../common/events";
 import { IStore } from "../common/store";
 import { StoreElectron } from "../common/store-electron";
+import { setupDragDrop } from "./drag-drop";
 import {
     IRiotOptsLinkList,
     IRiotOptsLinkListItem,
@@ -819,6 +820,8 @@ const initFontSelector = () => {
 // });
 
 window.addEventListener("DOMContentLoaded", () => {
+
+    setupDragDrop();
 
     (window as any).mdc.menu.MDCMenuFoundation.numbers.TRANSITION_DURATION_MS = 200;
 
