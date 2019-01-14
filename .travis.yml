@@ -49,7 +49,7 @@ script:
   - 'npm --version'
   - 'node --version'
   - 'env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_"'
-  - 'if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run --rm --env-file <(env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_") -v ${PWD}:/project -v ~/.cache/electron:/root/.cache/electron -v ~/.cache/electron-builder:/root/.cache/electron-builder electronuserland/builder:wine /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux-unpacked && ls -als electron-pack/win-unpacked"; else npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac; fi'
+#  - 'if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run --rm --env-file <(env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_") -v ${PWD}:/project -v ~/.cache/electron:/root/.cache/electron -v ~/.cache/electron-builder:/root/.cache/electron-builder electronuserland/builder:wine /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux-unpacked && ls -als electron-pack/win-unpacked"; else npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac; fi'
 #  - 'if [[ "$TRAVIS_BRANCH" == "release" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then npm run this; fi'
 after_success:
   - 'pwd && ls -als'
@@ -68,13 +68,16 @@ before_deploy:
   - git tag -l --format='%(refname)   %(taggerdate)'
   - echo $TRAVIS_BRANCH
   - export GIT_COMMITTER_DATE="$(git show $TRAVIS_BRANCH --format=%aD | head -1)" && echo $GIT_COMMITTER_DATE
-  - export LATEST_GIT_TAG_VERSION=$(git describe --abbrev=0 --tags) && export LATEST_GIT_TAG_VERSION=${LATEST_GIT_TAG_VERSION:1} && echo $LATEST_GIT_TAG_VERSION
-  - export NEXT_GIT_TAG_VERSION=$((LAST_GIT_TAG_VERSION+1)) && echo $NEXT_GIT_TAG_VERSION
-  - export TRAVIS_TAG="${NEXT_GIT_TAG_VERSION}-preview" && echo $TRAVIS_TAG
+  - export GIT_TAG_CURRENT=$(git describe --abbrev=0 --tags) && echo $GIT_TAG_CURRENT
+  - export GIT_TAG_CURRENT_NUM=${GIT_TAG_CURRENT:1} && echo $GIT_TAG_CURRENT_NUM
+  - export GIT_TAG_CURRENT_NUM_LAST_DIGIT=${GIT_TAG_CURRENT_NUM:4} && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT
+  - export GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC=$((LATEST_GIT_TAG_VERSION_DIGIT+1)) && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC
+  - export GIT_TAG_CURRENT_NUM_PREFIX=${GIT_TAG_CURRENT_NUM%.*} && echo $GIT_TAG_CURRENT_NUM_PREFIX
+  - export TRAVIS_TAG="v${GIT_TAG_CURRENT_NUM_PREFIX}.${GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC}-preview" && echo $TRAVIS_TAG
 #  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
   - (git tag -a "${TRAVIS_TAG}" $TRAVIS_BRANCH -m "tag ${TRAVIS_TAG}" && echo "tag ok") || echo "tag fail (already exist?)"
-  - git push -q --tags "https://${GH_TOKEN}@github.com/readium/r2-testapp-js.git" origin $TRAVIS_BRANCH
   - git tag -l --format='%(refname)   %(taggerdate)'
+#  - git push -q --tags "https://${GH_TOKEN}@github.com/readium/r2-testapp-js.git" origin $TRAVIS_BRANCH
 deploy:
   provider: releases
   overwrite: true
