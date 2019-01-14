@@ -54,6 +54,14 @@
       never
   '
 
+  'electron-pack:travis-docker-linux-win': '
+    build -lw
+  '
+
+  'electron-pack:travis-mac': '
+    build -m
+  '
+
   'preelectron-pack:win': '
     npm run electron-pack:prepare &&
     rimraf "./electron-pack/win/"
