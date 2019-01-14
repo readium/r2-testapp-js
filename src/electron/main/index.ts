@@ -722,7 +722,14 @@ function __computeReadiumCssJsonMessage(_publication: Publication, _link: Link |
     }
 }
 
+let _electronBrowserWindowFileOrUrlDialog: BrowserWindow | undefined;
 function loadFileOrUrlDialog(initval: string) {
+
+    if (_electronBrowserWindowFileOrUrlDialog) {
+        _electronBrowserWindowFileOrUrlDialog.show();
+        debug("_electronBrowserWindowFileOrUrlDialog.show()");
+        return;
+    }
 
     const dialogid = uuid.v4().replace(/-/g, "_");
     const html = `
@@ -731,6 +738,12 @@ function loadFileOrUrlDialog(initval: string) {
 <script type="text/javascript">
 
 const { ipcRenderer } = require('electron');
+
+ipcRenderer.on("filePath", (ev, filePath) => {
+
+    const dataEl = document.getElementById('data');
+    dataEl.value = filePath;
+});
 
 const cancel = () => {
 const payload = {
@@ -962,11 +975,11 @@ file drag-and-drop
     `;
     // tslint:disable-next-line:max-line-length
     // https://github.com/electron/electron/blob/v4.0.0/docs/api/breaking-changes.md#new-browserwindow-webpreferences-
-    const electronBrowserWindow = new BrowserWindow({
+    _electronBrowserWindowFileOrUrlDialog = new BrowserWindow({
         alwaysOnTop: true,
         height: 260,
         modal: false,
-        resizable: true,
+        resizable: false,
         skipTaskbar: false,
         title: "Readium2 Electron/NodeJS test app",
         useContentSize: false,
@@ -983,7 +996,7 @@ file drag-and-drop
         },
         width: 400,
     });
-    electronBrowserWindow.setMenu(null);
+    _electronBrowserWindowFileOrUrlDialog.setMenu(null);
 
     async function dialogResult(_event: any, payload: IEventPayload_R2_EVENT_OPEN_URL_OR_PATH) {
 
@@ -991,6 +1004,12 @@ file drag-and-drop
             process.nextTick(async () => {
                 await loadFileOrUrl(payload.urlOrPath);
             });
+
+            setTimeout(() => {
+                if (_electronBrowserWindowFileOrUrlDialog) {
+                    _electronBrowserWindowFileOrUrlDialog.close();
+                }
+            }, 200);
         } else if ((payload as any).fileChooser) {
             process.nextTick(async () => {
                 const choice = dialog.showOpenDialog({
@@ -1007,32 +1026,40 @@ file drag-and-drop
                     title: "Open from filesystem",
                 });
                 if (!choice || !choice.length) {
-                    process.nextTick(async () => {
-                        loadFileOrUrlDialog("");
-                    });
                     return;
                 }
                 const filePath = choice[0];
                 debug(filePath);
 
                 // await openFileDownload(filePath);
-                process.nextTick(async () => {
-                    loadFileOrUrlDialog(filePath);
-                });
+                // process.nextTick(async () => {
+                //     loadFileOrUrlDialog(filePath);
+                // });
+                if (_electronBrowserWindowFileOrUrlDialog) {
+                    _electronBrowserWindowFileOrUrlDialog.webContents.send("filePath", filePath);
+                }
             });
+        } else {
+            if (_electronBrowserWindowFileOrUrlDialog) {
+                _electronBrowserWindowFileOrUrlDialog.close();
+            }
         }
-
-        setTimeout(() => {
-            electronBrowserWindow.close();
-        }, 200);
     }
+
     ipcMain.on(R2_EVENT_OPEN_URL_OR_PATH + dialogid, dialogResult);
 
-    electronBrowserWindow.on("closed", () => {
+    _electronBrowserWindowFileOrUrlDialog.on("closed", (_ev: any) => {
+
+        // if (BrowserWindow.getAllWindows().length === 1) { // webContents.getAllWebContents()
+        //     ev.preventDefault();
+        //     return;
+        // }
+
         ipcMain.removeListener(R2_EVENT_OPEN_URL_OR_PATH + dialogid, dialogResult);
+        _electronBrowserWindowFileOrUrlDialog = undefined;
     });
 
-    electronBrowserWindow.webContents.loadURL("data:text/html," + html);
+    _electronBrowserWindowFileOrUrlDialog.webContents.loadURL("data:text/html," + html);
 }
 
 ipcMain.on(R2_EVENT_OPEN_URL_OR_PATH, async (_event: any, payload: IEventPayload_R2_EVENT_OPEN_URL_OR_PATH) => {
@@ -1528,7 +1555,10 @@ app.on("before-quit", () => {
 
 app.on("window-all-closed", () => {
     debug("app window-all-closed");
-    loadFileOrUrlDialog("");
+
+    setTimeout(() => {
+        loadFileOrUrlDialog("");
+    }, 500);
     // if (process.platform !== "darwin") {
     //     app.quit();
     // }

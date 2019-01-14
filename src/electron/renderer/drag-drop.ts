@@ -60,7 +60,7 @@ export function setupDragDrop() {
 
         if (urlOrPath) {
             const payload: IEventPayload_R2_EVENT_OPEN_URL_OR_PATH = {
-                urlOrPath
+                urlOrPath,
             };
             ipcRenderer.send(R2_EVENT_OPEN_URL_OR_PATH, payload);
         }
