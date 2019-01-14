@@ -76,10 +76,9 @@ deploy:
     - "electron-pack/**/*.AppImage"
     - "electron-pack/**/*.deb"
     - "electron-pack/**/*.msi"
-    - "electron-pack/**/*.nsi"
     - "electron-pack/**/*.exe"
     - "electron-pack/**/*.dmg"
   skip_cleanup: true
   on:
-    tags: false
     branch: develop
+#    tags: false
