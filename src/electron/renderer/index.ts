@@ -311,6 +311,15 @@ function ensureSliderLayout() {
 
         const lineHeightSelector = document.getElementById("lineHeightSelector") as HTMLElement;
         (lineHeightSelector as any).mdcSlider.layout();
+
+        // document.querySelectorAll(".mdc-switch, .mdc-slider").forEach((elem) => {
+        //     if ((elem as any).mdcSlider) {
+        //         (elem as any).mdcSlider.layout();
+        //     }
+        //     if ((elem as any).mdcSwitch) {
+        //         (elem as any).mdcSwitch.layout();
+        //     }
+        // });
     }, 100);
 }
 
@@ -1179,9 +1188,20 @@ window.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll("#tabsPanels .mdc-switch__native-control").forEach((elem) => {
         elem.addEventListener("focusin", (ev) => {
+
+            // .mdc-switch__thumb-underlay div
+            // tslint:disable-next-line:max-line-length
+            (((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).style.setProperty("--mdc-ripple-fg-scale", "1.7");
+            // tslint:disable-next-line:max-line-length
+            (((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).style.setProperty("--mdc-ripple-fg-size", "28px");
+            // tslint:disable-next-line:max-line-length
+            (((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).style.setProperty("--mdc-ripple-left", "10px");
+            // tslint:disable-next-line:max-line-length
+            (((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).style.setProperty("--mdc-ripple-top", "10px");
+
             // .switchWrap div
             // tslint:disable-next-line:max-line-length
-            (((((ev.target as HTMLElement).parentElement as HTMLElement).parentNode as HTMLElement).parentNode as HTMLElement).parentNode as HTMLElement).classList.add("keyboardfocus");
+            (((((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).classList.add("keyboardfocus");
         });
         elem.addEventListener("focusout", (ev) => {
             // .switchWrap div
