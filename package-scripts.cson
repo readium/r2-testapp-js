@@ -14,7 +14,7 @@
   'postinstallxx': '
     npm rebuild
       --runtime=electron
-      --target=1.8.7
+      --target=1.8.8
       --disturl=https://atom.io/download/atom-shell
       --build-from-source
   '
@@ -207,6 +207,7 @@
 
   'clean': '
     rimraf ./dist &&
+    rimraf ./electron-pack &&
     mkdirp ./dist
   '
 
