@@ -1282,6 +1282,7 @@ function startNavigatorExperiment() {
             if (title) {
                 const h1 = document.getElementById("pubTitle") as HTMLElement;
                 h1.textContent = title;
+                h1.setAttribute("title", title);
                 h1.addEventListener("click", (_event: any) => {
                     if ((window as any).READIUM2 && (window as any).READIUM2.debug) {
                         (window as any).READIUM2.debug((window as any).READIUM2.DEBUG_VISUALS ? false : true);
