@@ -55,11 +55,11 @@
   '
 
   'electron-pack:travis-docker-linux-win': '
-    build -lw --x64
+    build -lw --x64 --publish never
   '
 
   'electron-pack:travis-mac': '
-    build -m --x64
+    build -m --x64 --publish never
   '
 
   'preelectron-pack:win': '
