@@ -16,7 +16,7 @@ matrix:
     - os: osx
       osx_image: xcode9.4
       language: node_js
-      node_js: "8"
+      node_js: "8.11.3"
       env:
         - ELECTRON_CACHE=$HOME/.cache/electron
         - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
@@ -49,7 +49,7 @@ script:
   - 'npm --version'
   - 'node --version'
   - 'env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_"'
-#  - 'if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run --rm --env-file <(env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_") -v ${PWD}:/project -v ~/.cache/electron:/root/.cache/electron -v ~/.cache/electron-builder:/root/.cache/electron-builder electronuserland/builder:wine /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux-unpacked && ls -als electron-pack/win-unpacked"; else npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac; fi'
+  - 'if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run --rm --env-file <(env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_") -v ${PWD}:/project -v ~/.cache/electron:/root/.cache/electron -v ~/.cache/electron-builder:/root/.cache/electron-builder electronuserland/builder:wine /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux-unpacked && ls -als electron-pack/win-unpacked"; else npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac; fi'
 #  - 'if [[ "$TRAVIS_BRANCH" == "release" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then npm run this; fi'
 after_success:
   - 'pwd && ls -als'
@@ -69,7 +69,7 @@ before_deploy:
   - echo $TRAVIS_BRANCH
   - export GIT_COMMITTER_DATE="$(git show $TRAVIS_BRANCH --format=%aD | head -1)" && echo $GIT_COMMITTER_DATE
   - export GIT_TAG_CURRENT=$(git describe --abbrev=0 --tags) && echo $GIT_TAG_CURRENT
-  - if  [[ $GIT_TAG_CURRENT == *-preview ]] ; then export TRAVIS_TAG=$GIT_TAG_CURRENT && echo $TRAVIS_TAG ; else export GIT_TAG_CURRENT_NUM=${GIT_TAG_CURRENT:1} && echo $GIT_TAG_CURRENT_NUM && export GIT_TAG_CURRENT_NUM_LAST_DIGIT=${GIT_TAG_CURRENT_NUM:4} && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT && export GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC=$((GIT_TAG_CURRENT_NUM_LAST_DIGIT+1)) && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC && export GIT_TAG_CURRENT_NUM_PREFIX=${GIT_TAG_CURRENT_NUM%.*} && echo $GIT_TAG_CURRENT_NUM_PREFIX && export TRAVIS_TAG="v${GIT_TAG_CURRENT_NUM_PREFIX}.${GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC}-preview" && echo $TRAVIS_TAG ; fi
+  - if [[ $GIT_TAG_CURRENT == *-preview ]] ; then ((curl -X DELETE --header "Authorization: token ${GH_TOKEN}" "https://api.github.com/repos/readium/r2-testapp-js/releases/${GIT_TAG_CURRENT}" && echo "delete release ok") || echo "delete release fail?") && git tag -d $GIT_TAG_CURRENT && git push -q "https://${GH_TOKEN}@github.com/readium/r2-testapp-js.git" origin :refs/tags/$GIT_TAG_CURRENT && export TRAVIS_TAG=$GIT_TAG_CURRENT && echo $TRAVIS_TAG ; else export GIT_TAG_CURRENT_NUM=${GIT_TAG_CURRENT:1} && echo $GIT_TAG_CURRENT_NUM && export GIT_TAG_CURRENT_NUM_LAST_DIGIT=${GIT_TAG_CURRENT_NUM:4} && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT && export GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC=$((GIT_TAG_CURRENT_NUM_LAST_DIGIT+1)) && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC && export GIT_TAG_CURRENT_NUM_PREFIX=${GIT_TAG_CURRENT_NUM%.*} && echo $GIT_TAG_CURRENT_NUM_PREFIX && export TRAVIS_TAG="v${GIT_TAG_CURRENT_NUM_PREFIX}.${GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC}-preview" && echo $TRAVIS_TAG ; fi
 #  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
   - (git tag -a "${TRAVIS_TAG}" $TRAVIS_BRANCH -m "tag ${TRAVIS_TAG}" && echo "tag ok") || echo "tag fail (already exist?)"
   - git tag -l --format='%(refname)   %(taggerdate)'
