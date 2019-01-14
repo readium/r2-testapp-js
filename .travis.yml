@@ -43,10 +43,10 @@ script:
   - 'pwd && ls -als'
   - 'npm --version'
   - 'node --version'
-  - |
-    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+  - 'grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_"'
+  - 'if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       docker run --rm \
-        --env-file <(env | grep -iE 'DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_') \
+        --env-file <(env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_") \
         -v ${PWD}:/project \
         -v ~/.cache/electron:/root/.cache/electron \
         -v ~/.cache/electron-builder:/root/.cache/electron-builder \
@@ -54,7 +54,8 @@ script:
         /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux-unpacked && ls -als electron-pack/win-unpacked"
     else
       npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac
-    fi
+    fi'
+#  - 'if [[ "$TRAVIS_BRANCH" == "release" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then npm run this; fi'
 after_success:
   - 'pwd && ls -als'
   - 'npm --version'
@@ -66,6 +67,7 @@ after_failure:
   - 'pwd && ls -als'
   - 'npm --version'
   - 'node --version'
+# https://docs.travis-ci.com/user/deployment/
 deploy:
   provider: releases
   api_key: $GH_TOKEN
@@ -80,6 +82,4 @@ deploy:
   skip_cleanup: true
   on:
     tags: false
-    branches:
-      only:
-        - develop
+    branch: develop
