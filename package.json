@@ -30,8 +30,9 @@
     "url": "git+https://github.com/readium/r2-testapp-js.git"
   },
   "author": {
-    "name": "Readium Foundation",
-    "organization": "Readium Foundation",
+    "name": "Readium Foundation / EDRLab",
+    "organization": "Readium Foundation / EDRLab",
+    "email": "daniel.weck@gmail.com",
     "url": "http://github.com/readium/"
   },
   "license": "BSD-3-Clause",
