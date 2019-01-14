@@ -1176,6 +1176,19 @@ window.addEventListener("DOMContentLoaded", () => {
     //     buttonDevTools.addEventListener("click", () => {
     //         ipcRenderer.send(R2_EVENT_DEVTOOLS, "test");
     //     });
+
+    document.querySelectorAll("#tabsPanels .mdc-switch__native-control").forEach((elem) => {
+        elem.addEventListener("focusin", (ev) => {
+            // .switchWrap div
+            // tslint:disable-next-line:max-line-length
+            (((((ev.target as HTMLElement).parentElement as HTMLElement).parentNode as HTMLElement).parentNode as HTMLElement).parentNode as HTMLElement).classList.add("keyboardfocus");
+        });
+        elem.addEventListener("focusout", (ev) => {
+            // .switchWrap div
+            // tslint:disable-next-line:max-line-length
+            (((((ev.target as HTMLElement).parentElement as HTMLElement).parentNode as HTMLElement).parentNode as HTMLElement).parentNode as HTMLElement).classList.remove("keyboardfocus");
+        });
+    });
 });
 
 ipcRenderer.on(R2_EVENT_LCP_LSD_RENEW_RES, (_event: any, payload: IEventPayload_R2_EVENT_LCP_LSD_RENEW_RES) => {

@@ -1,3 +1,4 @@
-.mdc-theme--dark *:focus {
+.mdc-theme--dark *:focus,
+.mdc-theme--dark .keyboardfocus {
   outline-color: var(--mdc-theme-secondary, blue) !important;
 }

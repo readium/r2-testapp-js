@@ -1,10 +1,11 @@
 #nav-select.mdc-select {
   width: 100% !important;
 }
-/*
 #nav-select-menu.mdc-select__menu {
-  width: 100% !important;
+  margin-left: 10px;
+  width: 236px; /* 256px for aside drawer - 10x2 margin*/
 }
+/*
 #nav-select .mdc-select__surface {
   padding-bottom: 0px;
 }
@@ -18,6 +19,7 @@
   padding-top: 2px;
   padding-bottom: 2px;
 }
+*/
 #nav-select-menu > ul > li.mdc-list-item {
   padding-left: 46px;
 }
@@ -48,29 +50,28 @@
   background: transparent;
   opacity: 1;
 }
-*/
 
 /* home */
-/* #selectTOC::after {
+#selectTOC::after {
     content: "\E88A";
-} */
+}
 /* place */
-/* #selectLandmarks::after {
+#selectLandmarks::after {
     content: "\E55F";
-} */
+}
 /* format_list_bulleted */
-/* #selectPageList::after {
+#selectPageList::after {
     content: "\E241";
-} */
+}
 /* linear_scale */
-/* #selectSpine::after {
+#selectSpine::after {
     content: "\E260";
-} */
+}
 /* format_color_text */
-/* #selectStyles::after {
+#selectStyles::after {
     content: "\E8F4";
-} */
+}
 /* settings */
-/* #selectAdvanced::after {
+#selectAdvanced::after {
     content: "\E8B8";
-} */
+}

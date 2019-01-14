@@ -1,4 +1,5 @@
-*:focus {
+*:focus,
+.keyboardfocus {
   outline-style: solid !important;
   outline-width: 2px !important;
   outline-color: var(--mdc-theme-primary, blue) !important;

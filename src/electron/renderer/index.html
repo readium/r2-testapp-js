@@ -46,11 +46,13 @@
   <aside id="drawer" class="mdc-drawer mdc-drawer--modal">
     <div id="drawerNav" class="mdc-drawer__content">
 
-      <div id="nav-select" class="mdc-select r2-mdc-select-width">
+      <div id="nav-select" class="mdc-select mdc-select--outlinedxx mdc-select--with-leading-iconxx">
+        <!-- <i class="material-icons mdc-select__icon" tabindex="-1">event</i> -->
+
         <input type="hidden" name="enhanced-select">
         <i class="mdc-select__dropdown-icon"></i>
         <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox">Table of contents</div>
-        <div id="nav-select-menu" class="mdc-select__menu mdc-menu mdc-menu-surface r2-mdc-select-width" role="listbox">
+        <div id="nav-select-menu" class="mdc-select__menu mdc-menu mdc-menu-surface" role="listbox">
           <ul class="mdc-list">
             <li aria-selected id="selectTOC" role="option" tabindex="0" class="mdc-list-item mdc-list-item--selected"
               data-value="Table of contents">Table of contents</li>
@@ -125,7 +127,7 @@
         <div class="tabPanel" id="reader_controls_SPINE" data-is="riot-linklist"> </div>
         <div class="tabPanel" id="reader_controls_STYLES">
 
-          <div style="padding:0;padding-bottom:1em">
+          <div class="switchWrap">
             <div class="mdc-switch" id="readiumcss_switch">
               <div class="mdc-switch__track"></div>
               <div class="mdc-switch__thumb-underlay">
@@ -137,12 +139,12 @@
             <label for="readiumcss_switch-input" class="mdc-switch-label">Enable styling</label>
           </div>
 
-          <!-- <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation"> -->
 
           <div id="stylingWrapper" stylexx="margin-left: 1em; padding-left: 1em; margin-bottom: 1em;">
 
+            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
 
-            <div style="padding:0;padding-top:0.6em;">
+            <div class="switchWrap">
               <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
                 aria-hidden="true">import_contacts</i> <!-- view_carousel -->
 
@@ -157,7 +159,7 @@
               <label for="paginate_switch-input" class="mdc-switch-label">Pagination</label>
             </div>
 
-            <div style="padding:0;padding-top:1em;">
+            <div class="switchWrap">
               <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
                 aria-hidden="true">brightness_4</i> <!-- invert_colors -->
 
@@ -172,7 +174,7 @@
               <label for="night_switch-input" class="mdc-switch-label">Night mode</label>
             </div>
 
-            <div style="padding:0;padding-top:1em;">
+            <div class="switchWrap">
               <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
                 aria-hidden="true">format_align_justify</i> <!-- view_headline -->
 
@@ -187,7 +189,7 @@
               <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
             </div>
 
-            <div style="padding:0;padding-top:1em;padding-bottom:1em">
+            <div class="switchWrap">
               <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
                 aria-hidden="true">comment</i>
 
@@ -224,7 +226,7 @@
               </div>
             </div>
 
-            <span class="mdc-typography--text" style="display: block;">Line Height (%):</span>
+            <span class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Line Height (%):</span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
             <div id="lineHeightSelector" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
@@ -244,6 +246,8 @@
               </div>
             </div>
 
+            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
+
             <button id="buttonClearSettingsStyle" class="mdc-button mdc-button--raised mdc-ripple-surfacexx"
               data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">Restore defaults</span></button>
 
@@ -252,7 +256,7 @@
         </div>
         <div class="tabPanel" id="reader_controls_ADVANCED">
 
-          <div style="padding:0;padding-bottom:1em">
+          <div class="switchWrap">
 
             <div class="mdc-switch" id="nav_basic_switch">
               <div class="mdc-switch__track"></div>
@@ -265,6 +269,8 @@
             <label for="nav_basic_switch-input" class="mdc-switch-label">Show navigation links</label>
           </div>
 
+          <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
+
           <button id="buttonClearSettings" class="mdc-button mdc-button--raised mdc-ripple-surfacexx"
             data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">Reset all settings</span></button>
 
@@ -275,10 +281,12 @@
         </div>
         <div class="tabPanel" id="reader_controls_TOOLS">
 
+            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
+
           <button id="buttonOpenSettings" class="mdc-button mdc-button--raised mdc-ripple-surfacexx"
             data-mdc-auto-initxx="MDCRipple"><span class="mdc-button__label">OPEN SETTINGS</span></button>
 
-          <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation" style="margin:0;margin-top:1em;margin-bottom:1em;">
+            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
 
           <button id="buttonLSDRenew" class="mdc-button mdc-button--raised mdc-ripple-surfacexx" data-mdc-auto-initxx="MDCRipple"><span
               class="mdc-button__label">LSD RENEW</span></button>
@@ -298,7 +306,8 @@
       aria-label="Menu">menu</i></button>
 
   <div id="ttsControls">
-    <button id="ttsTOGGLE" class="mdc-icon-button" aria-label="Enable/disable Read aloud Text To Speech" aria-hidden="true" aria-pressed="false">
+    <button id="ttsTOGGLE" class="mdc-icon-button" aria-label="Enable/disable Read aloud Text To Speech" aria-hidden="true"
+      aria-pressed="false">
       <i class="mdc-button__label material-icons md-36 mdc-icon-button__icon mdc-icon-button__icon--on">voice_over_off</i>
       <i class="mdc-button__label material-icons md-36 mdc-icon-button__icon">record_voice_over</i>
     </button>

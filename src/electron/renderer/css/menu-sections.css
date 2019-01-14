@@ -1,3 +1,7 @@
+.switchWrap {
+  padding-top: 0.6em;
+  padding-bottom: 0.6em;
+}
 #tabsPanels {
   width: 100%;
   overflow: hidden;
