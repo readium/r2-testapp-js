@@ -107,7 +107,7 @@
     "dist/**/*"
   ],
   "build": {
-    "productName": "Readium2 Electron/NodeJS desktop testapp",
+    "productName": "Readium2_desktop_testapp",
     "appId": "org.readium.r2-testapp-js",
     "dmg": {
       "contents": [
