@@ -1,6 +1,5 @@
 sudo: required
 dist: trusty
-esudo: false
 branches:
   only:
     - develop
@@ -27,7 +26,7 @@ before_cache:
   - 'pwd && ls -als'
   - 'npm --version'
   - 'node --version'
-  - rm -rf $HOME/.cache/electron-builder/wine
+  - 'rm -rf $HOME/.cache/electron-builder/wine'
 before_install:
   - 'pwd && ls -als'
   - 'npm --version'
@@ -52,7 +51,7 @@ script:
         -v ~/.cache/electron:/root/.cache/electron \
         -v ~/.cache/electron-builder:/root/.cache/electron-builder \
         electronuserland/builder:wine \
-        /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux && ls -als electron-pack/win"
+        /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux-unpacked && ls -als electron-pack/win-unpacked"
     else
       npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac
     fi
@@ -69,7 +68,7 @@ after_failure:
   - 'node --version'
 deploy:
   provider: releases
-  api_key: $GITHUB_TOKEN
+  api_key: $GH_TOKEN
   file_glob: true
   file:
     - "electron-pack/**/*.AppImage"

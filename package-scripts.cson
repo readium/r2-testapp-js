@@ -44,8 +44,8 @@
   'preelectron-pack': '
     npm run electron-pack:prepare &&
     rimraf "./electron-pack/mac/" &&
-    rimraf "./electron-pack/win/" &&
-    rimraf "./electron-pack/linux/"
+    rimraf "./electron-pack/win-unpacked/" &&
+    rimraf "./electron-pack/linux-unpacked/"
   '
 
   'electron-pack': '
@@ -55,16 +55,16 @@
   '
 
   'electron-pack:travis-docker-linux-win': '
-    build -lw
+    build -lw --x64
   '
 
   'electron-pack:travis-mac': '
-    build -m
+    build -m --x64
   '
 
   'preelectron-pack:win': '
     npm run electron-pack:prepare &&
-    rimraf "./electron-pack/win/"
+    rimraf "./electron-pack/win-unpacked/"
   '
 
   'electron-pack:win': '
@@ -75,7 +75,7 @@
 
   'preelectron-pack:linux': '
     npm run electron-pack:prepare &&
-    rimraf "./electron-pack/linux/"
+    rimraf "./electron-pack/linux-unpacked/"
   '
 
   'electron-pack:linux': '
