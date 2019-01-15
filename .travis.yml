@@ -1,8 +1,7 @@
 sudo: required
-dist: trusty
-# https://docs.travis-ci.com/user/deployment/
+# https://docs.travis-ci.com/user/reference/xenial/
+dist: xenial
 # https://docs.travis-ci.com/user/customizing-the-build/
-# https://www.electron.build/multi-platform-build
 branches:
   only:
     - develop
@@ -22,47 +21,52 @@ matrix:
         - ELECTRON_CACHE=$HOME/.cache/electron
         - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
     - os: linux
-      services: docker
+      language: node_js
+      node_js: "10"
+      env:
+        - ELECTRON_CACHE=$HOME/.cache/electron
+        - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
+# https://www.electron.build/multi-platform-build
+# services: docker
 cache:
   directories:
     - node_modules
     - $HOME/.cache/electron
     - $HOME/.cache/electron-builder
 before_cache:
-  - 'pwd && ls -als'
-  - 'npm --version'
-  - 'node --version'
   - 'rm -rf $HOME/.cache/electron-builder/wine'
-before_install:
-  - 'pwd && ls -als'
-  - 'npm --version'
-  - 'node --version'
-install:
-  - 'pwd && ls -als'
-  - 'npm --version'
-  - 'node --version'
-before_script:
-  - 'pwd && ls -als'
-  - 'npm --version'
-  - 'node --version'
 script:
-  - 'pwd && ls -als'
   - 'npm --version'
   - 'node --version'
+  - 'pwd'
+  - 'ls -als'
   - 'env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_"'
-  - 'if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run --rm --env-file <(env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_") -v ${PWD}:/project -v ~/.cache/electron:/root/.cache/electron -v ~/.cache/electron-builder:/root/.cache/electron-builder electronuserland/builder:wine /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux-unpacked && ls -als electron-pack/win-unpacked"; else npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac; fi'
+#  - 'if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run --rm --env-file <(env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_") -v ${PWD}:/project -v ~/.cache/electron:/root/.cache/electron -v ~/.cache/electron-builder:/root/.cache/electron-builder electronuserland/builder:wine /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux-unpacked && ls -als electron-pack/win-unpacked"; else npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac; fi'
 #  - 'if [[ "$TRAVIS_BRANCH" == "release" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then npm run this; fi'
+  - npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac && npm run electron-pack:travis-linux && ls -als electron-pack && ls -als electron-pack/linux-unpacked;
 after_success:
-  - 'pwd && ls -als'
   - 'npm --version'
   - 'node --version'
-  - 'ls dist'
+  - 'pwd'
+  - 'ls -als'
+  - 'ls -als dist'
   - 'ls -als dist/electron'
   - 'ls -als electron-pack'
+  - 'ls -als electron-pack/mac'
+  - 'ls -als electron-pack/linux-unpacked'
+  - 'ls -als electron-pack/win-unpacked'
 after_failure:
-  - 'pwd && ls -als'
   - 'npm --version'
   - 'node --version'
+  - 'pwd'
+  - 'ls -als'
+  - 'ls -als dist'
+  - 'ls -als dist/electron'
+  - 'ls -als electron-pack'
+  - 'ls -als electron-pack/mac'
+  - 'ls -als electron-pack/linux-unpacked'
+  - 'ls -als electron-pack/win-unpacked'
+# https://docs.travis-ci.com/user/deployment/
 before_deploy:
   - git config --local user.name "danielweck"
   - git config --local user.email "daniel.weck@gmail.com"
@@ -70,10 +74,6 @@ before_deploy:
   - echo $TRAVIS_BRANCH
   - export GIT_COMMITTER_DATE="$(git show $TRAVIS_BRANCH --format=%aD | head -1)" && echo $GIT_COMMITTER_DATE
   - export GIT_TAG_CURRENT=$(git describe --abbrev=0 --tags) && echo $GIT_TAG_CURRENT
-# ((curl -X DELETE --header "Authorization: token ${GH_TOKEN}" "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/releases/${GIT_TAG_CURRENT}" && echo "delete release ok") || echo "delete release fail?") &&
-#  git tag -d $GIT_TAG_CURRENT &&
-#  git tag -l --format="%(refname)   %(taggerdate)" &&
-#  git push -q "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin :refs/tags/$GIT_TAG_CURRENT > /dev/null 2>&1
   - 'if [[ $GIT_TAG_CURRENT == *-preview ]] ; then
     export TRAVIS_TAG=$GIT_TAG_CURRENT && echo $TRAVIS_TAG ;
     else
@@ -84,8 +84,12 @@ before_deploy:
     export TRAVIS_TAG="v${GIT_TAG_CURRENT_NUM_PREFIX}.${GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC}-preview" && echo $TRAVIS_TAG &&
     (git tag -a "${TRAVIS_TAG}" $TRAVIS_BRANCH -m "tag ${TRAVIS_TAG}" && echo "tag ok") || echo "tag fail (already exist?)" ;
     fi'
-#  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
   - git tag -l --format="%(refname)   %(taggerdate)"
+# ((curl -X DELETE --header "Authorization: token ${GH_TOKEN}" "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/releases/${GIT_TAG_CURRENT}" && echo "delete release ok") || echo "delete release fail?") &&
+#  git tag -d $GIT_TAG_CURRENT &&
+#  git tag -l --format="%(refname)   %(taggerdate)" &&
+#  git push -q "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin :refs/tags/$GIT_TAG_CURRENT > /dev/null 2>&1
+#  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
 #  - git push -q --tags "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin $TRAVIS_BRANCH > /dev/null 2>&1
 deploy:
   provider: releases
@@ -98,6 +102,7 @@ deploy:
     - "electron-pack/**/*.msi"
     - "electron-pack/**/*.exe"
     - "electron-pack/**/*.dmg"
+    - "!electron-pack/**/elevate*"
   skip_cleanup: true
   name: "Continuous build (pre-release)"
   prerelease: true
