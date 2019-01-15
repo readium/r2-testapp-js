@@ -185,7 +185,7 @@ const travisURL = process.env.TRAVIS_JOB_WEB_URL || process.env.TRAVIS_BUILD_WEB
 
 const tag_name = process.env.TRAVIS_TAG;
 const target_commitish = process.env.TRAVIS_COMMIT;
-const name = `${tag_name} continuous test build (prerelease)`;
+const name = `[${tag_name}] continuous test build (prerelease)`;
 const body = `TravisCI build job: ${travisURL}`;
 const draft = false;
 const prerelease = true;
