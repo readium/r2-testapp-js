@@ -116,3 +116,6 @@ deploy:
   on:
     branch: develop
 #    tags: true
+# TODO:
+# https://docs.travis-ci.com/user/build-stages#deploying-to-github-releases
+# (build stages, shared storage for build artifacts, single deploy (no need to overwrite, no need to deal with concurrent tag access))
