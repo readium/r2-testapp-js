@@ -45,11 +45,14 @@ matrix:
 #   env:
 #     - ELECTRON_CACHE=$HOME/.cache/electron
 #     - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
+install:
+- npm ci
 # cache: false
 cache:
-  npm: true
+#  npm: true
   directories:
-    - node_modules
+    - "$HOME/.npm"
+#    - node_modules
     - $HOME/.cache/electron
     - $HOME/.cache/electron-builder
 before_cache:
@@ -63,7 +66,7 @@ script:
 #  - 'ls -als node_modules'
   - 'env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_"'
   - 'if [[ "$TRAVIS_OS_NAME_" == "linux" ]] || [[ "$TRAVIS_OS_NAME_" == "osx" ]]; then
-    npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron
+    npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron ;
     fi'
   - 'if [[ "$TRAVIS_OS_NAME_" == "linux" ]]; then
     npm run electron-pack:travis-linux && ls -als electron-pack && ls -als electron-pack/linux-unpacked ;
