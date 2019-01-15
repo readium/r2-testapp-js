@@ -11,6 +11,7 @@ branches:
     - '/-preview$/'
     - '/^(?i:deploy)-.*$/'
     - '/^v\\d+\\.\\d+\\.\\d+/'
+    - /^(?i:continuous)$/
 matrix:
   include:
     - os: osx
@@ -98,6 +99,8 @@ deploy:
     - "electron-pack/**/*.exe"
     - "electron-pack/**/*.dmg"
   skip_cleanup: true
+  name: "Continuous build (pre-release)"
+  prerelease: true
   on:
     branch: develop
 #    tags: true
