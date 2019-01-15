@@ -50,7 +50,7 @@ script:
     else
     npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac ;
     fi'
-  
+
 after_success:
   - 'npm --version'
   - 'node --version'
