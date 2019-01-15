@@ -74,15 +74,15 @@ before_deploy:
 #  git tag -l --format="%(refname)   %(taggerdate)" &&
 #  git push -q "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin :refs/tags/$GIT_TAG_CURRENT &&
   - 'if [[ $GIT_TAG_CURRENT == *-preview ]] ; then
-   export TRAVIS_TAG=$GIT_TAG_CURRENT && echo $TRAVIS_TAG ;
-   else
-   export GIT_TAG_CURRENT_NUM=${GIT_TAG_CURRENT:1} && echo $GIT_TAG_CURRENT_NUM &&
-   export GIT_TAG_CURRENT_NUM_LAST_DIGIT=${GIT_TAG_CURRENT_NUM:4} && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT &&
-   export GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC=$((GIT_TAG_CURRENT_NUM_LAST_DIGIT+1)) && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC &&
-   export GIT_TAG_CURRENT_NUM_PREFIX=${GIT_TAG_CURRENT_NUM%.*} && echo $GIT_TAG_CURRENT_NUM_PREFIX &&
-   export TRAVIS_TAG="v${GIT_TAG_CURRENT_NUM_PREFIX}.${GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC}-preview" && echo $TRAVIS_TAG &&
-   (git tag -a "${TRAVIS_TAG}" $TRAVIS_BRANCH -m "tag ${TRAVIS_TAG}" && echo "tag ok") || echo "tag fail (already exist?)" ;
-   fi'
+    export TRAVIS_TAG=$GIT_TAG_CURRENT && echo $TRAVIS_TAG ;
+    else
+    export GIT_TAG_CURRENT_NUM=${GIT_TAG_CURRENT:1} && echo $GIT_TAG_CURRENT_NUM &&
+    export GIT_TAG_CURRENT_NUM_LAST_DIGIT=${GIT_TAG_CURRENT_NUM:4} && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT &&
+    export GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC=$((GIT_TAG_CURRENT_NUM_LAST_DIGIT+1)) && echo $GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC &&
+    export GIT_TAG_CURRENT_NUM_PREFIX=${GIT_TAG_CURRENT_NUM%.*} && echo $GIT_TAG_CURRENT_NUM_PREFIX &&
+    export TRAVIS_TAG="v${GIT_TAG_CURRENT_NUM_PREFIX}.${GIT_TAG_CURRENT_NUM_LAST_DIGIT_INC}-preview" && echo $TRAVIS_TAG &&
+    (git tag -a "${TRAVIS_TAG}" $TRAVIS_BRANCH -m "tag ${TRAVIS_TAG}" && echo "tag ok") || echo "tag fail (already exist?)" ;
+    fi'
 #  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
   - git tag -l --format="%(refname)   %(taggerdate)"
 #  - git push -q --tags "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin $TRAVIS_BRANCH
