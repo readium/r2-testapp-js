@@ -142,7 +142,7 @@ deploy:
     - "electron-pack/**/*.dmg"
     - "!electron-pack/**/elevate*"
   skip_cleanup: true
- # name: "[$TRAVIS_TAG] continuous test build (pre-release)"
+# name: "[$TRAVIS_TAG] continuous test build (pre-release)"
   prerelease: true
   on:
     branch: develop
