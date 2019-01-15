@@ -12,6 +12,9 @@ branches:
     - '/^.*-?(?i:deploy)-?.*$/'
     - '/^v\\d+\\.\\d+\\.\\d+.*$/'
     - /^.*-?(?i:continuous)-?.*$/
+env:
+  global:
+    - TRAVIS_OS_NAME_=$TRAVIS_OS_NAME
 matrix:
   include:
     - os: osx
@@ -27,14 +30,20 @@ matrix:
       env:
         - ELECTRON_CACHE=$HOME/.cache/electron
         - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
-    - os: windows
+    - os: linux
+      services: docker
       language: node_js
       node_js: "10"
       env:
-        - ELECTRON_CACHE=$HOME/.cache/electron
-        - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
+        - TRAVIS_OS_NAME_=windows
 # https://www.electron.build/multi-platform-build
-# services: docker
+# - os: windows
+#   language: node_js
+#   node_js: "10"
+#   env:
+#     - ELECTRON_CACHE=$HOME/.cache/electron
+#     - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
+
 cache:
   directories:
     - node_modules
@@ -49,16 +58,15 @@ script:
   - 'ls -als'
   - 'ls -als node_modules'
   - 'env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_"'
-#  - 'if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run --rm --env-file <(env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_") -v ${PWD}:/project -v ~/.cache/electron:/root/.cache/electron -v ~/.cache/electron-builder:/root/.cache/electron-builder electronuserland/builder:wine /bin/bash -c "npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-docker-linux-win && ls -als electron-pack && ls -als electron-pack/linux-unpacked && ls -als electron-pack/win-unpacked"; else npm install && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac; fi'
-#  - 'if [[ "$TRAVIS_BRANCH" == "release" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then npm run this; fi'
   - npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron
-  - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  - 'if [[ "$TRAVIS_OS_NAME_" == "linux" ]]; then
     npm run electron-pack:travis-linux && ls -als electron-pack && ls -als electron-pack/linux-unpacked ;
-    elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    elif [[ "$TRAVIS_OS_NAME_" == "osx" ]]; then
     npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac ;
-    else
-    npm run electron-pack:travis-win && ls -als electron-pack && ls -als electron-pack/win-unpacked ;
+    elif [[ "$TRAVIS_OS_NAME_" == "windows" ]]; then
+    docker run --rm --env-file <(env | grep -iE "DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_") -v ${PWD}:/project -v ~/.cache/electron:/root/.cache/electron -v ~/.cache/electron-builder:/root/.cache/electron-builder electronuserland/builder:wine /bin/bash -c "npm ci && npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron && npm run electron-pack:travis-win && ls -als electron-pack && ls -als electron-pack/win-unpacked"; 
     fi'
+# npm run electron-pack:travis-win && ls -als electron-pack && ls -als electron-pack/win-unpacked ;
 
 after_success:
   - 'pwd'
@@ -80,7 +88,7 @@ after_failure:
   - 'ls -als electron-pack/win-unpacked'
 # https://docs.travis-ci.com/user/deployment/
 before_deploy:
-  - export TRAVIS_TAG="latest-$TRAVIS_OS_NAME"
+  - export TRAVIS_TAG="latest-$TRAVIS_OS_NAME_"
   - node tools/release-github.js
 # - git config --local user.name "danielweck"
 # - git config --local user.email "daniel.weck@gmail.com"
