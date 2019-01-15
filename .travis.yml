@@ -73,7 +73,7 @@ before_deploy:
 # ((curl -X DELETE --header "Authorization: token ${GH_TOKEN}" "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/releases/${GIT_TAG_CURRENT}" && echo "delete release ok") || echo "delete release fail?") &&
 #  git tag -d $GIT_TAG_CURRENT &&
 #  git tag -l --format="%(refname)   %(taggerdate)" &&
-#  git push -q "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin :refs/tags/$GIT_TAG_CURRENT &&
+#  git push -q "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin :refs/tags/$GIT_TAG_CURRENT > /dev/null 2>&1
   - 'if [[ $GIT_TAG_CURRENT == *-preview ]] ; then
     export TRAVIS_TAG=$GIT_TAG_CURRENT && echo $TRAVIS_TAG ;
     else
@@ -86,7 +86,7 @@ before_deploy:
     fi'
 #  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
   - git tag -l --format="%(refname)   %(taggerdate)"
-#  - git push -q --tags "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin $TRAVIS_BRANCH
+#  - git push -q --tags "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin $TRAVIS_BRANCH > /dev/null 2>&1
 deploy:
   provider: releases
   overwrite: true
