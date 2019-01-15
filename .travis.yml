@@ -54,8 +54,10 @@ script:
   - npm run build && ls -als dist && npm run electron-pack:prepare && ls -als dist/electron
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
     npm run electron-pack:travis-linux && ls -als electron-pack && ls -als electron-pack/linux-unpacked ;
-    else
+    elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     npm run electron-pack:travis-mac && ls -als electron-pack && ls -als electron-pack/mac ;
+    else
+    npm run electron-pack:travis-win && ls -als electron-pack && ls -als electron-pack/win-unpacked ;
     fi'
 
 after_success:

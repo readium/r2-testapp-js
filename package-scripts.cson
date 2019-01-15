@@ -66,6 +66,10 @@
     build -m --x64 --publish never
   '
 
+  'electron-pack:travis-win': '
+    build -w --x64 --publish never
+  '
+
   'preelectron-pack:win': '
     npm run electron-pack:prepare &&
     rimraf "./electron-pack/win-unpacked/"

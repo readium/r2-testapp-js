@@ -153,6 +153,7 @@
     "electron-pack:travis-docker-linux-win": "build -lw --x64 --publish never",
     "electron-pack:travis-linux": "build -l --x64 --publish never",
     "electron-pack:travis-mac": "build -m --x64 --publish never",
+    "electron-pack:travis-win": "build -w --x64 --publish never",
     "preelectron-pack:win": "npm run electron-pack:prepare && rimraf \"./electron-pack/win-unpacked/\"",
     "electron-pack:win": "build --win --x64",
     "preelectron-pack:linux": "npm run electron-pack:prepare && rimraf \"./electron-pack/linux-unpacked/\"",
