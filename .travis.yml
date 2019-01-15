@@ -37,6 +37,8 @@ matrix:
       env:
         - TRAVIS_OS_NAME_=windows
 # https://www.electron.build/multi-platform-build
+# Switch to TravisCI "native" Windows support when it is ready (the main blocking issue right now is secret ENV vars, which we need to deploy to GitHub)
+# https://travis-ci.community/c/environments/windows
 # - os: windows
 #   language: node_js
 #   node_js: "10"
