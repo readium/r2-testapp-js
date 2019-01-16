@@ -5,6 +5,11 @@
   outline-color: var(--mdc-theme-primary, blue) !important;
   outline-offset: -2px !important;
 }
+.switchWrap.keyboardfocus,
+.mdc-button--raised:focus,
+.mdc-slider:focus {
+  outline-offset: 2px !important;
+}
 *.no-focus-outline:focus {
   outline-style: none !important;
 }

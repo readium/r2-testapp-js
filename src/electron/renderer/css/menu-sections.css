@@ -11,6 +11,7 @@
   margin-top: 1px;
 }
 .tabPanel {
+  width: 100%;
   display: none;
 
   overflow-x: hidden;
