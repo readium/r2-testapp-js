@@ -158,7 +158,7 @@
 
             <div class="switchWrap">
               <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
-                aria-hidden="true">brightness_4</i> <!-- invert_colors -->
+                aria-hidden="true">highlight</i>
 
               <div class="mdc-switch" id="night_switch">
                 <div class="mdc-switch__track"></div>
@@ -169,6 +169,38 @@
                 </div>
               </div>
               <label for="night_switch-input" class="mdc-switch-label">Night mode</label>
+            </div>
+
+            <div id="night_div" style="padding-left: 2em;">
+              <div class="switchWrap">
+                <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                  aria-hidden="true">brightness_4</i>
+
+                <div class="mdc-switch" id="darken_switch">
+                  <div class="mdc-switch__track"></div>
+                  <div class="mdc-switch__thumb-underlay">
+                    <div class="mdc-switch__thumb">
+                      <input type="checkbox" id="darken_switch-input" class="mdc-switch__native-control" role="switch">
+                    </div>
+                  </div>
+                </div>
+                <label for="darken_switch-input" class="mdc-switch-label">Darken</label>
+              </div>
+
+              <div class="switchWrap">
+                <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                  aria-hidden="true">invert_colors</i>
+
+                <div class="mdc-switch" id="invert_switch">
+                  <div class="mdc-switch__track"></div>
+                  <div class="mdc-switch__thumb-underlay">
+                    <div class="mdc-switch__thumb">
+                      <input type="checkbox" id="invert_switch-input" class="mdc-switch__native-control" role="switch">
+                    </div>
+                  </div>
+                </div>
+                <label for="invert_switch-input" class="mdc-switch-label">Invert</label>
+              </div>
             </div>
 
             <div class="switchWrap">

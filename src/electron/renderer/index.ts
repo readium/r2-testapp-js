@@ -146,9 +146,9 @@ const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
     const on = electronStore.get("readiumCSSEnable");
     if (on) {
         let cssJson = electronStore.get("readiumCSS");
-        console.log("---- readiumCSS -----");
-        console.log(cssJson);
-        console.log("-----");
+        // console.log("---- readiumCSS -----");
+        // console.log(cssJson);
+        // console.log("-----");
         if (!cssJson) {
             cssJson = readiumCSSDefaults;
         }
@@ -250,12 +250,53 @@ electronStore.onChanged("readiumCSS.night", (newValue: any, oldValue: any) => {
     const nightSwitch = (nightSwitchEl as any).mdcSwitch;
     nightSwitch.checked = newValue;
 
-    // TODO DARK THEME
+    // TODO DARK THEME UI
     // if (newValue) {
     //     document.body.classList.add("mdc-theme--dark");
     // } else {
     //     document.body.classList.remove("mdc-theme--dark");
     // }
+
+    const darkenSwitchEl = document.getElementById("darken_switch") as HTMLElement;
+    const darkenSwitch = (darkenSwitchEl as any).mdcSwitch;
+    darkenSwitch.disabled = !newValue;
+    if (!newValue) {
+        electronStore.set("readiumCSS.darken", false);
+    }
+
+    const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
+    const invertSwitch = (invertSwitchEl as any).mdcSwitch;
+    invertSwitch.disabled = !newValue;
+    if (!newValue) {
+        electronStore.set("readiumCSS.invert", false);
+    }
+
+    const nightDiv = document.getElementById("night_div") as HTMLElement;
+    nightDiv.style.display = newValue ? "block" : "none";
+
+    refreshReadiumCSS();
+});
+
+electronStore.onChanged("readiumCSS.darken", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    const darkenSwitchEl = document.getElementById("darken_switch") as HTMLElement;
+    const darkenSwitch = (darkenSwitchEl as any).mdcSwitch;
+    darkenSwitch.checked = newValue;
+
+    refreshReadiumCSS();
+});
+
+electronStore.onChanged("readiumCSS.invert", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
+    const invertSwitch = (invertSwitchEl as any).mdcSwitch;
+    invertSwitch.checked = newValue;
 
     refreshReadiumCSS();
 });
@@ -362,6 +403,20 @@ electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
     nightSwitch.disabled = !newValue;
     if (!newValue) {
         electronStore.set("readiumCSS.night", false);
+    }
+
+    const darkenSwitchEl = document.getElementById("darken_switch") as HTMLElement;
+    const darkenSwitch = (darkenSwitchEl as any).mdcSwitch;
+    darkenSwitch.disabled = !newValue;
+    if (!newValue) {
+        electronStore.set("readiumCSS.darken", false);
+    }
+
+    const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
+    const invertSwitch = (invertSwitchEl as any).mdcSwitch;
+    invertSwitch.disabled = !newValue;
+    if (!newValue) {
+        electronStore.set("readiumCSS.invert", false);
     }
 });
 
@@ -930,12 +985,36 @@ window.addEventListener("DOMContentLoaded", () => {
     const nightSwitch = new (window as any).mdc.switchControl.MDCSwitch(nightSwitchEl);
     (nightSwitchEl as any).mdcSwitch = nightSwitch;
     nightSwitch.checked = electronStore.get("readiumCSS.night");
+
+    const nightDiv = document.getElementById("night_div") as HTMLElement;
+    nightDiv.style.display = nightSwitch.checked ? "block" : "none";
+
     nightSwitchEl.addEventListener("change", (_event: any) => {
         // nightSwitch.handleChange("change", (_event: any) => {
         const checked = nightSwitch.checked;
         electronStore.set("readiumCSS.night", checked);
     });
     nightSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
+    const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
+    const invertSwitch = new (window as any).mdc.switchControl.MDCSwitch(invertSwitchEl);
+    (invertSwitchEl as any).mdcSwitch = invertSwitch;
+    invertSwitch.checked = electronStore.get("readiumCSS.invert");
+    invertSwitchEl.addEventListener("change", (_event: any) => {
+        const checked = invertSwitch.checked;
+        electronStore.set("readiumCSS.invert", checked);
+    });
+    invertSwitch.disabled = !nightSwitch.checked || !electronStore.get("readiumCSSEnable");
+
+    const darkenSwitchEl = document.getElementById("darken_switch") as HTMLElement;
+    const darkenSwitch = new (window as any).mdc.switchControl.MDCSwitch(darkenSwitchEl);
+    (darkenSwitchEl as any).mdcSwitch = darkenSwitch;
+    darkenSwitch.checked = electronStore.get("readiumCSS.darken");
+    darkenSwitchEl.addEventListener("change", (_event: any) => {
+        const checked = darkenSwitch.checked;
+        electronStore.set("readiumCSS.darken", checked);
+    });
+    darkenSwitch.disabled = !nightSwitch.checked || !electronStore.get("readiumCSSEnable");
 
     // const justifySwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
     const justifySwitchEl = document.getElementById("justify_switch") as HTMLElement;
