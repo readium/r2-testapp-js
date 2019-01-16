@@ -887,6 +887,56 @@ const initFontSelector = () => {
         electronStore.set("readiumCSS.font", id);
     });
 
+    function updateLabelFont(newValue: string) {
+        if (tag.root) {
+            const label = tag.root.querySelector(".mdc-select__selected-text");
+            if (label) {
+                let fontFamily: string | undefined = newValue;
+                if (fontFamily === "DEFAULT") {
+                    fontFamily = undefined;
+                } else if (fontFamily === "DUO") {
+                    // fontFamily = "IA Writer Duospace";
+                } else if (fontFamily === "DYS") {
+                    // fontFamily = "AccessibleDfa";
+                } else if (fontFamily === "OLD") {
+                    // fontFamily = options[1].style; // "oldStyleTf";
+                } else if (fontFamily === "MODERN") {
+                    // fontFamily = options[2].style; // "modernTf";
+                } else if (fontFamily === "SANS") {
+                    // fontFamily = "sansTf";
+                } else if (fontFamily === "HUMAN") {
+                    // fontFamily = "humanistTf";
+                } else if (fontFamily === "MONO") {
+                    // fontFamily = "monospaceTf";
+                } else if (fontFamily === "JA") {
+                    // fontFamily = "serif-ja";
+                } else if (fontFamily === "JA-SANS") {
+                    // fontFamily = "sans-serif-ja";
+                } else if (fontFamily === "JA-V") {
+                    // fontFamily = "serif-ja-v";
+                } else if (fontFamily === "JA_V_SANS") {
+                    // fontFamily = "sans-serif-ja-v";
+                } else {
+                    (label as HTMLElement).style.fontFamily = fontFamily;
+                    return;
+                }
+                if (!fontFamily) {
+                    label.removeAttribute("style");
+                } else {
+                    const idToFind = ID_PREFIX + newValue;
+                    const optionFound = options.find((item) => {
+                        return item.id === idToFind;
+                    });
+                    if (!optionFound || !optionFound.style) {
+                        label.removeAttribute("style");
+                        return;
+                    }
+                    label.setAttribute("style", optionFound.style);
+                }
+            }
+        }
+    }
+
     electronStore.onChanged("readiumCSS.font", (newValue: any, oldValue: any) => {
         if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
             return;
@@ -894,6 +944,8 @@ const initFontSelector = () => {
         // console.log("onDidChange");
         // console.log(newValue);
         tag.setSelectedItem(ID_PREFIX + newValue);
+
+        updateLabelFont(newValue);
 
         refreshReadiumCSS();
     });
@@ -924,6 +976,9 @@ const initFontSelector = () => {
             };
             arr.push(divider);
             _sysFonts.forEach((sysFont) => {
+                if (sysFont.startsWith(".")) {
+                    return;
+                }
                 const option: IRiotOptsMenuSelectItem = {
                     id: ID_PREFIX + sysFont, // .replace(/ /g, "_"),
                     label: sysFont,
@@ -941,6 +996,8 @@ const initFontSelector = () => {
             (tag.opts as IRiotOptsMenuSelect).selected = newSelectedID;
             tag.update();
         }
+
+        updateLabelFont(electronStore.get("readiumCSS.font"));
     }, 100);
 };
 
