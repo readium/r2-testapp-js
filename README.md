@@ -6,7 +6,7 @@ Electron / NodeJS implementation (written in TypeScript) of a test app for the R
 
 ## Build status
 
-[![NPM](https://img.shields.io/npm/v/r2-testapp-js.svg)](https://www.npmjs.com/package/r2-testapp-js) [![David](https://david-dm.org/readium/r2-testapp-js/status.svg)](https://david-dm.org/readium/r2-testapp-js)
+[![NPM](https://img.shields.io/npm/v/r2-testapp-js.svg)](https://www.npmjs.com/package/r2-testapp-js) [![David](https://david-dm.org/readium/r2-testapp-js/status.svg)](https://david-dm.org/readium/r2-testapp-js) [![Travis](https://travis-ci.org/readium/r2-testapp-js.svg?branch=develop)](https://travis-ci.org/readium/r2-testapp-js)
 
 [Changelog](/CHANGELOG.md)
 
@@ -66,10 +66,9 @@ A [yarn.lock](https://github.com/readium/r2-testapp-js/blob/develop/yarn.lock) f
 
 ## Continuous Integration
 
-TODO (unit tests?)
 https://travis-ci.org/readium/r2-testapp-js
 
-Badge: `[![Travis](https://travis-ci.org/readium/r2-testapp-js.svg?branch=develop)](https://travis-ci.org/readium/r2-testapp-js)`
+TravisCI builds are triggered automatically at every Git "push" in the `develop` branch.
 
 ## Version(s), Git revision(s)
 
