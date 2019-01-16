@@ -204,10 +204,10 @@
             <div data-is="riot-menuselect" id="fontSelect"> </div>
 
             <!-- <i class="material-icons" role="presentation" style="vertical-align: top;" aria-label="font size" aria-hidden>format_size</i> -->
-            <span class="mdc-typography--text" style="display: block;">Font size (%):</span>
+            <span id="fontSizeSelectorLabel" class="mdc-typography--text" style="display: block;">Font size: <span id="fontSizeSelectorValue"></span></span>
 
             <div id="fontSizeSelector" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="75" aria-valuemax="250" aria-valuenow="100" data-step="25" aria-label="Font size (%)">
+              role="slider" aria-valuemin="75" aria-valuemax="250" aria-valuenow="100" data-step="25" aria-label="Font size" aria-labelledby="fontSizeSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>
@@ -223,11 +223,11 @@
               </div>
             </div>
 
-            <span class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Line Height (%):</span>
+            <span id="lineHeightSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Line Height: <span id="lineHeightSelectorValue"></span></span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
             <div id="lineHeightSelector" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="100" aria-valuemax="300" aria-valuenow="150" data-step="25" aria-label="Line height (%)">
+              role="slider" aria-valuemin="100" aria-valuemax="200" aria-valuenow="150" data-step="25" aria-label="Line height" aria-labelledby="lineHeightSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>

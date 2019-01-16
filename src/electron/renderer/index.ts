@@ -581,6 +581,10 @@ function installKeyboardMouseFocusHandler() {
 
 const initLineHeightSelector = () => {
 
+    const lineHeightSelectorDefault = 150;
+
+    const lineHeightSelectorValue = document.getElementById("lineHeightSelectorValue") as HTMLElement;
+
     const lineHeightSelector = document.getElementById("lineHeightSelector") as HTMLElement;
     const slider = new (window as any).mdc.slider.MDCSlider(lineHeightSelector);
     (lineHeightSelector as any).mdcSlider = slider;
@@ -594,8 +598,9 @@ const initLineHeightSelector = () => {
     if (val) {
         slider.value = parseFloat(val) * 100;
     } else {
-        slider.value = 1.5 * 100;
+        slider.value = lineHeightSelectorDefault;
     }
+    lineHeightSelectorValue.textContent = slider.value + "%";
 
     // console.log(slider.min);
     // console.log(slider.max);
@@ -615,6 +620,7 @@ const initLineHeightSelector = () => {
     slider.listen("MDCSlider:change", (event: any) => {
         electronStore.set("readiumCSS.lineHeight",
             "" + (event.detail.value / 100));
+        lineHeightSelectorValue.textContent = event.detail.value + "%";
     });
 
     electronStore.onChanged("readiumCSS.lineHeight", (newValue: any, oldValue: any) => {
@@ -622,13 +628,18 @@ const initLineHeightSelector = () => {
             return;
         }
 
-        slider.value = parseFloat(newValue) * 100;
+        slider.value = (newValue ? (parseFloat(newValue) * 100) : lineHeightSelectorDefault);
+        lineHeightSelectorValue.textContent = slider.value + "%";
 
         refreshReadiumCSS();
     });
 };
 
 const initFontSizeSelector = () => {
+
+    const fontSizeSelectorDefault = 100;
+
+    const fontSizeSelectorValue = document.getElementById("fontSizeSelectorValue") as HTMLElement;
 
     const fontSizeSelector = document.getElementById("fontSizeSelector") as HTMLElement;
     const slider = new (window as any).mdc.slider.MDCSlider(fontSizeSelector);
@@ -657,8 +668,9 @@ const initFontSizeSelector = () => {
     if (val) {
         slider.value = parseInt(val.replace("%", ""), 10);
     } else {
-        slider.value = 100;
+        slider.value = fontSizeSelectorDefault;
     }
+    fontSizeSelectorValue.textContent = slider.value + "%";
 
     // console.log(slider.min);
     // console.log(slider.max);
@@ -677,7 +689,9 @@ const initFontSizeSelector = () => {
     // });
     slider.listen("MDCSlider:change", (event: any) => {
         // console.log(event.detail.value);
-        electronStore.set("readiumCSS.fontSize", event.detail.value + "%");
+        const percent = event.detail.value + "%";
+        electronStore.set("readiumCSS.fontSize", percent);
+        fontSizeSelectorValue.textContent = percent;
     });
 
     electronStore.onChanged("readiumCSS.fontSize", (newValue: any, oldValue: any) => {
@@ -685,7 +699,8 @@ const initFontSizeSelector = () => {
             return;
         }
 
-        slider.value = parseInt(newValue.replace("%", ""), 10);
+        slider.value = (newValue ? (parseInt(newValue.replace("%", ""), 10)) : fontSizeSelectorDefault);
+        fontSizeSelectorValue.textContent = slider.value + "%";
 
         refreshReadiumCSS();
     });

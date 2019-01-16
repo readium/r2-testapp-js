@@ -984,7 +984,7 @@ file drag-and-drop
     // https://github.com/electron/electron/blob/v4.0.0/docs/api/breaking-changes.md#new-browserwindow-webpreferences-
     _electronBrowserWindowFileOrUrlDialog = new BrowserWindow({
         alwaysOnTop: true,
-        height: 280,
+        height: 300,
         modal: false,
         resizable: false,
         skipTaskbar: false,
