@@ -725,6 +725,62 @@ const initLineHeightSelector = () => {
     });
 };
 
+const initPageMarginSelector = () => {
+
+    const pageMarginsSelectorDefault = 100;
+
+    const pageMarginsSelectorValue = document.getElementById("pageMarginsSelectorValue") as HTMLElement;
+
+    const pageMarginsSelector = document.getElementById("pageMarginsSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(pageMarginsSelector);
+    (pageMarginsSelector as any).mdcSlider = slider;
+    // const step = pageMarginsSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.pageMargins");
+    if (val) {
+        slider.value = parseFloat(val) * 100;
+    } else {
+        slider.value = pageMarginsSelectorDefault;
+    }
+    pageMarginsSelectorValue.textContent = slider.value + "%";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.pageMargins",
+            "" + (event.detail.value / 100));
+        pageMarginsSelectorValue.textContent = event.detail.value + "%";
+    });
+
+    electronStore.onChanged("readiumCSS.pageMargins", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue) * 100) : pageMarginsSelectorDefault);
+        pageMarginsSelectorValue.textContent = slider.value + "%";
+
+        refreshReadiumCSS();
+    });
+};
+
 const initTypeScaleSelector = () => {
 
     const typeScaleSelectorDefault = 120;
@@ -1348,6 +1404,7 @@ window.addEventListener("DOMContentLoaded", () => {
     initFontSizeSelector();
     initLineHeightSelector();
     initTypeScaleSelector();
+    initPageMarginSelector();
     initWordSpacingSelector();
     initParaSpacingSelector();
     initParaIndentSelector();
