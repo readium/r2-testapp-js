@@ -82,6 +82,12 @@ const SECURE = true;
 const electronStoreLSD: IStore = new StoreElectron("readium2-testapp-lsd", {});
 const deviceIDManager = getDeviceIDManager(electronStoreLSD, "Readium2 Electron desktop app");
 
+ipcMain.on("R2_EVENT_LCP_LSD_OPEN_SETTINGS", (_event: any, _arg: any) => {
+    if ((electronStoreLSD as any).reveal) {
+        (electronStoreLSD as any).reveal();
+    }
+});
+
 // import * as mime from "mime-types";
 
 initGlobalConverters_OPDS();
@@ -129,17 +135,17 @@ function openAllDevTools() {
 }
 
 // https://github.com/electron/electron/blob/v3.0.0/docs/api/breaking-changes.md#webcontents
-// function openTopLevelDevTools() {
-//     const bw = BrowserWindow.getFocusedWindow();
-//     if (bw) {
-//         bw.webContents.openDevTools({ mode: "detach" });
-//     } else {
-//         const arr = BrowserWindow.getAllWindows();
-//         arr.forEach((bww) => {
-//             bww.webContents.openDevTools({ mode: "detach" });
-//         });
-//     }
-// }
+function openTopLevelDevTools() {
+    const bw = BrowserWindow.getFocusedWindow();
+    if (bw) {
+        bw.webContents.openDevTools({ mode: "detach" });
+    } else {
+        const arr = BrowserWindow.getAllWindows();
+        arr.forEach((bww) => {
+            bww.webContents.openDevTools({ mode: "detach" });
+        });
+    }
+}
 
 ipcMain.on(R2_EVENT_DEVTOOLS, (_event: any, _arg: any) => {
     openAllDevTools();
@@ -1386,7 +1392,6 @@ function resetMenu() {
                 {
                     accelerator: process.platform === "darwin" ? "Alt+Command+I" : "Ctrl+Shift+I",
                     click: (_item: any, _focusedWindow: any) => {
-                        // openTopLevelDevTools();
                         openAllDevTools();
                         // setTimeout(() => {
                         //     // console.log(focusedWindow);
@@ -1395,7 +1400,14 @@ function resetMenu() {
                         //     }
                         // }, 1000);
                     },
-                    label: "Dev Tools",
+                    label: "Dev Tools (all)",
+                },
+                {
+                    accelerator: process.platform === "darwin" ? "Shift+Alt+Command+I" : "Alt+Ctrl+Shift+I",
+                    click: (_item: any, _focusedWindow: any) => {
+                        openTopLevelDevTools();
+                    },
+                    label: "Dev Tools (top only)",
                 },
             ],
         },

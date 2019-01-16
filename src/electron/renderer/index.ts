@@ -983,6 +983,12 @@ window.addEventListener("DOMContentLoaded", () => {
         // basicSwitch.handleChange("change", (_event: any) => {
         const checked = basicSwitch.checked;
         electronStore.set("basicLinkTitles", !checked);
+
+        setTimeout(() => {
+            snackBar.labelText = `Link URLs now ${checked ? "shown" : "hidden"}.`;
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
+        }, 500);
     });
 
     const snackBarElem = document.getElementById("snackbar") as HTMLElement;
@@ -1148,9 +1154,14 @@ window.addEventListener("DOMContentLoaded", () => {
         if ((electronStore as any).reveal) {
             (electronStore as any).reveal();
         }
+    });
+
+    const buttonOpenLcpSettings = document.getElementById("buttonOpenLcpSettings") as HTMLElement;
+    buttonOpenLcpSettings.addEventListener("click", () => {
         if ((electronStoreLCP as any).reveal) {
             (electronStoreLCP as any).reveal();
         }
+        ipcRenderer.send("R2_EVENT_LCP_LSD_OPEN_SETTINGS");
     });
 
     const buttonLSDRenew = document.getElementById("buttonLSDRenew") as HTMLElement;
