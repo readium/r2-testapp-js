@@ -295,6 +295,26 @@
               </div>
             </div>
 
+            <span id="letterSpacingSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Letter spacing: <span id="letterSpacingSelectorValue"></span></span>
+
+            <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
+            <div id="letterSpacingSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
+              role="slider" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" data-step="10" aria-label="Letter spacing" aria-labelledby="letterSpacingSelectorLabel">
+              <div class="mdc-slider__track-container">
+                <div class="mdc-slider__track"></div>
+                <div class="mdc-slider__track-marker-container"></div>
+              </div>
+              <div class="mdc-slider__thumb-container">
+                <div class="mdc-slider__pin">
+                  <span class="mdc-slider__pin-value-marker"></span>
+                </div>
+                <svg class="mdc-slider__thumb" width="21" height="21">
+                  <circle cx="10.5" cy="10.5" r="7.875"></circle>
+                </svg>
+                <div class="mdc-slider__focus-ring"></div>
+              </div>
+            </div>
+
             <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
 
             <button id="buttonClearSettingsStyle" style="width: 100%;" class="mdc-button mdc-button--raised mdc-ripple-surfacexx"

@@ -693,6 +693,61 @@ const initLineHeightSelector = () => {
     });
 };
 
+const initLetterSpacingSelector = () => {
+
+    const letterSpacingSelectorDefault = 0;
+
+    const letterSpacingSelectorValue = document.getElementById("letterSpacingSelectorValue") as HTMLElement;
+
+    const letterSpacingSelector = document.getElementById("letterSpacingSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(letterSpacingSelector);
+    (letterSpacingSelector as any).mdcSlider = slider;
+    // const step = letterSpacingSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.letterSpacing");
+    if (val) {
+        slider.value = parseFloat(val.replace("rem", "")) * 100;
+    } else {
+        slider.value = letterSpacingSelectorDefault;
+    }
+    letterSpacingSelectorValue.textContent = slider.value + "%";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.letterSpacing", (event.detail.value / 100) + "rem");
+        letterSpacingSelectorValue.textContent = event.detail.value + "%";
+    });
+
+    electronStore.onChanged("readiumCSS.letterSpacing", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : letterSpacingSelectorDefault);
+        letterSpacingSelectorValue.textContent = slider.value + "%";
+
+        refreshReadiumCSS();
+    });
+};
+
 const initWordSpacingSelector = () => {
 
     const wordSpacingSelectorDefault = 0;
@@ -1095,6 +1150,7 @@ window.addEventListener("DOMContentLoaded", () => {
     initFontSizeSelector();
     initLineHeightSelector();
     initWordSpacingSelector();
+    initLetterSpacingSelector();
 
     // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
     const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
