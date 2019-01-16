@@ -238,7 +238,7 @@
             <!-- <i class="material-icons" role="presentation" style="vertical-align: top;" aria-label="font size" aria-hidden>format_size</i> -->
             <span id="fontSizeSelectorLabel" class="mdc-typography--text" style="display: block;">Font size: <span id="fontSizeSelectorValue"></span></span>
 
-            <div id="fontSizeSelector" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
+            <div id="fontSizeSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
               role="slider" aria-valuemin="75" aria-valuemax="250" aria-valuenow="100" data-step="25" aria-label="Font size" aria-labelledby="fontSizeSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
@@ -258,8 +258,28 @@
             <span id="lineHeightSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Line Height: <span id="lineHeightSelectorValue"></span></span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
-            <div id="lineHeightSelector" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
+            <div id="lineHeightSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
               role="slider" aria-valuemin="100" aria-valuemax="200" aria-valuenow="150" data-step="25" aria-label="Line height" aria-labelledby="lineHeightSelectorLabel">
+              <div class="mdc-slider__track-container">
+                <div class="mdc-slider__track"></div>
+                <div class="mdc-slider__track-marker-container"></div>
+              </div>
+              <div class="mdc-slider__thumb-container">
+                <div class="mdc-slider__pin">
+                  <span class="mdc-slider__pin-value-marker"></span>
+                </div>
+                <svg class="mdc-slider__thumb" width="21" height="21">
+                  <circle cx="10.5" cy="10.5" r="7.875"></circle>
+                </svg>
+                <div class="mdc-slider__focus-ring"></div>
+              </div>
+            </div>
+
+            <span id="wordSpacingSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Word spacing: <span id="wordSpacingSelectorValue"></span></span>
+
+            <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
+            <div id="wordSpacingSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
+              role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-step="25" aria-label="Word spacing" aria-labelledby="wordSpacingSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>

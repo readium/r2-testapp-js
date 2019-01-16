@@ -146,9 +146,9 @@ const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
     const on = electronStore.get("readiumCSSEnable");
     if (on) {
         let cssJson = electronStore.get("readiumCSS");
-        // console.log("---- readiumCSS -----");
-        // console.log(cssJson);
-        // console.log("-----");
+        console.log("---- readiumCSS -----");
+        console.log(cssJson);
+        console.log("-----");
         if (!cssJson) {
             cssJson = readiumCSSDefaults;
         }
@@ -348,20 +348,23 @@ const refreshReadiumCSS = debounce(() => {
 // https://github.com/material-components/material-components-web/issues/1017#issuecomment-340068426
 function ensureSliderLayout() {
     setTimeout(() => {
-        const fontSizeSelector = document.getElementById("fontSizeSelector") as HTMLElement;
-        (fontSizeSelector as any).mdcSlider.layout();
+        // const fontSizeSelector = document.getElementById("fontSizeSelector") as HTMLElement;
+        // (fontSizeSelector as any).mdcSlider.layout();
 
-        const lineHeightSelector = document.getElementById("lineHeightSelector") as HTMLElement;
-        (lineHeightSelector as any).mdcSlider.layout();
+        // const lineHeightSelector = document.getElementById("lineHeightSelector") as HTMLElement;
+        // (lineHeightSelector as any).mdcSlider.layout();
 
-        // document.querySelectorAll(".mdc-switch, .mdc-slider").forEach((elem) => {
-        //     if ((elem as any).mdcSlider) {
-        //         (elem as any).mdcSlider.layout();
-        //     }
-        //     if ((elem as any).mdcSwitch) {
-        //         (elem as any).mdcSwitch.layout();
-        //     }
-        // });
+        // const wordSpacingSelector = document.getElementById("wordSpacingSelector") as HTMLElement;
+        // (wordSpacingSelector as any).mdcSlider.layout();
+
+        document.querySelectorAll(".settingSlider").forEach((elem) => {
+            if ((elem as any).mdcSlider) {
+                (elem as any).mdcSlider.layout();
+            }
+            // if ((elem as any).mdcSwitch) {
+            //     (elem as any).mdcSwitch.layout();
+            // }
+        });
     }, 100);
 }
 
@@ -690,6 +693,61 @@ const initLineHeightSelector = () => {
     });
 };
 
+const initWordSpacingSelector = () => {
+
+    const wordSpacingSelectorDefault = 0;
+
+    const wordSpacingSelectorValue = document.getElementById("wordSpacingSelectorValue") as HTMLElement;
+
+    const wordSpacingSelector = document.getElementById("wordSpacingSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(wordSpacingSelector);
+    (wordSpacingSelector as any).mdcSlider = slider;
+    // const step = wordSpacingSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.wordSpacing");
+    if (val) {
+        slider.value = parseFloat(val.replace("rem", "")) * 100;
+    } else {
+        slider.value = wordSpacingSelectorDefault;
+    }
+    wordSpacingSelectorValue.textContent = slider.value + "%";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.wordSpacing", (event.detail.value / 100) + "rem");
+        wordSpacingSelectorValue.textContent = event.detail.value + "%";
+    });
+
+    electronStore.onChanged("readiumCSS.wordSpacing", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : wordSpacingSelectorDefault);
+        wordSpacingSelectorValue.textContent = slider.value + "%";
+
+        refreshReadiumCSS();
+    });
+};
+
 const initFontSizeSelector = () => {
 
     const fontSizeSelectorDefault = 100;
@@ -979,6 +1037,7 @@ window.addEventListener("DOMContentLoaded", () => {
     initFontSelector();
     initFontSizeSelector();
     initLineHeightSelector();
+    initWordSpacingSelector();
 
     // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
     const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;

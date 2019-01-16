@@ -46,10 +46,6 @@
 #tabsPanels .mdc-list-item__secondary-text {
   word-wrap: break-word;
 }
-#lineHeightSelector {
-  margin-top: -22px;
-}
-
-#fontSizeSelector {
+.settingSlider {
   margin-top: -22px;
 }
