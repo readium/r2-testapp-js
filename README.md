@@ -10,6 +10,16 @@ Electron / NodeJS implementation (written in TypeScript) of a test app for the R
 
 [Changelog](/CHANGELOG.md)
 
+## Downloadable executables
+
+Please note that this application is a test bed for Readium2 components, this is not aimed at end-users.
+This is not a full reading system, just a basic reader interface.
+Notably, this application lacks a local bookshelf, and a feed explorer for remote publications (OPDS).
+
+The pre-releases application installers/executables labelled "continuous test build" are generated automatically by TravisCI ( https://travis-ci.org/readium/r2-testapp-js ).
+
+https://github.com/readium/r2-testapp-js/releases
+
 ## Prerequisites
 
 1) https://nodejs.org NodeJS >= 8, NPM >= 5 (check with command line `node --version` and `npm --version`)
