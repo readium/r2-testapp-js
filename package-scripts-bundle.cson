@@ -303,14 +303,13 @@
 
     cpy "./ReadiumCSS/**/*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents --no-dir &&
 
-    cpy "./misc/epubs/*" ./dist/bundle-#ECMASCRIPT#/ --parents &&
-
     npm run bundle-electron-main:#ECMASCRIPT# &&
     npm run bundle-electron-renderer:#ECMASCRIPT# &&
     npm run bundle-electron-webview-preload:#ECMASCRIPT# &&
 
     rimraf "./dist/bundle-#ECMASCRIPT#/*.js.map"
   '
+# cpy "./misc/epubs/*" ./dist/bundle-#ECMASCRIPT#/ --parents &&
 
   'bundle-electron-main:#ECMASCRIPT#': '
     npm run bundle-browserify-electron-main:#ECMASCRIPT# &&
