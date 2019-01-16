@@ -348,15 +348,6 @@ const refreshReadiumCSS = debounce(() => {
 // https://github.com/material-components/material-components-web/issues/1017#issuecomment-340068426
 function ensureSliderLayout() {
     setTimeout(() => {
-        // const fontSizeSelector = document.getElementById("fontSizeSelector") as HTMLElement;
-        // (fontSizeSelector as any).mdcSlider.layout();
-
-        // const lineHeightSelector = document.getElementById("lineHeightSelector") as HTMLElement;
-        // (lineHeightSelector as any).mdcSlider.layout();
-
-        // const wordSpacingSelector = document.getElementById("wordSpacingSelector") as HTMLElement;
-        // (wordSpacingSelector as any).mdcSlider.layout();
-
         document.querySelectorAll(".settingSlider").forEach((elem) => {
             if ((elem as any).mdcSlider) {
                 (elem as any).mdcSlider.layout();
@@ -803,6 +794,116 @@ const initWordSpacingSelector = () => {
     });
 };
 
+const initParaSpacingSelector = () => {
+
+    const paraSpacingSelectorDefault = 0;
+
+    const paraSpacingSelectorValue = document.getElementById("paraSpacingSelectorValue") as HTMLElement;
+
+    const paraSpacingSelector = document.getElementById("paraSpacingSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(paraSpacingSelector);
+    (paraSpacingSelector as any).mdcSlider = slider;
+    // const step = paraSpacingSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.paraSpacing");
+    if (val) {
+        slider.value = parseFloat(val.replace("rem", "")) * 100;
+    } else {
+        slider.value = paraSpacingSelectorDefault;
+    }
+    paraSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.paraSpacing", (event.detail.value / 100) + "rem");
+        paraSpacingSelectorValue.textContent = (event.detail.value / 100).toFixed(2) + "rem";
+    });
+
+    electronStore.onChanged("readiumCSS.paraSpacing", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : paraSpacingSelectorDefault);
+        paraSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+        refreshReadiumCSS();
+    });
+};
+
+const initParaIndentSelector = () => {
+
+    const paraIndentSelectorDefault = 200;
+
+    const paraIndentSelectorValue = document.getElementById("paraIndentSelectorValue") as HTMLElement;
+
+    const paraIndentSelector = document.getElementById("paraIndentSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(paraIndentSelector);
+    (paraIndentSelector as any).mdcSlider = slider;
+    // const step = paraIndentSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.paraIndent");
+    if (val) {
+        slider.value = parseFloat(val.replace("rem", "")) * 100;
+    } else {
+        slider.value = paraIndentSelectorDefault;
+    }
+    paraIndentSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.paraIndent", (event.detail.value / 100) + "rem");
+        paraIndentSelectorValue.textContent = (event.detail.value / 100).toFixed(2) + "rem";
+    });
+
+    electronStore.onChanged("readiumCSS.paraIndent", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : paraIndentSelectorDefault);
+        paraIndentSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+        refreshReadiumCSS();
+    });
+};
+
 const initFontSizeSelector = () => {
 
     const fontSizeSelectorDefault = 100;
@@ -1150,6 +1251,8 @@ window.addEventListener("DOMContentLoaded", () => {
     initFontSizeSelector();
     initLineHeightSelector();
     initWordSpacingSelector();
+    initParaSpacingSelector();
+    initParaIndentSelector();
     initLetterSpacingSelector();
 
     // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
