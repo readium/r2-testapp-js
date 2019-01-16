@@ -158,7 +158,54 @@
 
             <div class="switchWrap">
               <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
-                aria-hidden="true">highlight</i>
+                aria-hidden="true">format_align_justify</i> <!-- view_headline -->
+
+              <div class="mdc-switch" id="justify_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="justify_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
+            </div>
+
+            <div class="switchWrap">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">comment</i>
+
+              <div class="mdc-switch" id="footnotes_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="footnotes_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="footnotes_switch-input" class="mdc-switch-label">Footnotes</label>
+            </div>
+
+            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
+
+            <div class="switchWrap">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">filter_vintage</i>
+
+              <div class="mdc-switch" id="sepia_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="sepia_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="sepia_switch-input" class="mdc-switch-label">Sepia mode</label>
+            </div>
+
+            <div class="switchWrap">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">brightness_2</i>
 
               <div class="mdc-switch" id="night_switch">
                 <div class="mdc-switch__track"></div>
@@ -201,36 +248,6 @@
                 </div>
                 <label for="invert_switch-input" class="mdc-switch-label">Invert</label>
               </div>
-            </div>
-
-            <div class="switchWrap">
-              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
-                aria-hidden="true">format_align_justify</i> <!-- view_headline -->
-
-              <div class="mdc-switch" id="justify_switch">
-                <div class="mdc-switch__track"></div>
-                <div class="mdc-switch__thumb-underlay">
-                  <div class="mdc-switch__thumb">
-                    <input type="checkbox" id="justify_switch-input" class="mdc-switch__native-control" role="switch">
-                  </div>
-                </div>
-              </div>
-              <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
-            </div>
-
-            <div class="switchWrap">
-              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
-                aria-hidden="true">comment</i>
-
-              <div class="mdc-switch" id="footnotes_switch">
-                <div class="mdc-switch__track"></div>
-                <div class="mdc-switch__thumb-underlay">
-                  <div class="mdc-switch__thumb">
-                    <input type="checkbox" id="footnotes_switch-input" class="mdc-switch__native-control" role="switch">
-                  </div>
-                </div>
-              </div>
-              <label for="footnotes_switch-input" class="mdc-switch-label">Footnotes</label>
             </div>
 
             <div data-is="riot-menuselect" id="fontSelect"> </div>

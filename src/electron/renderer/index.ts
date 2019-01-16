@@ -245,6 +245,17 @@ electronStore.onChanged("readiumCSS.night", (newValue: any, oldValue: any) => {
         return;
     }
 
+    if (newValue) {
+        // const sepiaSwitchEl = document.getElementById("sepia_switch") as HTMLElement;
+        // const sepiaSwitch = (sepiaSwitchEl as any).mdcSwitch;
+        // if (sepiaSwitch.checked) {
+        //     sepiaSwitch.checked = false;
+        // }
+        if (electronStore.get("readiumCSS.sepia")) {
+            electronStore.set("readiumCSS.sepia", false);
+        }
+    }
+
     // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
     const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
     const nightSwitch = (nightSwitchEl as any).mdcSwitch;
@@ -273,6 +284,29 @@ electronStore.onChanged("readiumCSS.night", (newValue: any, oldValue: any) => {
 
     const nightDiv = document.getElementById("night_div") as HTMLElement;
     nightDiv.style.display = newValue ? "block" : "none";
+
+    refreshReadiumCSS();
+});
+
+electronStore.onChanged("readiumCSS.sepia", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    if (newValue) {
+        // const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
+        // const nightSwitch = (nightSwitchEl as any).mdcSwitch;
+        // if (nightSwitch.checked) {
+        //     nightSwitch.checked = false;
+        // }
+        if (electronStore.get("readiumCSS.night")) {
+            electronStore.set("readiumCSS.night", false);
+        }
+    }
+
+    const sepiaSwitchEl = document.getElementById("sepia_switch") as HTMLElement;
+    const sepiaSwitch = (sepiaSwitchEl as any).mdcSwitch;
+    sepiaSwitch.checked = newValue;
 
     refreshReadiumCSS();
 });
@@ -395,23 +429,30 @@ electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
     const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
     const nightSwitch = (nightSwitchEl as any).mdcSwitch;
     nightSwitch.disabled = !newValue;
-    if (!newValue) {
-        electronStore.set("readiumCSS.night", false);
-    }
+    // if (!newValue) {
+    //     electronStore.set("readiumCSS.night", false);
+    // }
+
+    const sepiaSwitchEl = document.getElementById("sepia_switch") as HTMLElement;
+    const sepiaSwitch = (sepiaSwitchEl as any).mdcSwitch;
+    sepiaSwitch.disabled = !newValue;
+    // if (!newValue) {
+    //     electronStore.set("readiumCSS.sepia", false);
+    // }
 
     const darkenSwitchEl = document.getElementById("darken_switch") as HTMLElement;
     const darkenSwitch = (darkenSwitchEl as any).mdcSwitch;
     darkenSwitch.disabled = !newValue;
-    if (!newValue) {
-        electronStore.set("readiumCSS.darken", false);
-    }
+    // if (!newValue) {
+    //     electronStore.set("readiumCSS.darken", false);
+    // }
 
     const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
     const invertSwitch = (invertSwitchEl as any).mdcSwitch;
     invertSwitch.disabled = !newValue;
-    if (!newValue) {
-        electronStore.set("readiumCSS.invert", false);
-    }
+    // if (!newValue) {
+    //     electronStore.set("readiumCSS.invert", false);
+    // }
 });
 
 electronStore.onChanged("basicLinkTitles", (newValue: any, oldValue: any) => {
@@ -1270,6 +1311,16 @@ window.addEventListener("DOMContentLoaded", () => {
         electronStore.set("readiumCSS.night", checked);
     });
     nightSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
+    const sepiaSwitchEl = document.getElementById("sepia_switch") as HTMLElement;
+    const sepiaSwitch = new (window as any).mdc.switchControl.MDCSwitch(sepiaSwitchEl);
+    (sepiaSwitchEl as any).mdcSwitch = sepiaSwitch;
+    sepiaSwitch.checked = electronStore.get("readiumCSS.sepia");
+    sepiaSwitchEl.addEventListener("change", (_event: any) => {
+        const checked = sepiaSwitch.checked;
+        electronStore.set("readiumCSS.sepia", checked);
+    });
+    sepiaSwitch.disabled = !electronStore.get("readiumCSSEnable");
 
     const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
     const invertSwitch = new (window as any).mdc.switchControl.MDCSwitch(invertSwitchEl);
