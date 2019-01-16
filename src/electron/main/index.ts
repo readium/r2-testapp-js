@@ -889,7 +889,7 @@ padding: 0 .5em;
 #data {
 border-radius: 2px;
 background: #fff;
-width: 260px;
+width: 400px;
 padding: .4em .5em;
 border: 1px solid black;
 min-height: 2em;
@@ -984,7 +984,7 @@ file drag-and-drop
     // https://github.com/electron/electron/blob/v4.0.0/docs/api/breaking-changes.md#new-browserwindow-webpreferences-
     _electronBrowserWindowFileOrUrlDialog = new BrowserWindow({
         alwaysOnTop: true,
-        height: 260,
+        height: 280,
         modal: false,
         resizable: false,
         skipTaskbar: false,
@@ -1001,9 +1001,11 @@ file drag-and-drop
             webviewTag: false,
             // preload: __dirname + "/" + "preload.js",
         },
-        width: 400,
+        width: 600,
     });
-    _electronBrowserWindowFileOrUrlDialog.setMenu(null);
+
+    resetMenu(undefined); // _electronBrowserWindowFileOrUrlDialog
+    // _electronBrowserWindowFileOrUrlDialog.setMenu(null);
 
     async function dialogResult(_event: any, payload: IEventPayload_R2_EVENT_OPEN_URL_OR_PATH) {
 
@@ -1307,7 +1309,7 @@ app.on("ready", () => {
             debug(_publicationsUrls);
         }
 
-        resetMenu();
+        resetMenu(undefined);
 
         process.nextTick(async () => {
 
@@ -1326,7 +1328,7 @@ app.on("ready", () => {
     })();
 });
 
-function resetMenu() {
+function resetMenu(browserWindow: BrowserWindow | undefined) {
 
     const menuTemplate = [
         {
@@ -1461,7 +1463,11 @@ function resetMenu() {
         } as any);
     });
     const menu = Menu.buildFromTemplate(menuTemplate as MenuItemConstructorOptions[]);
-    Menu.setApplicationMenu(menu);
+    if (browserWindow) {
+        browserWindow.setMenu(menu);
+    } else {
+        Menu.setApplicationMenu(menu);
+    }
 }
 
 async function openFileDownload(filePath: string) {
@@ -1551,7 +1557,7 @@ async function openFile(filePath: string) {
         }
 
         process.nextTick(() => {
-            resetMenu();
+            resetMenu(undefined);
         });
     }
 
@@ -1573,8 +1579,30 @@ app.on("window-all-closed", () => {
     debug("app window-all-closed");
 
     setTimeout(() => {
-        loadFileOrUrlDialog("");
-    }, 500);
+        dialog.showMessageBox(
+            {
+                buttons: [ "yes", "no" ],
+                cancelId: 1,
+                checkboxChecked: undefined,
+                checkboxLabel: undefined,
+                defaultId: 0,
+                detail: undefined,
+                icon: undefined,
+                message: "Do you want to exit this application?",
+                noLink: true,
+                normalizeAccessKeys: false,
+                title: "Readium2 test app, exit?",
+                type: "question",
+            },
+            (response: number, _checkboxChecked: boolean) => {
+
+            if (response === 0) {
+                app.quit();
+            } else {
+                loadFileOrUrlDialog("");
+            }
+        });
+    }, 300);
     // if (process.platform !== "darwin") {
     //     app.quit();
     // }
