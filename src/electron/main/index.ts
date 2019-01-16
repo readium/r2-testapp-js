@@ -59,7 +59,6 @@ import { ZipExplodedHTTP } from "@r2-utils-js/_utils/zip/zip-ex-http";
 import * as debug_ from "debug";
 import { BrowserWindow, Menu, MenuItemConstructorOptions, app, dialog, ipcMain, shell, webContents } from "electron";
 import * as express from "express";
-import * as filehound from "filehound";
 import * as portfinder from "portfinder";
 import * as request from "request";
 import * as requestPromise from "request-promise-native";
@@ -76,6 +75,8 @@ import { StoreElectron } from "../common/store-electron";
 import { installLcpHandler } from "./lcp";
 import { installLsdHandler } from "./lsd";
 import { getDeviceIDManager } from "./lsd-deviceid-manager";
+
+// import * as filehound from "filehound";
 
 const SECURE = true;
 
@@ -109,16 +110,16 @@ let _publicationsRootUrl: string;
 let _publicationsFilePaths: string[];
 let _publicationsUrls: string[];
 
-let DEFAULT_BOOK_PATH = path.join(IS_DEV ? process.cwd() : __dirname, "misc", "epubs");
-debug(DEFAULT_BOOK_PATH);
-if (fs.existsSync(DEFAULT_BOOK_PATH)) {
-    debug("DEFAULT_BOOK_PATH => exists");
-    DEFAULT_BOOK_PATH = fs.realpathSync(path.resolve(DEFAULT_BOOK_PATH));
-    debug(DEFAULT_BOOK_PATH);
-} else {
-    debug("DEFAULT_BOOK_PATH => missing");
-    DEFAULT_BOOK_PATH = ".";
-}
+// let DEFAULT_BOOK_PATH = path.join(IS_DEV ? process.cwd() : __dirname, "misc", "epubs");
+// debug(DEFAULT_BOOK_PATH);
+// if (fs.existsSync(DEFAULT_BOOK_PATH)) {
+//     debug("DEFAULT_BOOK_PATH => exists");
+//     DEFAULT_BOOK_PATH = fs.realpathSync(path.resolve(DEFAULT_BOOK_PATH));
+//     debug(DEFAULT_BOOK_PATH);
+// } else {
+//     debug("DEFAULT_BOOK_PATH => missing");
+//     DEFAULT_BOOK_PATH = ".";
+// }
 
 let _lastBookPath: string | undefined;
 
@@ -1019,7 +1020,7 @@ file drag-and-drop
         } else if ((payload as any).fileChooser) {
             process.nextTick(async () => {
                 const choice = dialog.showOpenDialog({
-                    defaultPath: _lastBookPath || DEFAULT_BOOK_PATH,
+                    defaultPath: _lastBookPath, // || DEFAULT_BOOK_PATH,
                     filters: [
                         { name: "EPUB publication", extensions: ["epub", "epub3"] },
                         { name: "LCP license", extensions: ["lcpl"] },
@@ -1132,20 +1133,22 @@ app.on("ready", () => {
 
     // tslint:disable-next-line:no-floating-promises
     (async () => {
-        try {
-            _publicationsFilePaths = await filehound.create()
-                .depth(0)
-                .ignoreHiddenDirectories()
-                .ignoreHiddenFiles()
-                // .discard("node_modules")
-                // .discard(".*.asar")
-                .paths(DEFAULT_BOOK_PATH)
-                .ext([".epub", ".epub3", ".cbz", ".lcpl"])
-                .find();
-        } catch (err) {
-            debug(err);
-        }
-        debug(_publicationsFilePaths);
+        // try {
+        //     _publicationsFilePaths = await filehound.create()
+        //         .depth(0)
+        //         .ignoreHiddenDirectories()
+        //         .ignoreHiddenFiles()
+        //         // .discard("node_modules")
+        //         // .discard(".*.asar")
+        //         .paths(DEFAULT_BOOK_PATH)
+        //         .ext([".epub", ".epub3", ".cbz", ".lcpl"])
+        //         .find();
+        // } catch (err) {
+        //     debug(err);
+        // }
+        // debug(_publicationsFilePaths);
+        _publicationsFilePaths = [];
+        _publicationsUrls = [];
 
         _publicationsServer = new Server({
             disableDecryption: false,
@@ -1282,8 +1285,6 @@ app.on("ready", () => {
         //         res.status(200).send(swJS);
         //     });
 
-        const pubPaths = _publicationsServer.addPublications(_publicationsFilePaths);
-
         try {
             _publicationsServerPort = await portfinder.getPortPromise();
         } catch (err) {
@@ -1298,10 +1299,13 @@ app.on("ready", () => {
         _publicationsRootUrl = _publicationsServer.serverUrl() as string;
         debug(_publicationsRootUrl);
 
-        _publicationsUrls = pubPaths.map((pubPath) => {
-            return `${_publicationsRootUrl}${pubPath}`;
-        });
-        debug(_publicationsUrls);
+        if (_publicationsFilePaths && _publicationsFilePaths.length) {
+            const pubPaths = _publicationsServer.addPublications(_publicationsFilePaths);
+            _publicationsUrls = pubPaths.map((pubPath) => {
+                return `${_publicationsRootUrl}${pubPath}`;
+            });
+            debug(_publicationsUrls);
+        }
 
         resetMenu();
 
