@@ -714,7 +714,7 @@ const initLetterSpacingSelector = () => {
     } else {
         slider.value = letterSpacingSelectorDefault;
     }
-    letterSpacingSelectorValue.textContent = slider.value + "%";
+    letterSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
 
     // console.log(slider.min);
     // console.log(slider.max);
@@ -733,7 +733,7 @@ const initLetterSpacingSelector = () => {
     // });
     slider.listen("MDCSlider:change", (event: any) => {
         electronStore.set("readiumCSS.letterSpacing", (event.detail.value / 100) + "rem");
-        letterSpacingSelectorValue.textContent = event.detail.value + "%";
+        letterSpacingSelectorValue.textContent = (event.detail.value / 100).toFixed(2) + "rem";
     });
 
     electronStore.onChanged("readiumCSS.letterSpacing", (newValue: any, oldValue: any) => {
@@ -742,7 +742,7 @@ const initLetterSpacingSelector = () => {
         }
 
         slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : letterSpacingSelectorDefault);
-        letterSpacingSelectorValue.textContent = slider.value + "%";
+        letterSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
 
         refreshReadiumCSS();
     });
@@ -769,7 +769,7 @@ const initWordSpacingSelector = () => {
     } else {
         slider.value = wordSpacingSelectorDefault;
     }
-    wordSpacingSelectorValue.textContent = slider.value + "%";
+    wordSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
 
     // console.log(slider.min);
     // console.log(slider.max);
@@ -788,7 +788,7 @@ const initWordSpacingSelector = () => {
     // });
     slider.listen("MDCSlider:change", (event: any) => {
         electronStore.set("readiumCSS.wordSpacing", (event.detail.value / 100) + "rem");
-        wordSpacingSelectorValue.textContent = event.detail.value + "%";
+        wordSpacingSelectorValue.textContent = (event.detail.value / 100).toFixed(2) + "rem";
     });
 
     electronStore.onChanged("readiumCSS.wordSpacing", (newValue: any, oldValue: any) => {
@@ -797,7 +797,7 @@ const initWordSpacingSelector = () => {
         }
 
         slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : wordSpacingSelectorDefault);
-        wordSpacingSelectorValue.textContent = slider.value + "%";
+        wordSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
 
         refreshReadiumCSS();
     });
