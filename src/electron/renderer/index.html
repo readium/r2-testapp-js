@@ -156,20 +156,41 @@
               <label for="paginate_switch-input" class="mdc-switch-label">Pagination</label>
             </div>
 
-            <div class="switchWrap">
-              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
-                aria-hidden="true">format_align_justify</i> <!-- view_headline -->
-
-              <div class="mdc-switch" id="justify_switch">
-                <div class="mdc-switch__track"></div>
-                <div class="mdc-switch__thumb-underlay">
-                  <div class="mdc-switch__thumb">
-                    <input type="checkbox" id="justify_switch-input" class="mdc-switch__native-control" role="switch">
+            <div id="colCountRadios">
+              <div class="colCountRadiosClass mdc-form-field">
+                <div class="mdc-radio">
+                  <input class="mdc-radio__native-control" type="radio" id="radioColCountAuto" name="radiosColCount" checked>
+                  <div class="mdc-radio__background">
+                    <div class="mdc-radio__outer-circle"></div>
+                    <div class="mdc-radio__inner-circle"></div>
                   </div>
                 </div>
+                <label for="radioColCountAuto" style="margin-left: -8px; padding: 0;">Auto</label>
               </div>
-              <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
+              <div class="colCountRadiosClass mdc-form-field">
+                <div class="mdc-radio">
+                  <input class="mdc-radio__native-control" type="radio" id="radioColCount1" name="radiosColCount">
+                  <div class="mdc-radio__background">
+                    <div class="mdc-radio__outer-circle"></div>
+                    <div class="mdc-radio__inner-circle"></div>
+                  </div>
+                </div>
+                <label for="radioColCount1" style="margin-left: -8px; padding: 0;">1</label>
+              </div>
+              <div class="colCountRadiosClass mdc-form-field">
+                <div class="mdc-radio">
+                  <input class="mdc-radio__native-control" type="radio" id="radioColCount2" name="radiosColCount">
+                  <div class="mdc-radio__background">
+                    <div class="mdc-radio__outer-circle"></div>
+                    <div class="mdc-radio__inner-circle"></div>
+                  </div>
+                </div>
+                <label for="radioColCount2" style="margin-left: -8px; padding: 0;">2</label>
+              </div>
+
             </div>
+
+            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
 
             <div class="switchWrap">
               <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
@@ -250,13 +271,31 @@
               </div>
             </div>
 
+            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
+
+            <div class="switchWrap">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">format_align_justify</i> <!-- view_headline -->
+
+              <div class="mdc-switch" id="justify_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="justify_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
+            </div>
+
             <div data-is="riot-menuselect" id="fontSelect"> </div>
 
             <!-- <i class="material-icons" role="presentation" style="vertical-align: top;" aria-label="font size" aria-hidden>format_size</i> -->
             <span id="fontSizeSelectorLabel" class="mdc-typography--text" style="display: block;">Font size: <span id="fontSizeSelectorValue"></span></span>
 
-            <div id="fontSizeSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="75" aria-valuemax="250" aria-valuenow="100" data-step="25" aria-label="Font size" aria-labelledby="fontSizeSelectorLabel">
+            <div id="fontSizeSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers"
+              tabindex="0" role="slider" aria-valuemin="75" aria-valuemax="250" aria-valuenow="100" data-step="25"
+              aria-label="Font size" aria-labelledby="fontSizeSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>
@@ -272,11 +311,13 @@
               </div>
             </div>
 
-            <span id="typeScaleSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Type scale: <span id="typeScaleSelectorValue"></span></span>
+            <span id="typeScaleSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Type
+              scale: <span id="typeScaleSelectorValue"></span></span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
-            <div id="typeScaleSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="100" aria-valuemax="200" aria-valuenow="120" data-step="20" aria-label="Type scale" aria-labelledby="typeScaleSelectorLabel">
+            <div id="typeScaleSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers"
+              tabindex="0" role="slider" aria-valuemin="100" aria-valuemax="200" aria-valuenow="120" data-step="20"
+              aria-label="Type scale" aria-labelledby="typeScaleSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>
@@ -292,11 +333,13 @@
               </div>
             </div>
 
-            <span id="lineHeightSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Line Height: <span id="lineHeightSelectorValue"></span></span>
+            <span id="lineHeightSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Line
+              Height: <span id="lineHeightSelectorValue"></span></span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
-            <div id="lineHeightSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="100" aria-valuemax="200" aria-valuenow="150" data-step="25" aria-label="Line height" aria-labelledby="lineHeightSelectorLabel">
+            <div id="lineHeightSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers"
+              tabindex="0" role="slider" aria-valuemin="100" aria-valuemax="200" aria-valuenow="150" data-step="25"
+              aria-label="Line height" aria-labelledby="lineHeightSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>
@@ -312,11 +355,13 @@
               </div>
             </div>
 
-            <span id="letterSpacingSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Letter spacing: <span id="letterSpacingSelectorValue"></span></span>
+            <span id="letterSpacingSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Letter
+              spacing: <span id="letterSpacingSelectorValue"></span></span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
-            <div id="letterSpacingSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" data-step="10" aria-label="Letter spacing" aria-labelledby="letterSpacingSelectorLabel">
+            <div id="letterSpacingSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers"
+              tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" data-step="10"
+              aria-label="Letter spacing" aria-labelledby="letterSpacingSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>
@@ -332,11 +377,13 @@
               </div>
             </div>
 
-            <span id="wordSpacingSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Word spacing: <span id="wordSpacingSelectorValue"></span></span>
+            <span id="wordSpacingSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Word
+              spacing: <span id="wordSpacingSelectorValue"></span></span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
-            <div id="wordSpacingSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-step="25" aria-label="Word spacing" aria-labelledby="wordSpacingSelectorLabel">
+            <div id="wordSpacingSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers"
+              tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-step="25"
+              aria-label="Word spacing" aria-labelledby="wordSpacingSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>
@@ -352,11 +399,13 @@
               </div>
             </div>
 
-            <span id="paraSpacingSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Para spacing: <span id="paraSpacingSelectorValue"></span></span>
+            <span id="paraSpacingSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Para
+              spacing: <span id="paraSpacingSelectorValue"></span></span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
-            <div id="paraSpacingSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="0" aria-valuemax="200" aria-valuenow="0" data-step="25" aria-label="Para spacing" aria-labelledby="paraSpacingSelectorLabel">
+            <div id="paraSpacingSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers"
+              tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="200" aria-valuenow="0" data-step="25"
+              aria-label="Para spacing" aria-labelledby="paraSpacingSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>
@@ -372,11 +421,13 @@
               </div>
             </div>
 
-            <span id="paraIndentSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Para indent: <span id="paraIndentSelectorValue"></span></span>
+            <span id="paraIndentSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Para
+              indent: <span id="paraIndentSelectorValue"></span></span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
-            <div id="paraIndentSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0" data-step="50" aria-label="Para indent" aria-labelledby="paraIndentSelectorLabel">
+            <div id="paraIndentSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers"
+              tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0" data-step="50"
+              aria-label="Para indent" aria-labelledby="paraIndentSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>
@@ -392,11 +443,13 @@
               </div>
             </div>
 
-            <span id="pageMarginsSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Page margins: <span id="pageMarginsSelectorValue"></span></span>
+            <span id="pageMarginsSelectorLabel" class="mdc-typography--text" style="display: block; margin-top: 0.5em;">Page
+              margins: <span id="pageMarginsSelectorValue"></span></span>
 
             <!-- aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.5" data-step="0.25" -->
-            <div id="pageMarginsSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0"
-              role="slider" aria-valuemin="0" aria-valuemax="200" aria-valuenow="100" data-step="25" aria-label="Page margins" aria-labelledby="pageMarginsSelectorLabel">
+            <div id="pageMarginsSelector" class="settingSlider mdc-slider mdc-slider--discrete mdc-slider--display-markers"
+              tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="200" aria-valuenow="100" data-step="25"
+              aria-label="Page margins" aria-labelledby="pageMarginsSelectorLabel">
               <div class="mdc-slider__track-container">
                 <div class="mdc-slider__track"></div>
                 <div class="mdc-slider__track-marker-container"></div>

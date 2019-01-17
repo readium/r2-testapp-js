@@ -237,6 +237,16 @@ electronStore.onChanged("readiumCSS.colCount", (newValue: any, oldValue: any) =>
         return;
     }
     console.log("readiumCSS.colCount: ", oldValue, " => ", newValue);
+
+    const radioColCountAutoEl = document.getElementById("radioColCountAuto") as HTMLInputElement;
+    radioColCountAutoEl.checked = newValue === "auto";
+
+    const radioColCount1El = document.getElementById("radioColCount1") as HTMLInputElement;
+    radioColCount1El.checked = newValue === "1";
+
+    const radioColCount2El = document.getElementById("radioColCount2") as HTMLInputElement;
+    radioColCount2El.checked = newValue === "2";
+
     refreshReadiumCSS();
 });
 
@@ -370,6 +380,13 @@ electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
     const paginateSwitch = (paginateSwitchEl as any).mdcSwitch;
     paginateSwitch.checked = newValue;
+
+    const colCountRadiosEl = document.getElementById("colCountRadios") as HTMLElement;
+    if (newValue) {
+        colCountRadiosEl.style.display = "block";
+    } else {
+        colCountRadiosEl.style.display = "none";
+    }
 
     refreshReadiumCSS();
 });
@@ -1489,8 +1506,44 @@ window.addEventListener("DOMContentLoaded", () => {
         // paginateSwitch.handleChange("change", (_event: any) => {
         const checked = paginateSwitch.checked;
         electronStore.set("readiumCSS.paged", checked);
+
+        const colCountRadiosEl = document.getElementById("colCountRadios") as HTMLElement;
+        if (checked) {
+            colCountRadiosEl.style.display = "block";
+        } else {
+            colCountRadiosEl.style.display = "none";
+        }
     });
     paginateSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
+    const colCountRadiosElem = document.getElementById("colCountRadios") as HTMLElement;
+    if (paginateSwitch.checked) {
+        colCountRadiosElem.style.display = "block";
+    } else {
+        colCountRadiosElem.style.display = "none";
+    }
+
+    const radioColCountAutoEl = document.getElementById("radioColCountAuto") as HTMLInputElement;
+    radioColCountAutoEl.checked = electronStore.get("readiumCSS.colCount") === "auto";
+    radioColCountAutoEl.addEventListener("change", () => {
+        if (radioColCountAutoEl.checked) {
+            electronStore.set("readiumCSS.colCount", "auto");
+        }
+    });
+    const radioColCount1El = document.getElementById("radioColCount1") as HTMLInputElement;
+    radioColCount1El.checked = electronStore.get("readiumCSS.colCount") === "1";
+    radioColCount1El.addEventListener("change", () => {
+        if (radioColCount1El.checked) {
+            electronStore.set("readiumCSS.colCount", "1");
+        }
+    });
+    const radioColCount2El = document.getElementById("radioColCount2") as HTMLInputElement;
+    radioColCount2El.checked = electronStore.get("readiumCSS.colCount") === "2";
+    radioColCount2El.addEventListener("change", () => {
+        if (radioColCount2El.checked) {
+            electronStore.set("readiumCSS.colCount", "2");
+        }
+    });
 
     // const readiumcssSwitch = document.getElementById("readiumcss_switch-input") as HTMLInputElement;
     const readiumcssSwitchEl = document.getElementById("readiumcss_switch") as HTMLElement;
