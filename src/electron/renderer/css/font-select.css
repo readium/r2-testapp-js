@@ -1,8 +1,11 @@
-#fontSelect {
+#fontSelect,
+#textColorSelect,
+#backgroundColorSelect {
   margin-bottom: 1em;
   margin-top: 0.5em;
   width: 100%;
 }
+
 /*
 #fontSelect.mdc-select {
   width: 100% !important;

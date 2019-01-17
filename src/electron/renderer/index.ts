@@ -69,6 +69,7 @@ import {
 } from "../common/events";
 import { IStore } from "../common/store";
 import { StoreElectron } from "../common/store-electron";
+import { HTML_COLORS } from "./colours";
 import { setupDragDrop } from "./drag-drop";
 import {
     IRiotOptsLinkList,
@@ -725,8 +726,7 @@ const initLineHeightSelector = () => {
     //     console.log(event.detail.value);
     // });
     slider.listen("MDCSlider:change", (event: any) => {
-        electronStore.set("readiumCSS.lineHeight",
-            "" + (event.detail.value / 100));
+        electronStore.set("readiumCSS.lineHeight", "" + (event.detail.value / 100));
         lineHeightSelectorValue.textContent = event.detail.value + "%";
     });
 
@@ -781,8 +781,7 @@ const initPageMarginSelector = () => {
     //     console.log(event.detail.value);
     // });
     slider.listen("MDCSlider:change", (event: any) => {
-        electronStore.set("readiumCSS.pageMargins",
-            "" + (event.detail.value / 100));
+        electronStore.set("readiumCSS.pageMargins", "" + (event.detail.value / 100));
         pageMarginsSelectorValue.textContent = event.detail.value + "%";
     });
 
@@ -837,8 +836,7 @@ const initTypeScaleSelector = () => {
     //     console.log(event.detail.value);
     // });
     slider.listen("MDCSlider:change", (event: any) => {
-        electronStore.set("readiumCSS.typeScale",
-            "" + (event.detail.value / 100));
+        electronStore.set("readiumCSS.typeScale", "" + (event.detail.value / 100));
         typeScaleSelectorValue.textContent = event.detail.value + "%";
     });
 
@@ -1145,6 +1143,128 @@ const initFontSizeSelector = () => {
     });
 };
 
+const initTextColorSelector = () => {
+    initColorSelector("textColor", "Text colour");
+};
+
+const initBackgroundColorSelector = () => {
+    initColorSelector("backgroundColor", "Background colour");
+};
+
+const initColorSelector = (who: string, label: string) => {
+    const ID_PREFIX = who + "Select_";
+
+    const options: IRiotOptsMenuSelectItem[] = [];
+    options.push({
+        id: ID_PREFIX,
+        label: "default",
+    });
+    Object.keys(HTML_COLORS).forEach((colorName) => {
+        const colorCode = (HTML_COLORS as any)[colorName];
+        options.push({
+            id: ID_PREFIX + colorName,
+            label: colorName,
+            style: `border: 10px solid ${colorCode};`,
+        });
+    });
+
+    const currentColorCode = electronStore.get("readiumCSS." + who);
+    let foundColorName: string | undefined;
+    const colorNames = Object.keys(HTML_COLORS);
+    for (const colorName of colorNames) {
+        const colorCode = (HTML_COLORS as any)[colorName];
+        if (currentColorCode === colorCode) {
+            foundColorName = colorName;
+            break;
+        }
+    }
+    let selectedID = ID_PREFIX;
+    if (foundColorName) {
+        selectedID = ID_PREFIX + foundColorName;
+    }
+
+    const foundItem = options.find((item) => {
+        return item.id === selectedID;
+    });
+    if (!foundItem) {
+        selectedID = options[0].id;
+    }
+    const opts: IRiotOptsMenuSelect = {
+        disabled: !electronStore.get("readiumCSSEnable"),
+        label,
+        options,
+        selected: selectedID,
+    };
+    const tag = riotMountMenuSelect("#" + who + "Select", opts)[0] as IRiotTagMenuSelect;
+
+    tag.on("selectionChanged", (index: number) => {
+        if (!index) {
+            electronStore.set("readiumCSS." + who, null);
+            return;
+        }
+        // console.log("selectionChanged");
+        // console.log(index);
+        const id = tag.getIdForIndex(index);
+        // console.log(id);
+        if (!id) {
+            return;
+        }
+        // const element = tag.root.ownerDocument.getElementById(val) as HTMLElement;
+        //     console.log(element.textContent);
+        const colorName = id.replace(ID_PREFIX, "");
+        // console.log(id);
+        const colorCode = (HTML_COLORS as any)[colorName] || undefined;
+        electronStore.set("readiumCSS." + who, colorCode);
+    });
+
+    function updateLabelColor(colorCode: string | undefined) {
+        if (tag.root) {
+            const labelText = tag.root.querySelector(".mdc-select__selected-text");
+            if (labelText) {
+                (labelText as HTMLElement).style.border = colorCode ? `6px solid ${colorCode}` : "none";
+            }
+        }
+    }
+
+    electronStore.onChanged("readiumCSS." + who, (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        // console.log("onDidChange");
+        // console.log(newValue);
+
+        updateLabelColor(newValue);
+
+        let foundColor: string | undefined;
+        if (newValue) {
+            const colNames = Object.keys(HTML_COLORS);
+            for (const colName of colNames) {
+                const colCode = (HTML_COLORS as any)[colName];
+                if (newValue === colCode) {
+                    foundColor = colName;
+                    break;
+                }
+            }
+        }
+        if (foundColor) {
+            tag.setSelectedItem(ID_PREFIX + foundColor);
+        } else {
+            tag.setSelectedItem(ID_PREFIX);
+        }
+
+        refreshReadiumCSS();
+    });
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        tag.setDisabled(!newValue);
+    });
+
+    updateLabelColor(electronStore.get("readiumCSS." + who));
+};
+
 const initFontSelector = () => {
 
     const ID_PREFIX = "fontselect_";
@@ -1417,6 +1537,8 @@ window.addEventListener("DOMContentLoaded", () => {
     //     }
     // }, true);
 
+    initTextColorSelector();
+    initBackgroundColorSelector();
     initFontSelector();
     initFontSizeSelector();
     initLineHeightSelector();
