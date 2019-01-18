@@ -372,6 +372,19 @@ electronStore.onChanged("readiumCSS.noFootnotes", (newValue: any, oldValue: any)
     refreshReadiumCSS();
 });
 
+electronStore.onChanged("readiumCSS.reduceMotion", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    // const reduceMotionSwitch = document.getElementById("reduceMotion_switch-input") as HTMLInputElement;
+    const reduceMotionSwitchEl = document.getElementById("reduceMotion_switch") as HTMLElement;
+    const reduceMotionSwitch = (reduceMotionSwitchEl as any).mdcSwitch;
+    reduceMotionSwitch.checked = newValue ? true : false;
+
+    refreshReadiumCSS();
+});
+
 electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
@@ -437,6 +450,11 @@ electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
     const footnotesSwitchEl = document.getElementById("footnotes_switch") as HTMLElement;
     const footnotesSwitch = (footnotesSwitchEl as any).mdcSwitch;
     footnotesSwitch.disabled = !newValue;
+
+    // const reduceMotionSwitch = document.getElementById("reduceMotion_switch-input") as HTMLInputElement;
+    const reduceMotionSwitchEl = document.getElementById("reduceMotion_switch") as HTMLElement;
+    const reduceMotionSwitch = (reduceMotionSwitchEl as any).mdcSwitch;
+    reduceMotionSwitch.disabled = !newValue;
 
     // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
@@ -1618,6 +1636,18 @@ window.addEventListener("DOMContentLoaded", () => {
         electronStore.set("readiumCSS.noFootnotes", checked ? false : true);
     });
     footnotesSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
+    // const reduceMotionSwitch = document.getElementById("reduceMotion_switch-input") as HTMLInputElement;
+    const reduceMotionSwitchEl = document.getElementById("reduceMotion_switch") as HTMLElement;
+    const reduceMotionSwitch = new (window as any).mdc.switchControl.MDCSwitch(reduceMotionSwitchEl);
+    (reduceMotionSwitchEl as any).mdcSwitch = reduceMotionSwitch;
+    reduceMotionSwitch.checked = electronStore.get("readiumCSS.reduceMotion") ? true : false;
+    reduceMotionSwitchEl.addEventListener("change", (_event: any) => {
+        // footnotesSwitch.handleChange("change", (_event: any) => {
+        const checked = reduceMotionSwitch.checked;
+        electronStore.set("readiumCSS.reduceMotion", checked ? true : false);
+    });
+    reduceMotionSwitch.disabled = !electronStore.get("readiumCSSEnable");
 
     // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
