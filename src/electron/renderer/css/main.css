@@ -49,12 +49,40 @@ form {
   left: var(--R2__specialDimension);
   right: var(--R2__specialDimension);
   top: 0;
-  bottom: 0;
+  bottom: 48px; /* var(--R2__specialDimension) because #positionSelector.mdc-slider */
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   background: silver;
   overflow: hidden;
+}
+
+#positionSelector {
+  display: block;
+  position: absolute;
+  left: var(--R2__specialDimension);
+  right: var(--R2__specialDimension);
+  width: auto !important;
+  bottom: 0; /* note: height == 48px, not 36px / var(--R2__specialDimension) */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: white;
+}
+#positionSelectorLabel {
+  text-align: center;
+  display: block;
+  position: absolute;
+  left: var(--R2__specialDimension);
+  right: var(--R2__specialDimension);
+  height: auto;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: transparent;
+  font-size: 70%;
+  padding-bottom: 0.5em;
 }
 
 /* #r2_navigator_reader_chrome_HIDE */

@@ -22,6 +22,8 @@ import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/que
 import {
     LocatorExtended,
     TTSStateEnum,
+    getCurrentReadingLocation,
+    handleLinkLocator,
     handleLinkUrl,
     installNavigatorDOM,
     navLeftOrRight,
@@ -175,7 +177,39 @@ interface IReadingLocation {
     locPosition: number;
 }
 
+function setReadingProgressionSlider(locator: Locator | undefined) {
+    const percent = (!locator || !locator.locations.progression) ? 0 :
+        Math.round(locator.locations.progression * 10) * 10;
+    const positionSelector = document.getElementById("positionSelector") as HTMLElement;
+    (positionSelector as any).mdcSlider.value = percent;
+
+    const positionSelectorValue = document.getElementById("positionSelectorValue") as HTMLElement;
+
+    const current = getCurrentReadingLocation(); // LocatorExtended
+    if (!current || !current.paginationInfo ||
+        (typeof current.paginationInfo.isTwoPageSpread === "undefined") ||
+        (typeof current.paginationInfo.spreadIndex === "undefined") ||
+        (typeof current.paginationInfo.currentColumn === "undefined") ||
+        (typeof current.paginationInfo.totalColumns === "undefined")) {
+
+        positionSelectorValue.textContent = "";
+        return;
+    }
+    // const n = current.paginationInfo.isTwoPageSpread ?
+    //     current.paginationInfo.spreadIndex : current.paginationInfo.currentColumn;
+    // const total = current.paginationInfo.isTwoPageSpread ?
+    //     (current.paginationInfo.totalColumns / 2) : current.paginationInfo.totalColumns;
+    const nColumn = current.paginationInfo.currentColumn + 1;
+    const nSpreadColumn = (current.paginationInfo.spreadIndex * 2) + 1;
+    const total = current.paginationInfo.totalColumns;
+    positionSelectorValue.textContent = current.paginationInfo.isTwoPageSpread ?
+        `Pages ${nSpreadColumn}-${nSpreadColumn + 1} / ${total}` : `Page ${nColumn} / ${total}`;
+}
+
 const saveReadingLocation = (location: LocatorExtended) => {
+
+    setReadingProgressionSlider(location.locator);
+
     let obj = electronStore.get("readingLocation");
     if (!obj) {
         obj = {};
@@ -1815,6 +1849,28 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    const positionSelector = document.getElementById("positionSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(positionSelector);
+    (positionSelector as any).mdcSlider = slider;
+
+    slider.listen("MDCSlider:change", (event: any) => {
+        const current = getCurrentReadingLocation(); // LocatorExtended
+        if (!current) {
+            return;
+        }
+
+        current.locator.text = undefined;
+        current.locator.title = undefined;
+        // current.locator.href
+        current.locator.locations = {
+            cfi: undefined,
+            cssSelector: undefined,
+            position: undefined,
+            progression: event.detail.value / 100,
+        };
+        handleLinkLocator(current.locator);
+    });
+
     if (lcpPassInput) {
         lcpPassInput.addEventListener("keyup", (ev) => {
             if (ev.keyCode === 13) {
@@ -2369,6 +2425,7 @@ function startNavigatorExperiment() {
             // });
 
             console.log(location);
+            setReadingProgressionSlider(location);
 
             installNavigatorDOM(_publication, publicationJsonUrl,
                 rootHtmlElementID,
