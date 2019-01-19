@@ -50,6 +50,7 @@ import {
 import { Locator } from "@r2-shared-js/models/locator";
 import { IStringMap } from "@r2-shared-js/models/metadata-multilang";
 import { Publication } from "@r2-shared-js/models/publication";
+import { Link } from "@r2-shared-js/models/publication-link";
 import { debounce } from "debounce";
 import { ipcRenderer } from "electron";
 import { JSON as TAJSON } from "ta-json-x";
@@ -144,6 +145,8 @@ initGlobalConverters_GENERIC();
 const pubServerRoot = queryParams["pubServerRoot"];
 console.log(pubServerRoot);
 
+let _publication: Publication | undefined;
+
 const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
 
     const on = electronStore.get("readiumCSSEnable");
@@ -177,11 +180,45 @@ interface IReadingLocation {
     locPosition: number;
 }
 
-function setReadingProgressionSlider(locator: Locator | undefined) {
-    const percent = (!locator || !locator.locations.progression) ? 0 :
-        Math.round(locator.locations.progression * 10) * 10;
+// function isFixedLayout(publication: Publication, link: Link | undefined): boolean {
+//     if (link && link.Properties) {
+//         if (link.Properties.Layout === "fixed") {
+//             return true;
+//         }
+//         if (typeof link.Properties.Layout !== "undefined") {
+//             return false;
+//         }
+//     }
+//     if (publication &&
+//         publication.Metadata &&
+//         publication.Metadata.Rendition) {
+//         return publication.Metadata.Rendition.Layout === "fixed";
+//     }
+//     return false;
+// }
+
+function sanitizeText(str: string): string {
+    // tslint:disable-next-line:max-line-length
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, " ").replace(/\s\s+/g, " ").trim();
+}
+
+function updateReadingProgressionSlider(locator: Locator | undefined) {
+    let foundLink: Link | undefined;
+    if (_publication && locator) {
+        if (_publication.Spine) {
+            foundLink = _publication.Spine.find((link) => {
+                return link.Href === locator.href;
+            });
+            if (!foundLink && _publication.Resources) {
+                foundLink = _publication.Resources.find((link) => {
+                    return link.Href === locator.href;
+                });
+            }
+        }
+    }
+
     const positionSelector = document.getElementById("positionSelector") as HTMLElement;
-    (positionSelector as any).mdcSlider.value = percent;
+    const mdcSlider = (positionSelector as any).mdcSlider;
 
     const positionSelectorValue = document.getElementById("positionSelectorValue") as HTMLElement;
 
@@ -192,23 +229,66 @@ function setReadingProgressionSlider(locator: Locator | undefined) {
         (typeof current.paginationInfo.currentColumn === "undefined") ||
         (typeof current.paginationInfo.totalColumns === "undefined")) {
 
+        const percent = (!locator || !locator.locations.progression) ? 0 :
+        Math.round(locator.locations.progression * 10) * 10;
+
+        if (mdcSlider.min !== 0) {
+            mdcSlider.min = 0;
+        }
+        if (mdcSlider.max !== 100) {
+            mdcSlider.max = 100;
+        }
+        if (mdcSlider.step !== 1) {
+            mdcSlider.step = 1;
+        }
+        mdcSlider.value = percent;
+
         positionSelectorValue.textContent = "";
         return;
     }
-    // const n = current.paginationInfo.isTwoPageSpread ?
-    //     current.paginationInfo.spreadIndex : current.paginationInfo.currentColumn;
-    // const total = current.paginationInfo.isTwoPageSpread ?
-    //     (current.paginationInfo.totalColumns / 2) : current.paginationInfo.totalColumns;
+
+    const totalColumns = current.paginationInfo.totalColumns;
+    const totalSpreads = Math.ceil(totalColumns / 2);
+    const totalSpreadsOrColumns = current.paginationInfo.isTwoPageSpread ? totalSpreads : totalColumns;
+
     const nColumn = current.paginationInfo.currentColumn + 1;
+    const nSpread = current.paginationInfo.spreadIndex + 1;
+    const nSpreadOrColumn = current.paginationInfo.isTwoPageSpread ? nSpread : nColumn;
+
+    if (mdcSlider.min !== 1) {
+        mdcSlider.min = 1;
+    }
+    if (mdcSlider.max !== totalSpreadsOrColumns) {
+        mdcSlider.max = totalSpreadsOrColumns;
+    }
+    if (mdcSlider.step !== 1) {
+        mdcSlider.step = 1;
+    }
+    mdcSlider.value = nSpreadOrColumn;
+
+    let label = (foundLink && foundLink.Title) ? sanitizeText(foundLink.Title) : undefined;
+    if (!label || !label.length) {
+        label = (locator && locator.title) ? sanitizeText(locator.title) : undefined;
+    }
+    if (!label || !label.length) {
+        label = foundLink ? foundLink.Href : undefined;
+    }
+
     const nSpreadColumn = (current.paginationInfo.spreadIndex * 2) + 1;
-    const total = current.paginationInfo.totalColumns;
-    positionSelectorValue.textContent = current.paginationInfo.isTwoPageSpread ?
-        `Pages ${nSpreadColumn}-${nSpreadColumn + 1} / ${total}` : `Page ${nColumn} / ${total}`;
+
+    const pageStr = current.paginationInfo.isTwoPageSpread ?
+        ((nSpreadColumn + 1) <= totalColumns ? `Pages ${nSpreadColumn}-${nSpreadColumn + 1} / ${totalColumns}` :
+            `Page ${nSpreadColumn} / ${totalColumns}`) : `Page ${nColumn} / ${totalColumns}`;
+    if (label) {
+        positionSelectorValue.innerHTML = `[<strong>${label}</strong>] ` + pageStr;
+    } else {
+        positionSelectorValue.textContent = pageStr;
+    }
 }
 
 const saveReadingLocation = (location: LocatorExtended) => {
 
-    setReadingProgressionSlider(location.locator);
+    updateReadingProgressionSlider(location.locator);
 
     let obj = electronStore.get("readingLocation");
     if (!obj) {
@@ -2071,8 +2151,7 @@ function startNavigatorExperiment() {
         }
         // const pubJson = global.JSON.parse(publicationStr);
 
-        // let _publication: Publication | undefined;
-        const _publication = TAJSON.deserialize<Publication>(_publicationJSON, Publication);
+        _publication = TAJSON.deserialize<Publication>(_publicationJSON, Publication);
 
         if (_publication.Metadata && _publication.Metadata.Title) {
             let title: string | undefined;
@@ -2424,10 +2503,10 @@ function startNavigatorExperiment() {
             //     unhideWebView();
             // });
 
-            console.log(location);
-            setReadingProgressionSlider(location);
+            // console.log(location);
+            updateReadingProgressionSlider(location);
 
-            installNavigatorDOM(_publication, publicationJsonUrl,
+            installNavigatorDOM(_publication as Publication, publicationJsonUrl,
                 rootHtmlElementID,
                 preloadPath,
                 location);
