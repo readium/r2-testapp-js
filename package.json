@@ -55,7 +55,7 @@
     "material-design-icons-iconfont": "^4.0.4",
     "portfinder": "^1.0.20",
     "r2-lcp-js": "^1.0.5",
-    "r2-navigator-js": "^1.0.13",
+    "r2-navigator-js": "^1.0.15",
     "r2-opds-js": "^1.0.6",
     "r2-shared-js": "^1.0.7",
     "r2-streamer-js": "^1.0.7",
