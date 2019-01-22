@@ -143,6 +143,23 @@
 
             <div class="switchWrap">
               <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">format_align_justify</i> <!-- view_headline -->
+
+              <div class="mdc-switch" id="justify_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="justify_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
+            </div>
+
+            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
+
+            <div class="switchWrap">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
                 aria-hidden="true">import_contacts</i> <!-- view_carousel -->
 
               <div class="mdc-switch" id="paginate_switch">
@@ -256,19 +273,39 @@
 
             <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
 
+            <div data-is="riot-menuselect" id="textColorSelect" > </div>
+            <div data-is="riot-menuselect" id="backgroundColorSelect" > </div>
+
+            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
+
             <div class="switchWrap">
               <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
-                aria-hidden="true">format_align_justify</i> <!-- view_headline -->
+                aria-hidden="true">comment</i>
 
-              <div class="mdc-switch" id="justify_switch">
+              <div class="mdc-switch" id="footnotes_switch">
                 <div class="mdc-switch__track"></div>
                 <div class="mdc-switch__thumb-underlay">
                   <div class="mdc-switch__thumb">
-                    <input type="checkbox" id="justify_switch-input" class="mdc-switch__native-control" role="switch">
+                    <input type="checkbox" id="footnotes_switch-input" class="mdc-switch__native-control" role="switch">
                   </div>
                 </div>
               </div>
-              <label for="justify_switch-input" class="mdc-switch-label">Justify text</label>
+              <label for="footnotes_switch-input" class="mdc-switch-label">Footnotes</label>
+            </div>
+
+            <div class="switchWrap">
+              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
+                aria-hidden="true">waves</i>
+
+              <div class="mdc-switch" id="reduceMotion_switch">
+                <div class="mdc-switch__track"></div>
+                <div class="mdc-switch__thumb-underlay">
+                  <div class="mdc-switch__thumb">
+                    <input type="checkbox" id="reduceMotion_switch-input" class="mdc-switch__native-control" role="switch">
+                  </div>
+                </div>
+              </div>
+              <label for="reduceMotion_switch-input" class="mdc-switch-label">Reduce motion</label>
             </div>
 
             <div data-is="riot-menuselect" id="fontSelect" > </div>
@@ -446,43 +483,6 @@
                 </svg>
                 <div class="mdc-slider__focus-ring"></div>
               </div>
-            </div>
-
-            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
-
-            <div data-is="riot-menuselect" id="textColorSelect" > </div>
-            <div data-is="riot-menuselect" id="backgroundColorSelect" > </div>
-
-            <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">
-
-            <div class="switchWrap">
-              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
-                aria-hidden="true">comment</i>
-
-              <div class="mdc-switch" id="footnotes_switch">
-                <div class="mdc-switch__track"></div>
-                <div class="mdc-switch__thumb-underlay">
-                  <div class="mdc-switch__thumb">
-                    <input type="checkbox" id="footnotes_switch-input" class="mdc-switch__native-control" role="switch">
-                  </div>
-                </div>
-              </div>
-              <label for="footnotes_switch-input" class="mdc-switch-label">Footnotes</label>
-            </div>
-
-            <div class="switchWrap">
-              <i class="material-icons" style="vertical-align: bottom; display: inline;" role="presentation"
-                aria-hidden="true">waves</i>
-
-              <div class="mdc-switch" id="reduceMotion_switch">
-                <div class="mdc-switch__track"></div>
-                <div class="mdc-switch__thumb-underlay">
-                  <div class="mdc-switch__thumb">
-                    <input type="checkbox" id="reduceMotion_switch-input" class="mdc-switch__native-control" role="switch">
-                  </div>
-                </div>
-              </div>
-              <label for="reduceMotion_switch-input" class="mdc-switch-label">Reduce motion</label>
             </div>
 
             <hr class="mdc-list-divider mdc-list-divider--padded" role="presentation">

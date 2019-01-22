@@ -533,6 +533,12 @@ electronStore.onChanged("readiumCSS.night", (newValue: any, oldValue: any) => {
         if (electronStore.get("readiumCSS.sepia")) {
             electronStore.set("readiumCSS.sepia", false);
         }
+        if (electronStore.get("readiumCSS.backgroundColor")) {
+            electronStore.set("readiumCSS.backgroundColor", null);
+        }
+        if (electronStore.get("readiumCSS.textColor")) {
+            electronStore.set("readiumCSS.textColor", null);
+        }
     }
 
     // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
@@ -580,6 +586,12 @@ electronStore.onChanged("readiumCSS.sepia", (newValue: any, oldValue: any) => {
         // }
         if (electronStore.get("readiumCSS.night")) {
             electronStore.set("readiumCSS.night", false);
+        }
+        if (electronStore.get("readiumCSS.backgroundColor")) {
+            electronStore.set("readiumCSS.backgroundColor", null);
+        }
+        if (electronStore.get("readiumCSS.textColor")) {
+            electronStore.set("readiumCSS.textColor", null);
         }
     }
 
@@ -1518,6 +1530,17 @@ const initColorSelector = (who: string, label: string) => {
         }
         // console.log("onDidChange");
         // console.log(newValue);
+
+        // newValue can be null!
+
+        if (newValue) {
+            if (electronStore.get("readiumCSS.night")) {
+                electronStore.set("readiumCSS.night", false);
+            }
+            if (electronStore.get("readiumCSS.sepia")) {
+                electronStore.set("readiumCSS.sepia", false);
+            }
+        }
 
         updateLabelColor(newValue);
 
