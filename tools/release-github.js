@@ -3,7 +3,7 @@ var path = require("path");
 
 // https://github.com/octokit/rest.js
 // https://octokit.github.io/rest.js/
-const octokit = require('@octokit/rest')();
+const Octokit = require('@octokit/rest');
 
 console.log("process.cwd():");
 console.log(process.cwd());
@@ -39,10 +39,10 @@ if (!process.env.GH_TOKEN) {
     return;
 }
 
-octokit.authenticate({
-    type: 'token',
-    token: process.env.GH_TOKEN
+const octokit = new Octokit({
+    auth: `token ${process.env.GH_TOKEN}`
 });
+
 // !!!!!!!!!!!!!!!!
 // IMPORTANT !!!!
 // Make sure DEBUG is *off* in TravisCI,
