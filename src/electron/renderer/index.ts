@@ -209,7 +209,8 @@ function onChangeReadingProgressionSlider() {
         return;
     }
 
-    if (mdcSlider.functionMode === "fixed-layout") {
+    if (mdcSlider.functionMode === "fixed-layout" ||
+        mdcSlider.functionMode === "reflow-scrolled") {
         if (_publication && _publication.Spine) {
             const zeroBasedIndex = mdcSlider.value - 1;
             const foundLink = _publication.Spine.find((_link, i) => {
@@ -231,25 +232,25 @@ function onChangeReadingProgressionSlider() {
         return;
     }
 
-    if (mdcSlider.functionMode === "reflow-scrolled") {
-        const currentPos = getCurrentReadingLocation(); // LocatorExtended
-        if (!currentPos) {
-            return;
-        }
-        const locator = {
-            href: currentPos.locator.href,
-            locations: {
-                cfi: undefined,
-                cssSelector: undefined,
-                position: undefined,
+    // if (mdcSlider.functionMode === "reflow-scrolled") {
+    //     const currentPos = getCurrentReadingLocation(); // LocatorExtended
+    //     if (!currentPos) {
+    //         return;
+    //     }
+    //     const locator = {
+    //         href: currentPos.locator.href,
+    //         locations: {
+    //             cfi: undefined,
+    //             cssSelector: undefined,
+    //             position: undefined,
 
-                // zero-based percentage, reaches 100% unlike scroll offset
-                progression: mdcSlider.value / 100,
-            },
-        };
-        handleLinkLocator(locator);
-        return;
-    }
+    //             // zero-based percentage, reaches 100% unlike scroll offset
+    //             progression: mdcSlider.value / 100,
+    //         },
+    //     };
+    //     handleLinkLocator(locator);
+    //     return;
+    // }
 
     if (mdcSlider.functionMode === "reflow-paginated") {
         const currentPos = getCurrentReadingLocation(); // LocatorExtended
@@ -274,9 +275,9 @@ function onChangeReadingProgressionSlider() {
 
 function updateReadingProgressionSlider(locator: Locator | undefined) {
     const positionSelector = document.getElementById("positionSelector") as HTMLElement;
-    const mdcSlider = (positionSelector as any).mdcSlider;
-
+    positionSelector.style.visibility = "visible";
     const positionSelectorValue = document.getElementById("positionSelectorValue") as HTMLElement;
+    const mdcSlider = (positionSelector as any).mdcSlider;
 
     let foundLink: Link | undefined;
     let spineIndex = -1;
@@ -311,6 +312,9 @@ function updateReadingProgressionSlider(locator: Locator | undefined) {
 
             mdcSlider.functionMode = "fixed-layout";
 
+            if (_publication.Spine.length === 1) {
+                positionSelector.style.visibility = "hidden";
+            }
             if (mdcSlider.min !== 1) {
                 mdcSlider.min = 1;
             }
@@ -322,89 +326,118 @@ function updateReadingProgressionSlider(locator: Locator | undefined) {
             }
             mdcSlider.value = spineIndex + 1;
 
-            const pagePosStr = `${spineIndex + 1} / ${_publication.Spine.length}`;
+            const pagePosStr = `Page ${spineIndex + 1} / ${_publication.Spine.length}`;
             // if (label) {
             //     positionSelectorValue.innerHTML = `[<strong>${label}</strong>] ` + pagePosStr;
             // } else {
             //     positionSelectorValue.textContent = pagePosStr;
             // }
             positionSelectorValue.textContent = pagePosStr;
-        } else {
-            mdcSlider.functionMode = undefined;
+            return;
+        }
+    } else {
+        const current = getCurrentReadingLocation(); // LocatorExtended
+        if (!current || !current.paginationInfo ||
+            (typeof current.paginationInfo.isTwoPageSpread === "undefined") ||
+            (typeof current.paginationInfo.spreadIndex === "undefined") ||
+            (typeof current.paginationInfo.currentColumn === "undefined") ||
+            (typeof current.paginationInfo.totalColumns === "undefined")) {
 
-            if (mdcSlider.min !== 0) {
-                mdcSlider.min = 0;
+            if (spineIndex >= 0 && _publication && _publication.Spine) {
+
+                mdcSlider.functionMode = "reflow-scrolled";
+
+                if (_publication.Spine.length === 1) {
+                    positionSelector.style.visibility = "hidden";
+                }
+                if (mdcSlider.min !== 1) {
+                    mdcSlider.min = 1;
+                }
+                if (mdcSlider.max !== _publication.Spine.length) {
+                    mdcSlider.max = _publication.Spine.length;
+                }
+                if (mdcSlider.step !== 1) {
+                    mdcSlider.step = 1;
+                }
+                mdcSlider.value = spineIndex + 1;
+
+                const pagePosStr = `Chapter ${spineIndex + 1} / ${_publication.Spine.length}`;
+                if (label) {
+                    positionSelectorValue.innerHTML = `[<strong>${label}</strong>] ` + pagePosStr;
+                } else {
+                    positionSelectorValue.textContent = pagePosStr;
+                }
+                return;
             }
-            if (mdcSlider.max !== 100) {
-                mdcSlider.max = 100;
+
+            // const percent = (!locator || !locator.locations.progression) ? 0 :
+            //     Math.round(locator.locations.progression * 10) * 10;
+            // if (mdcSlider.min !== 0) {
+            //     mdcSlider.min = 0;
+            // }
+            // if (mdcSlider.max !== 100) {
+            //     mdcSlider.max = 100;
+            // }
+            // if (mdcSlider.step !== 1) {
+            //     mdcSlider.step = 1;
+            // }
+            // mdcSlider.value = percent;
+            // positionSelectorValue.textContent = percent + "%";
+            // return;
+        } else {
+
+            mdcSlider.functionMode = "reflow-paginated";
+
+            const totalColumns = current.paginationInfo.totalColumns;
+            const totalSpreads = Math.ceil(totalColumns / 2);
+            const totalSpreadsOrColumns = current.paginationInfo.isTwoPageSpread ? totalSpreads : totalColumns;
+
+            const nColumn = current.paginationInfo.currentColumn + 1;
+            const nSpread = current.paginationInfo.spreadIndex + 1;
+            const nSpreadOrColumn = current.paginationInfo.isTwoPageSpread ? nSpread : nColumn;
+
+            if (totalSpreadsOrColumns === 1) {
+                positionSelector.style.visibility = "hidden";
+            }
+            if (mdcSlider.min !== 1) {
+                mdcSlider.min = 1;
+            }
+            if (mdcSlider.max !== totalSpreadsOrColumns) {
+                mdcSlider.max = totalSpreadsOrColumns;
             }
             if (mdcSlider.step !== 1) {
                 mdcSlider.step = 1;
             }
-            mdcSlider.value = 0;
-            positionSelectorValue.textContent = "";
+            mdcSlider.value = nSpreadOrColumn;
+
+            const nSpreadColumn = (current.paginationInfo.spreadIndex * 2) + 1;
+
+            const pageStr = current.paginationInfo.isTwoPageSpread ?
+                ((nSpreadColumn + 1) <= totalColumns ? `Pages ${nSpreadColumn}-${nSpreadColumn + 1} / ${totalColumns}` :
+                    `Page ${nSpreadColumn} / ${totalColumns}`) : `Page ${nColumn} / ${totalColumns}`;
+            if (label) {
+                positionSelectorValue.innerHTML = `[<strong>${label}</strong>] ` + pageStr;
+            } else {
+                positionSelectorValue.textContent = pageStr;
+            }
+            return;
         }
-        return;
     }
 
-    const current = getCurrentReadingLocation(); // LocatorExtended
-    if (!current || !current.paginationInfo ||
-        (typeof current.paginationInfo.isTwoPageSpread === "undefined") ||
-        (typeof current.paginationInfo.spreadIndex === "undefined") ||
-        (typeof current.paginationInfo.currentColumn === "undefined") ||
-        (typeof current.paginationInfo.totalColumns === "undefined")) {
-
-        mdcSlider.functionMode = "reflow-scrolled";
-
-        const percent = (!locator || !locator.locations.progression) ? 0 :
-            Math.round(locator.locations.progression * 10) * 10;
-
-        if (mdcSlider.min !== 0) {
-            mdcSlider.min = 0;
-        }
-        if (mdcSlider.max !== 100) {
-            mdcSlider.max = 100;
-        }
-        if (mdcSlider.step !== 1) {
-            mdcSlider.step = 1;
-        }
-        mdcSlider.value = percent;
-
-        positionSelectorValue.textContent = percent + "%";
-        return;
+    // default fallback
+    mdcSlider.functionMode = undefined;
+    positionSelector.style.visibility = "hidden";
+    if (mdcSlider.min !== 0) {
+        mdcSlider.min = 0;
     }
-
-    mdcSlider.functionMode = "reflow-paginated";
-
-    const totalColumns = current.paginationInfo.totalColumns;
-    const totalSpreads = Math.ceil(totalColumns / 2);
-    const totalSpreadsOrColumns = current.paginationInfo.isTwoPageSpread ? totalSpreads : totalColumns;
-
-    const nColumn = current.paginationInfo.currentColumn + 1;
-    const nSpread = current.paginationInfo.spreadIndex + 1;
-    const nSpreadOrColumn = current.paginationInfo.isTwoPageSpread ? nSpread : nColumn;
-
-    if (mdcSlider.min !== 1) {
-        mdcSlider.min = 1;
-    }
-    if (mdcSlider.max !== totalSpreadsOrColumns) {
-        mdcSlider.max = totalSpreadsOrColumns;
+    if (mdcSlider.max !== 100) {
+        mdcSlider.max = 100;
     }
     if (mdcSlider.step !== 1) {
         mdcSlider.step = 1;
     }
-    mdcSlider.value = nSpreadOrColumn;
-
-    const nSpreadColumn = (current.paginationInfo.spreadIndex * 2) + 1;
-
-    const pageStr = current.paginationInfo.isTwoPageSpread ?
-        ((nSpreadColumn + 1) <= totalColumns ? `Pages ${nSpreadColumn}-${nSpreadColumn + 1} / ${totalColumns}` :
-            `Page ${nSpreadColumn} / ${totalColumns}`) : `Page ${nColumn} / ${totalColumns}`;
-    if (label) {
-        positionSelectorValue.innerHTML = `[<strong>${label}</strong>] ` + pageStr;
-    } else {
-        positionSelectorValue.textContent = pageStr;
-    }
+    mdcSlider.value = 0;
+    positionSelectorValue.textContent = "";
 }
 
 const saveReadingLocation = (location: LocatorExtended) => {
