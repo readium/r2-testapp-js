@@ -227,6 +227,45 @@ async function isManifestJSON(urlOrPath: string): Promise<boolean> {
     return isMan;
 }
 
+async function tryLSD(publication: Publication, publicationFilePath: string): Promise<boolean> {
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            await launchStatusDocumentProcessing(publication.LCP as LCP, deviceIDManager,
+                async (licenseUpdateJson: string | undefined) => {
+                    debug("launchStatusDocumentProcessing DONE.");
+
+                    if (licenseUpdateJson) {
+                        let res: string;
+                        try {
+                            res = await lsdLcpUpdateInject(
+                                licenseUpdateJson,
+                                publication as Publication,
+                                publicationFilePath);
+                            debug("EPUB LCP INJECTED: " + res);
+
+                            try {
+                                await tryLSD(publication, publicationFilePath); // loop to re-init LSD
+                                resolve(true);
+                            } catch (err) {
+                                debug(err);
+                                reject(err);
+                            }
+                        } catch (err) {
+                            debug(err);
+                            reject(err);
+                        }
+                    } else {
+                        resolve(true);
+                    }
+                });
+        } catch (err) {
+            debug(err);
+            reject(err);
+        }
+    });
+}
+
 async function createElectronBrowserWindow(publicationFilePath: string, publicationUrl: string) {
 
     debug("createElectronBrowserWindow() " + publicationFilePath + " : " + publicationUrl);
@@ -591,23 +630,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
         debug(publication.LCP);
 
         try {
-            await launchStatusDocumentProcessing(publication.LCP, deviceIDManager,
-                async (licenseUpdateJson: string | undefined) => {
-                    debug("launchStatusDocumentProcessing DONE.");
-
-                    if (licenseUpdateJson) {
-                        let res: string;
-                        try {
-                            res = await lsdLcpUpdateInject(
-                                licenseUpdateJson,
-                                publication as Publication,
-                                publicationFilePath);
-                            debug("EPUB SAVED: " + res);
-                        } catch (err) {
-                            debug(err);
-                        }
-                    }
-                });
+            await tryLSD(publication, publicationFilePath);
         } catch (err) {
             debug(err);
         }
