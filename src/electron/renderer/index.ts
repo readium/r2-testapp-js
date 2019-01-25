@@ -26,6 +26,7 @@ import {
     handleLinkLocator,
     handleLinkUrl,
     installNavigatorDOM,
+    isLocatorVisible,
     navLeftOrRight,
     readiumCssOnOff,
     setEpubReadingSystemInfo,
@@ -440,6 +441,105 @@ function updateReadingProgressionSlider(locator: Locator | undefined) {
     positionSelectorValue.textContent = "";
 }
 
+const _bookmarks: Locator[] = [];
+
+function addCurrentVisibleBookmark() {
+    const current = getCurrentReadingLocation(); // LocatorExtended
+    if (current && current.locator) {
+        const found = _bookmarks.find((locator) => {
+            return locator.href === current.locator.href &&
+            // locator.locations.cfi === current.locator.locations.cfi &&
+            // locator.locations.progression === current.locator.locations.progression &&
+            // locator.locations.position === current.locator.locations.position &&
+            locator.locations.cssSelector === current.locator.locations.cssSelector;
+        });
+        if (!found) {
+            _bookmarks.push(current.locator);
+        }
+    }
+}
+function removeAllBookmarks(): Locator[] {
+    const removed: Locator[] = [];
+    for (let i = _bookmarks.length - 1; i >= 0; i--) {
+        const bookmark = _bookmarks[i];
+        removed.push(bookmark);
+        _bookmarks.splice(i, 1);
+    }
+    return removed;
+}
+async function removeAllCurrentVisibleBookmarks(): Promise<Locator[]> {
+    return new Promise(async (resolve, _reject) => {
+        const removed: Locator[] = [];
+        for (let i = _bookmarks.length - 1; i >= 0; i--) {
+            const bookmark = _bookmarks[i];
+            try {
+                const visible = await isLocatorVisible(bookmark);
+                if (visible) {
+                    removed.push(bookmark);
+                    _bookmarks.splice(i, 1);
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        resolve(removed);
+    });
+}
+async function isAnyBookmarkVisible(): Promise<boolean> {
+    return new Promise(async (resolve, _reject) => {
+        for (const bookmark of _bookmarks) {
+            try {
+                const visible = await isLocatorVisible(bookmark);
+                if (visible) {
+                    resolve(true);
+                    return;
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        resolve(false);
+    });
+}
+async function refreshBookmarksState() {
+    const buttonBookmarkTOGGLE = document.getElementById("bookmarkTOGGLE") as HTMLElement;
+    try {
+        const atLeastOneBookmarkIsVisible = await isAnyBookmarkVisible();
+        (buttonBookmarkTOGGLE as any).mdcButton.on = atLeastOneBookmarkIsVisible;
+    } catch (err) {
+        console.log(err);
+    }
+}
+function refreshBookmarksStore() {
+    let obj = electronStore.get("bookmarks");
+    if (!obj) {
+        obj = {};
+    }
+    obj[pathDecoded] = [];
+    _bookmarks.forEach((bookmark) => {
+        obj[pathDecoded].push(bookmark);
+    });
+    electronStore.set("bookmarks", obj);
+}
+function initBookmarksFromStore() {
+    let obj = electronStore.get("bookmarks");
+    if (!obj) {
+        obj = {};
+    }
+    if (obj[pathDecoded]) {
+        // _bookmarks = [];
+        removeAllBookmarks();
+        obj[pathDecoded].forEach((bookmark: Locator) => {
+            _bookmarks.push(bookmark);
+        });
+    }
+}
+// electronStore.onChanged("bookmarks", (newValue: any, oldValue: any) => {
+//     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+//         return;
+//     }
+// });
+
 const saveReadingLocation = (location: LocatorExtended) => {
 
     updateReadingProgressionSlider(location.locator);
@@ -457,6 +557,11 @@ const saveReadingLocation = (location: LocatorExtended) => {
         locProgression: location.locator.locations.progression,
     } as IReadingLocation;
     electronStore.set("readingLocation", obj);
+
+    // tslint:disable-next-line:no-floating-promises
+    (async () => {
+        await refreshBookmarksState();
+    })();
 };
 setReadingLocationSaver(saveReadingLocation);
 
@@ -2338,6 +2443,28 @@ function startNavigatorExperiment() {
                 });
             }
         }
+
+        initBookmarksFromStore();
+
+        const buttonBookmarkTOGGLE = document.getElementById("bookmarkTOGGLE") as HTMLElement;
+        buttonBookmarkTOGGLE.addEventListener("MDCIconButtonToggle:change", async (_event) => {
+            if ((event as any).detail.isOn) {
+                addCurrentVisibleBookmark();
+            } else {
+                try {
+                    const removed = await removeAllCurrentVisibleBookmarks();
+                    console.log("removed bookmarks:");
+                    removed.forEach((bookmark) => {
+                        console.log(JSON.stringify(bookmark, null, 4));
+                    });
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+            refreshBookmarksStore();
+        });
+        const mdcButtonBookmarkTOGGLE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonBookmarkTOGGLE);
+        (buttonBookmarkTOGGLE as any).mdcButton = mdcButtonBookmarkTOGGLE;
 
         const buttonttsPLAYPAUSE = document.getElementById("ttsPLAYPAUSE") as HTMLElement;
         buttonttsPLAYPAUSE.addEventListener("MDCIconButtonToggle:change", (event) => {

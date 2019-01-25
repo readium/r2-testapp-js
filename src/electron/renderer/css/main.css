@@ -106,12 +106,28 @@ form {
   z-index: 2;
 } */
 
+#bookmarkTOGGLE {
+  box-sizing: border-box;
+  display:block;
+  position:absolute;
+  top: 0;
+  left: calc(1.5 * var(--R2__specialDimension));
+  margin: 0;
+  padding: 0;
+  width: var(--R2__specialDimension);
+  height: var(--R2__specialDimension);
+  min-width: var(--R2__specialDimension);
+  min-height: var(--R2__specialDimension);
+
+  color: #b43519;
+}
+
 #drawerButton {
   box-sizing: border-box;
   display:block;
   position:absolute;
-  top:0;
-  left:0;
+  top: 0;
+  left: 0;
   margin: 0;
   padding: 0;
   width: var(--R2__specialDimension);
