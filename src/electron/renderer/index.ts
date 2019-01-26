@@ -443,6 +443,87 @@ function updateReadingProgressionSlider(locator: Locator | undefined) {
 
 const _bookmarks: Locator[] = [];
 
+function getBookmarkMenuGroupLabel(bookmark: Locator): string {
+    return bookmark.title ? `${bookmark.title} (${bookmark.href})` : `${bookmark.href}`;
+}
+
+function refreshBookmarksMenu() {
+
+    const bookmarksEl = document.getElementById("reader_controls_BOOKMARKS");
+    const tagBookmarks: IRiotTagLinkListGroup = (bookmarksEl as any)._tag;
+
+    const bookmarksListGroups =
+        ((tagBookmarks.opts as IRiotOptsLinkListGroup).linksgroup as IRiotOptsLinkListGroupItem[]);
+    for (let i = bookmarksListGroups.length - 1; i >= 0; i--) { // remove all
+        bookmarksListGroups.splice(i, 1);
+    }
+
+    for (const bookmark of _bookmarks) {
+        const label = getBookmarkMenuGroupLabel(bookmark);
+
+        let listgroup: IRiotOptsLinkListGroupItem | undefined = bookmarksListGroups.find((lg) => {
+            return lg.label === label;
+        });
+        if (!listgroup) {
+            listgroup = {
+                label,
+                links: [],
+            };
+            bookmarksListGroups.push(listgroup);
+        }
+        if (bookmark.locations.cssSelector) {
+            const link: IRiotOptsLinkListItem = {
+                href: bookmark.href + "#r2loc(" + bookmark.locations.cssSelector + ")",
+                title: `Bookmark #${listgroup.links.length + 1}`,
+            };
+            listgroup.links.push(link);
+        }
+    }
+
+    tagBookmarks.update();
+}
+
+function visualDebugBookmarks() {
+
+    refreshBookmarksMenu();
+
+    const current = getCurrentReadingLocation(); // LocatorExtended
+
+    if ((window as any).READIUM2) {
+        if ((window as any).READIUM2.debugItems) {
+
+            let cssSelector = "";
+            let first = true;
+            for (const bookmark of _bookmarks) {
+                if (!current || current.locator.href !== bookmark.href) {
+                    continue;
+                }
+                if (bookmark.locations.cssSelector) {
+                    cssSelector += first ? "" : ", ";
+                    cssSelector += `${bookmark.locations.cssSelector}`;
+                    first = false;
+                }
+            }
+
+            const cssClass = "R2_DEBUG_VISUALS_BOOKMARKS";
+            const cssStyles = `.R2_DEBUG_VISUALS_BOOKMARKS {
+                outline-color: #b43519 !important;
+                outline-style: solid !important;
+                outline-width: 3px !important;
+                outline-offset: 0px !important;
+
+                background-color: #fee3dd !important;
+            }`;
+            (window as any).READIUM2.debugItems(cssSelector, cssClass, undefined); // clear
+            if (cssSelector.length && (window as any).READIUM2.DEBUG_VISUALS) {
+                setTimeout(() => {
+                    (window as any).READIUM2.debugItems(cssSelector, cssClass, cssStyles); // set all
+                }, 100);
+            }
+        }
+    }
+}
+
 function addCurrentVisibleBookmark() {
     const current = getCurrentReadingLocation(); // LocatorExtended
     if (current && current.locator) {
@@ -501,14 +582,17 @@ async function isAnyBookmarkVisible(): Promise<boolean> {
         resolve(false);
     });
 }
-async function refreshBookmarksState() {
-    const buttonBookmarkTOGGLE = document.getElementById("bookmarkTOGGLE") as HTMLElement;
-    try {
-        const atLeastOneBookmarkIsVisible = await isAnyBookmarkVisible();
-        (buttonBookmarkTOGGLE as any).mdcButton.on = atLeastOneBookmarkIsVisible;
-    } catch (err) {
-        console.log(err);
-    }
+function refreshBookmarksState() {
+    // tslint:disable-next-line:no-floating-promises
+    (async () => {
+        const buttonBookmarkTOGGLE = document.getElementById("bookmarkTOGGLE") as HTMLElement;
+        try {
+            const atLeastOneBookmarkIsVisible = await isAnyBookmarkVisible();
+            (buttonBookmarkTOGGLE as any).mdcButton.on = atLeastOneBookmarkIsVisible;
+        } catch (err) {
+            console.log(err);
+        }
+    })();
 }
 function refreshBookmarksStore() {
     let obj = electronStore.get("bookmarks");
@@ -526,19 +610,24 @@ function initBookmarksFromStore() {
     if (!obj) {
         obj = {};
     }
+    removeAllBookmarks();
     if (obj[pathDecoded]) {
         // _bookmarks = [];
-        removeAllBookmarks();
         obj[pathDecoded].forEach((bookmark: Locator) => {
             _bookmarks.push(bookmark);
         });
     }
 }
-// electronStore.onChanged("bookmarks", (newValue: any, oldValue: any) => {
-//     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
-//         return;
-//     }
-// });
+
+electronStore.onChanged("bookmarks", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+    initBookmarksFromStore();
+
+    visualDebugBookmarks();
+    refreshBookmarksState();
+});
 
 const saveReadingLocation = (location: LocatorExtended) => {
 
@@ -558,10 +647,8 @@ const saveReadingLocation = (location: LocatorExtended) => {
     } as IReadingLocation;
     electronStore.set("readingLocation", obj);
 
-    // tslint:disable-next-line:no-floating-promises
-    (async () => {
-        await refreshBookmarksState();
-    })();
+    visualDebugBookmarks();
+    refreshBookmarksState();
 };
 setReadingLocationSaver(saveReadingLocation);
 
@@ -884,6 +971,28 @@ electronStore.onChanged("basicLinkTitles", (newValue: any, oldValue: any) => {
     const basicSwitchEl = document.getElementById("nav_basic_switch") as HTMLElement;
     const basicSwitch = (basicSwitchEl as any).mdcSwitch;
     basicSwitch.checked = !newValue;
+});
+
+function visualDebug(doDebug: boolean) {
+
+    if ((window as any).READIUM2) {
+        if ((window as any).READIUM2.debug) {
+            (window as any).READIUM2.debug(doDebug);
+        }
+        // (window as any).READIUM2.DEBUG_VISUALS ? false : true
+    }
+    visualDebugBookmarks();
+}
+
+electronStore.onChanged("visualDebug", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+    const debugSwitchEl = document.getElementById("visual_debug_switch") as HTMLElement;
+    const debugSwitch = (debugSwitchEl as any).mdcSwitch;
+    debugSwitch.checked = newValue;
+
+    visualDebug(debugSwitch.checked);
 });
 
 let snackBar: any;
@@ -2126,6 +2235,21 @@ window.addEventListener("DOMContentLoaded", () => {
         }, 500);
     });
 
+    const debugSwitchEl = document.getElementById("visual_debug_switch") as HTMLElement;
+    const debugSwitch = new (window as any).mdc.switchControl.MDCSwitch(debugSwitchEl);
+    (debugSwitchEl as any).mdcSwitch = debugSwitch;
+    debugSwitch.checked = electronStore.get("visualDebug");
+    debugSwitchEl.addEventListener("change", (_event: any) => {
+        const checked = debugSwitch.checked;
+        electronStore.set("visualDebug", checked);
+
+        setTimeout(() => {
+            snackBar.labelText = `Visual debugging now ${checked ? "enabled" : "disabled"}.`;
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
+        }, 500);
+    });
+
     const snackBarElem = document.getElementById("snackbar") as HTMLElement;
     snackBar = new (window as any).mdc.snackbar.MDCSnackbar(snackBarElem);
     (snackBarElem as any).mdcSnackbar = snackBar;
@@ -2257,9 +2381,11 @@ window.addEventListener("DOMContentLoaded", () => {
     buttonClearReadingLocations.addEventListener("click", () => {
         electronStore.set("readingLocation", {});
 
+        electronStore.set("bookmarks", {});
+
         drawer.open = false;
         setTimeout(() => {
-            snackBar.labelText = "Reading locations reset.";
+            snackBar.labelText = "Reading locations / bookmarks reset.";
             snackBar.actionButtonText = "OK";
             snackBar.open();
         }, 500);
@@ -2436,11 +2562,8 @@ function startNavigatorExperiment() {
                 const h1 = document.getElementById("pubTitle") as HTMLElement;
                 h1.textContent = title;
                 h1.setAttribute("title", title);
-                h1.addEventListener("click", (_event: any) => {
-                    if ((window as any).READIUM2 && (window as any).READIUM2.debug) {
-                        (window as any).READIUM2.debug((window as any).READIUM2.DEBUG_VISUALS ? false : true);
-                    }
-                });
+                // h1.addEventListener("click", (_event: any) => {
+                // });
             }
         }
 
@@ -2461,10 +2584,25 @@ function startNavigatorExperiment() {
                     console.log(err);
                 }
             }
+            visualDebugBookmarks();
             refreshBookmarksStore();
         });
         const mdcButtonBookmarkTOGGLE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonBookmarkTOGGLE);
         (buttonBookmarkTOGGLE as any).mdcButton = mdcButtonBookmarkTOGGLE;
+
+        // const buttonBookmarkHighlightTOGGLE = document.getElementById("bookmarkHighlightTOGGLE") as HTMLElement;
+        // buttonBookmarkHighlightTOGGLE.addEventListener("MDCIconButtonToggle:change", async (_event) => {
+        //     const bookmarkHighlightTOGGLELabel =
+        //         document.getElementById("bookmarkHighlightTOGGLELabel") as HTMLElement;
+        //     if ((event as any).detail.isOn) {
+        //         bookmarkHighlightTOGGLELabel.textContent = "hide bookmarks";
+        //     } else {
+        //         bookmarkHighlightTOGGLELabel.textContent = "show bookmarks";
+        //     }
+        // });
+        // const mdcButtonBookmarkHighlightTOGGLE =
+        //     new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonBookmarkHighlightTOGGLE);
+        // (buttonBookmarkHighlightTOGGLE as any).mdcButton = mdcButtonBookmarkHighlightTOGGLE;
 
         const buttonttsPLAYPAUSE = document.getElementById("ttsPLAYPAUSE") as HTMLElement;
         buttonttsPLAYPAUSE.addEventListener("MDCIconButtonToggle:change", (event) => {
@@ -2631,6 +2769,38 @@ function startNavigatorExperiment() {
         }, 300);
         buttonNavLeft.addEventListener("wheel", onWheel);
         buttonNavRight.addEventListener("wheel", onWheel);
+
+        const FAKE_URL = "https://dummy.me/";
+        const optsBookmarks: IRiotOptsLinkListGroup = {
+            basic: electronStore.get("basicLinkTitles"),
+            handleLink: (href: string) => {
+                href = href.substr(FAKE_URL.length);
+                const fragToken = "#r2loc(";
+                const i = href.indexOf(fragToken);
+                if (i > 0) {
+                    const j = i + fragToken.length;
+                    const cssSelector = href.substr(j, href.length - j - 1);
+                    href = href.substr(0, i);
+                    const locator = {
+                        href,
+                        locations: {
+                            cssSelector,
+                        },
+                    };
+                    handleLinkLocator_(locator);
+                }
+            },
+            linksgroup: [] as IRiotOptsLinkListGroupItem[],
+            url: FAKE_URL, // publicationJsonUrl,
+        };
+        const tagBookmarks =
+            riotMountLinkListGroup("#reader_controls_BOOKMARKS", optsBookmarks)[0] as IRiotTagLinkListGroup;
+        electronStore.onChanged("basicLinkTitles", (newValue: any, oldValue: any) => {
+            if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+                return;
+            }
+            tagBookmarks.setBasic(newValue);
+        });
 
         if (_publication.Spine && _publication.Spine.length) {
 
@@ -2844,5 +3014,16 @@ function handleLink_(href: string) {
         }, 200);
     } else {
         handleLinkUrl(href);
+    }
+}
+
+function handleLinkLocator_(locator: Locator) {
+    if (drawer.open) {
+        drawer.open = false;
+        setTimeout(() => {
+            handleLinkLocator(locator);
+        }, 200);
+    } else {
+        handleLinkLocator(locator);
     }
 }

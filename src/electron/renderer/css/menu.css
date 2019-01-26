@@ -51,6 +51,8 @@
   opacity: 1;
 }
 
+/* https://github.com/google/material-design-icons/blob/master/iconfont/codepoints */
+
 /* home */
 #selectTOC::after {
     content: "\E88A";
@@ -66,6 +68,10 @@
 /* linear_scale */
 #selectSpine::after {
     content: "\E260";
+}
+/* bookmarks */
+#selectBookmarks::after {
+    content: "\e866";
 }
 /* format_color_text */
 #selectStyles::after {

@@ -35,7 +35,6 @@ form {
   left: var(--R2__specialDimension);
   right: var(--R2__specialDimension);
   text-align: center;
-  width: 100%;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -106,21 +105,55 @@ form {
   z-index: 2;
 } */
 
-#bookmarkTOGGLE {
+#bookmarksDiv {
+  z-index: 3;
+  overflow: hidden;
   box-sizing: border-box;
   display:block;
   position:absolute;
   top: 0;
-  left: calc(1.5 * var(--R2__specialDimension));
+  left: calc(1 * var(--R2__specialDimension));
   margin: 0;
+  padding: 0;
+  font-size: 80%;
+  background: transparent;
+}
+
+#bookmarkTOGGLE {
+  box-sizing: border-box;
+  display:inline-block;
+  margin: 0;
+  padding: 0;
+  /* width: calc(2 * var(--R2__specialDimension));
+  height: calc(2 * var(--R2__specialDimension));
+  min-width: calc(2 * var(--R2__specialDimension));
+  min-height: calc(2 * var(--R2__specialDimension)); */
+
+  background: transparent;
+  color: #b43519;
+}
+#bookmarkTOGGLE > i {
+  font-size: 200%;
+}
+
+/* #bookmarkHighlightTOGGLE {
+  box-sizing: border-box;
+  display:inline-block;
+  margin-left: -0.6em;
   padding: 0;
   width: var(--R2__specialDimension);
   height: var(--R2__specialDimension);
   min-width: var(--R2__specialDimension);
   min-height: var(--R2__specialDimension);
-
-  color: #b43519;
 }
+#bookmarkHighlightTOGGLELabel {
+  box-sizing: border-box;
+  display:inline-block;
+  margin-left: -0.8em;
+  padding: 0;
+
+  vertical-align: super;
+} */
 
 #drawerButton {
   box-sizing: border-box;
