@@ -506,7 +506,7 @@ function visualDebugBookmarks() {
             }
 
             const cssClass = "R2_DEBUG_VISUALS_BOOKMARKS";
-            const cssStyles = `.R2_DEBUG_VISUALS_BOOKMARKS {
+            const cssStyles = `:root[style] .R2_DEBUG_VISUALS_BOOKMARKS, :root .R2_DEBUG_VISUALS_BOOKMARKS {
                 outline-color: #b43519 !important;
                 outline-style: solid !important;
                 outline-width: 3px !important;
