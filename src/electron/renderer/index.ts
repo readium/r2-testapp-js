@@ -274,7 +274,9 @@ function onChangeReadingProgressionSlider() {
     }
 }
 
-function updateReadingProgressionSlider(locator: Locator | undefined) {
+function updateReadingProgressionSlider(locatorExtended: LocatorExtended | undefined) {
+    const locator = locatorExtended ? locatorExtended.locator : undefined;
+
     const positionSelector = document.getElementById("positionSelector") as HTMLElement;
     positionSelector.style.visibility = "visible";
     const positionSelectorValue = document.getElementById("positionSelectorValue") as HTMLElement;
@@ -298,7 +300,9 @@ function updateReadingProgressionSlider(locator: Locator | undefined) {
             });
         }
     }
-    const fixedLayout = _publication ? isFixedLayout(_publication, foundLink) : false;
+    const fixedLayout = (locatorExtended && locatorExtended.docInfo) ?
+        locatorExtended.docInfo.isFixedLayout :
+        (_publication ? isFixedLayout(_publication, foundLink) : false);
 
     let label = (foundLink && foundLink.Title) ? sanitizeText(foundLink.Title) : undefined;
     if (!label || !label.length) {
@@ -631,7 +635,7 @@ electronStore.onChanged("bookmarks", (newValue: any, oldValue: any) => {
 
 const saveReadingLocation = (location: LocatorExtended) => {
 
-    updateReadingProgressionSlider(location.locator);
+    updateReadingProgressionSlider(location);
 
     let obj = electronStore.get("readingLocation");
     if (!obj) {
@@ -2963,8 +2967,33 @@ function startNavigatorExperiment() {
             //     unhideWebView();
             // });
 
+            let foundLink: Link | undefined;
+            if (_publication && location) {
+                if (_publication.Spine) {
+                    foundLink = _publication.Spine.find((link) => {
+                        return typeof location !== "undefined" &&
+                            link.Href === location.href;
+                    });
+                }
+                if (!foundLink && _publication.Resources) {
+                    foundLink = _publication.Resources.find((link) => {
+                        return typeof location !== "undefined" &&
+                            link.Href === location.href;
+                    });
+                }
+            }
             // console.log(location);
-            updateReadingProgressionSlider(location);
+            const locatorExtended: LocatorExtended | undefined = location ? {
+                docInfo: {
+                    isFixedLayout: isFixedLayout(_publication as Publication, foundLink),
+                    isRightToLeft: false,
+                    isVerticalWritingMode: false,
+                },
+                locator: location,
+                paginationInfo: undefined,
+                selectionInfo: undefined,
+            } : undefined;
+            updateReadingProgressionSlider(locatorExtended);
 
             installNavigatorDOM(_publication as Publication, publicationJsonUrl,
                 rootHtmlElementID,
