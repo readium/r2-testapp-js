@@ -185,7 +185,8 @@ async function isManifestJSON(urlOrPath: string): Promise<boolean> {
 
                 const okay = response.headers["content-type"] &&
                     (response.headers["content-type"].indexOf("application/webpub+json") >= 0 ||
-                        response.headers["content-type"].indexOf("application/audiobook+json") >= 0);
+                        response.headers["content-type"].indexOf("application/audiobook+json") >= 0 ||
+                        response.headers["content-type"].indexOf("application/json") >= 0);
                 resolve(okay as boolean);
 
                 // response.on("data", (chunk) => {
