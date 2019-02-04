@@ -462,7 +462,73 @@ function refreshBookmarksMenu() {
         bookmarksListGroups.splice(i, 1);
     }
 
-    for (const bookmark of _bookmarks) {
+    let sortedBookmarks: Locator[];
+    if (_publication) {
+        sortedBookmarks = [];
+        for (const bookmark of _bookmarks) {
+            sortedBookmarks.push(bookmark);
+
+            let foundLink: Link | undefined;
+            let spineIndex = -1;
+            if (_publication.Spine) {
+                foundLink = _publication.Spine.find((link, i) => {
+                    const ok = link.Href === bookmark.href;
+                    if (ok) {
+                        spineIndex = i;
+                    }
+                    return ok;
+                });
+                if (foundLink) {
+                    (bookmark as any).sortIndex = spineIndex;
+                }
+            }
+            if (!foundLink && _publication.Resources) {
+                foundLink = _publication.Resources.find((link) => {
+                    return link.Href === bookmark.href;
+                });
+                if (foundLink) {
+                    (bookmark as any).sortIndex = -1;
+                } else {
+                    (bookmark as any).sortIndex = -2;
+                }
+            }
+        }
+
+        sortedBookmarks.sort((l1, l2) => {
+            if ((l1 as any).sortIndex === -2) {
+                if ((l2 as any).sortIndex === -2) {
+                    return 0; // l1 "equal" l2
+                } else if ((l2 as any).sortIndex === -1) {
+                    return 1; // l1 "greater than" l2
+                } else {
+                    return 1; // l1 "greater than" l2
+                }
+            }
+            if ((l1 as any).sortIndex === -1) {
+                if ((l2 as any).sortIndex === -2) {
+                    return -1; // l1 "less than" l2
+                } else if ((l2 as any).sortIndex === -1) {
+                    return 0; // l1 "equal" l2
+                } else {
+                    return 1; // l1 "greater than" l2
+                }
+            }
+
+            if ((l1 as any).sortIndex !== (l2 as any).sortIndex ||
+                typeof l1.locations.progression === "undefined" ||
+                typeof l2.locations.progression === "undefined") {
+
+                return (l1 as any).sortIndex - (l2 as any).sortIndex;
+            }
+
+            return l1.locations.progression - l2.locations.progression;
+        });
+
+    } else { // should never happen!
+        sortedBookmarks = _bookmarks;
+    }
+
+    for (const bookmark of sortedBookmarks) {
         const label = getBookmarkMenuGroupLabel(bookmark);
 
         let listgroup: IRiotOptsLinkListGroupItem | undefined = bookmarksListGroups.find((lg) => {
@@ -478,12 +544,15 @@ function refreshBookmarksMenu() {
         if (bookmark.locations.cssSelector) {
             const link: IRiotOptsLinkListItem = {
                 href: bookmark.href + "#r2loc(" + bookmark.locations.cssSelector + ")",
-                title: `Bookmark #${listgroup.links.length + 1}`,
+
+                title: (typeof bookmark.locations.progression !== "undefined") ?
+                    // tslint:disable-next-line:max-line-length
+                    `Bookmark #${listgroup.links.length + 1} (${Math.round(bookmark.locations.progression * 1000) / 10}%)` :
+                    `Bookmark #${listgroup.links.length + 1}`,
             };
             listgroup.links.push(link);
         }
     }
-
     tagBookmarks.update();
 }
 
