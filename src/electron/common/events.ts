@@ -11,6 +11,14 @@ export const R2_EVENT_DEVTOOLS = "R2_EVENT_DEVTOOLS";
 
 // in RENDERER: ipcRenderer.send()
 // in MAIN: ipcMain.on()
+export const R2_EVENT_OPEN_URL_OR_PATH = "R2_EVENT_OPEN_URL_OR_PATH";
+// tslint:disable-next-line:class-name
+export interface IEventPayload_R2_EVENT_OPEN_URL_OR_PATH {
+    urlOrPath: string;
+}
+
+// in RENDERER: ipcRenderer.send()
+// in MAIN: ipcMain.on()
 export const R2_EVENT_LCP_LSD_RETURN = "R2_EVENT_LCP_LSD_RETURN";
 // tslint:disable-next-line:class-name
 export interface IEventPayload_R2_EVENT_LCP_LSD_RETURN {

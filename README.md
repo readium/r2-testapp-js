@@ -6,9 +6,19 @@ Electron / NodeJS implementation (written in TypeScript) of a test app for the R
 
 ## Build status
 
-[![NPM](https://img.shields.io/npm/v/r2-testapp-js.svg)](https://www.npmjs.com/package/r2-testapp-js) [![David](https://david-dm.org/readium/r2-testapp-js/status.svg)](https://david-dm.org/readium/r2-testapp-js)
+[![NPM](https://img.shields.io/npm/v/r2-testapp-js.svg)](https://www.npmjs.com/package/r2-testapp-js) [![David](https://david-dm.org/readium/r2-testapp-js/status.svg)](https://david-dm.org/readium/r2-testapp-js) [![Travis](https://travis-ci.org/readium/r2-testapp-js.svg?branch=develop)](https://travis-ci.org/readium/r2-testapp-js)
 
 [Changelog](/CHANGELOG.md)
+
+## Downloadable executables
+
+Please note that this application is a test bed for Readium2 components, this is not aimed at end-users.
+This is not a full reading system, just a basic reader interface.
+Notably, this application lacks a local bookshelf, and a feed explorer for remote publications (OPDS).
+
+The pre-releases application installers/executables labelled "continuous test build" are generated automatically by TravisCI ( https://travis-ci.org/readium/r2-testapp-js ).
+
+https://github.com/readium/r2-testapp-js/releases
 
 ## Prerequisites
 
@@ -66,10 +76,9 @@ A [yarn.lock](https://github.com/readium/r2-testapp-js/blob/develop/yarn.lock) f
 
 ## Continuous Integration
 
-TODO (unit tests?)
 https://travis-ci.org/readium/r2-testapp-js
 
-Badge: `[![Travis](https://travis-ci.org/readium/r2-testapp-js.svg?branch=develop)](https://travis-ci.org/readium/r2-testapp-js)`
+TravisCI builds are triggered automatically at every Git "push" in the `develop` branch.
 
 ## Version(s), Git revision(s)
 

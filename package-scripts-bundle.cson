@@ -236,14 +236,13 @@
     rimraf package-lock.json &&
     rimraf node_modules &&
     npm init -f -y &&
-    npm install conf@latest &&
-    npm install bindings@latest &&
+    npm install conf@^1.4.0 --save &&
+    npm install bindings@latest --save &&
     rimraf package.json &&
     rimraf package-lock.json &&
     cd ..
   '
-
-  'bundle:#ECMASCRIPT#_': '
+  'prebundle:#ECMASCRIPT#_': '
     curl https://raw.githubusercontent.com/rbuckton/reflect-metadata/master/Reflect.ts > Reflect.ts &&
 
     ((ls ./node_modules/reflect-metadata/ &&
@@ -260,6 +259,21 @@
 
     rimraf Reflect.ts &&
 
+    ((ls ./node_modules/structured-source/ &&
+    sed "s/sourceMappingURL=.*/VOIDsourceMappingURLVOID=/g" "./node_modules/structured-source/lib/index.js" > "./node_modules/structured-source/lib/index.js.removedsrcmap" &&
+    sed "s/sourceMappingURL=.*/VOIDsourceMappingURLVOID=/g" "./node_modules/structured-source/lib/structured-source.js" > "./node_modules/structured-source/lib/structured-source.js.removedsrcmap" &&
+    sed "s/sourceMappingURL=.*/VOIDsourceMappingURLVOID=/g" "./node_modules/boundary/lib/index.js" > "./node_modules/boundary/lib/index.js.removedsrcmap" &&
+    mv "./node_modules/structured-source/lib/index.js.removedsrcmap" "./node_modules/structured-source/lib/index.js" &&
+    mv "./node_modules/structured-source/lib/structured-source.js.removedsrcmap" "./node_modules/structured-source/lib/structured-source.js" &&
+    mv "./node_modules/boundary/lib/index.js.removedsrcmap" "./node_modules/boundary/lib/index.js")
+    || echo "OK")
+  '
+#rimraf "./node_modules/structured-source/lib/index.js" &&
+#rimraf "./node_modules/structured-source/lib/structured-source.js" &&
+#cpy --cwd "./node_modules/structured-source/lib/" "index.js.removedsrcmap" "./" --rename "index.js" &&
+#cpy --cwd "./node_modules/structured-source/lib/" "structured-source.js.removedsrcmap" "./" --rename "structured-source.js")
+
+  'bundle:#ECMASCRIPT#_': '
     mkdirp ./dist/bundle-#ECMASCRIPT# &&
 
     npm run bundle-npm-externals:#ECMASCRIPT#_ &&
@@ -289,14 +303,13 @@
 
     cpy "./ReadiumCSS/**/*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents --no-dir &&
 
-    cpy "./misc/epubs/*" ./dist/bundle-#ECMASCRIPT#/ --parents &&
-
     npm run bundle-electron-main:#ECMASCRIPT# &&
     npm run bundle-electron-renderer:#ECMASCRIPT# &&
     npm run bundle-electron-webview-preload:#ECMASCRIPT# &&
 
     rimraf "./dist/bundle-#ECMASCRIPT#/*.js.map"
   '
+# cpy "./misc/epubs/*" ./dist/bundle-#ECMASCRIPT#/ --parents &&
 
   'bundle-electron-main:#ECMASCRIPT#': '
     npm run bundle-browserify-electron-main:#ECMASCRIPT# &&

@@ -4,6 +4,7 @@
     "target": "es5",
     "module": "commonjs",
     "moduleResolution": "node",
+    "downlevelIteration": true,
     "outDir": "../dist/es5/",
     "lib": [
       "dom",

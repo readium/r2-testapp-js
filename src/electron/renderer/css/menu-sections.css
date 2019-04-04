@@ -1,17 +1,22 @@
+.switchWrap {
+  padding-top: 0.6em;
+  padding-bottom: 0.6em;
+}
 #tabsPanels {
-  height: 100%;
+  width: 100%;
   overflow: hidden;
-  borderxx: 2px solid red;
+  /* border: 2px solid red; */
   box-sizing: border-box;
   display: inline-flex;
   margin-top: 1px;
 }
 .tabPanel {
+  width: 100%;
   display: none;
 
   overflow-x: hidden;
   overflow-y: auto;
-  width: 100%;
+  /* width: 100%; */
 }
 .tabPanel.active {
   display: block;
@@ -27,7 +32,6 @@
 }
 
 #reader_controls_ADVANCED,
-#reader_controls_TOOLS,
 #reader_controls_STYLES {
   padding: 1em;
 }
@@ -41,10 +45,6 @@
 #tabsPanels .mdc-list-item__secondary-text {
   word-wrap: break-word;
 }
-#lineHeightSelector {
-  margin-top: -22px;
-}
-
-#fontSizeSelector {
+.settingSlider {
   margin-top: -22px;
 }

@@ -1,7 +1,7 @@
 <riot-linktree>
 
   <li if="{ opts.links && opts.links.length }" each="{ opts.links }" no-reorder>
-    <a if="{ href }" href="{ parent.opts.url + '/../' + href }" data-href="{ href }" title="{ href }" onclick="{ parent.onclick }">
+    <a if="{ href }" draggable="false" href="{ href }" data-href="{ href }" data-url="{ parent.url }" title="{ title + ' (' + href + ')' }" onclick="{ parent.onclick }">
       <span class="mdc-list-item__text">{ title } <span if="{ !parent.opts.basic }" class="mdc-list-item__secondary-text">{ href }</span></span>
     </a>
     <span if="{ !href }" class="mdc-list-item__secondary-text">{ title }</span>
@@ -10,7 +10,7 @@
     <ul data-is="riot-linktree" if="{ children && children.length }" links="{ children }" url="{ parent.opts.url }" basic="{ parent.opts.basic }"> </ul>
   </li>
 
-  <p if="{ !opts.links || !opts.links.length }">NO LINKS!?</p>
+  <p if="{ !opts.links || !opts.links.length }">EMPTY</p>
 
   <style>
     a {

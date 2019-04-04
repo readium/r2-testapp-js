@@ -1,11 +1,16 @@
-#fontSelect {
-  margin-bottom: 2em;
+#fontSelect,
+#textColorSelect,
+#backgroundColorSelect {
+  margin-bottom: 1em;
+  margin-top: 0.5em;
+  width: 100%;
 }
+
+/*
 #fontSelect.mdc-select {
   width: 100% !important;
 }
 #fontSelect .mdc-select__menu {
-  /* left: 0 !important; */
   width: 80%;
 }
 #fontSelect .mdc-select__selected-text,
@@ -26,14 +31,16 @@
   direction: ltr;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+  display: inline-block;
 
   vertical-align: bottom;
 
-  display: inline-block;
   position: relative;
   left: -6px;
   top: -3px;
 
   content: "\E245";
-  /* format_size */
-}
+} */
+/* format_size */

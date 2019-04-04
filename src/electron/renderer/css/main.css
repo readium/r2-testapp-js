@@ -29,8 +29,12 @@ form {
 }
 
 #pubTitle {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: var(--R2__specialDimension);
+  right: var(--R2__specialDimension);
   text-align: center;
-  width: 100%;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -44,7 +48,7 @@ form {
   left: var(--R2__specialDimension);
   right: var(--R2__specialDimension);
   top: 0;
-  bottom: 0;
+  bottom: 48px; /* var(--R2__specialDimension) because #positionSelector.mdc-slider */
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -52,8 +56,37 @@ form {
   overflow: hidden;
 }
 
-#reader_chrome,
-#r2_navigator_reader_chrome_HIDE {
+#positionSelector {
+  display: block;
+  position: absolute;
+  left: var(--R2__specialDimension);
+  right: var(--R2__specialDimension);
+  width: auto !important;
+  bottom: 0; /* note: height == 48px, not 36px / var(--R2__specialDimension) */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: white;
+}
+#positionSelectorLabel {
+  text-align: center;
+  display: block;
+  position: absolute;
+  left: var(--R2__specialDimension);
+  right: var(--R2__specialDimension);
+  height: auto;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: transparent;
+  font-size: 70%;
+  padding-bottom: 0.5em;
+}
+
+/* #r2_navigator_reader_chrome_HIDE */
+#reader_chrome
+{
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -67,17 +100,67 @@ form {
   /* border-top: 1px solid silver; */
   z-index: 1;
 }
-#r2_navigator_reader_chrome_HIDE {
+/* #r2_navigator_reader_chrome_HIDE {
   display: none;
   z-index: 2;
+} */
+
+#bookmarksDiv {
+  z-index: 3;
+  overflow: hidden;
+  box-sizing: border-box;
+  display:block;
+  position:absolute;
+  top: 0;
+  left: calc(1 * var(--R2__specialDimension));
+  margin: 0;
+  padding: 0;
+  font-size: 80%;
+  background: transparent;
 }
+
+#bookmarkTOGGLE {
+  box-sizing: border-box;
+  display:inline-block;
+  margin: 0;
+  padding: 0;
+  /* width: calc(2 * var(--R2__specialDimension));
+  height: calc(2 * var(--R2__specialDimension));
+  min-width: calc(2 * var(--R2__specialDimension));
+  min-height: calc(2 * var(--R2__specialDimension)); */
+
+  background: transparent;
+  color: #b43519;
+}
+#bookmarkTOGGLE > i {
+  font-size: 200%;
+}
+
+/* #bookmarkHighlightTOGGLE {
+  box-sizing: border-box;
+  display:inline-block;
+  margin-left: -0.6em;
+  padding: 0;
+  width: var(--R2__specialDimension);
+  height: var(--R2__specialDimension);
+  min-width: var(--R2__specialDimension);
+  min-height: var(--R2__specialDimension);
+}
+#bookmarkHighlightTOGGLELabel {
+  box-sizing: border-box;
+  display:inline-block;
+  margin-left: -0.8em;
+  padding: 0;
+
+  vertical-align: super;
+} */
 
 #drawerButton {
   box-sizing: border-box;
   display:block;
   position:absolute;
-  top:0;
-  left:0;
+  top: 0;
+  left: 0;
   margin: 0;
   padding: 0;
   width: var(--R2__specialDimension);
@@ -89,6 +172,6 @@ form {
   vertical-align: middle;
 }
 
-#drawerNav {
-  height: 100%;
+#drawer {
+  user-select: none;
 }

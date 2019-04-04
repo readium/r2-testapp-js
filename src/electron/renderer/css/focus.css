@@ -1,8 +1,14 @@
-*:focus {
+*:focus,
+.keyboardfocus {
   outline-style: solid !important;
   outline-width: 2px !important;
   outline-color: var(--mdc-theme-primary, blue) !important;
-  outline-offset: 0px !important;
+  outline-offset: -2px !important;
+}
+.switchWrap.keyboardfocus,
+.mdc-button--raised:focus,
+.mdc-slider.settingSlider:focus {
+  outline-offset: 2px !important;
 }
 *.no-focus-outline:focus {
   outline-style: none !important;

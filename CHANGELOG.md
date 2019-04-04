@@ -1,10 +1,52 @@
 # Next
 
 Git diff:
-* https://github.com/readium/r2-testapp-js/compare/v1.0.4...develop
+* https://github.com/readium/r2-testapp-js/compare/v1.0.6...develop
 
 Changes:
 * TODO
+
+# 1.0.6
+
+> Build environment: NodeJS `8.15.1`, NPM `6.4.1`
+
+Changes:
+* NPM updates (including transition to v1 of Google's own MaterialDesign UI lib, components for the web)
+* Many small UI improvements and fixes
+
+Git revision info:
+* https://unpkg.com/r2-testapp-js@1.0.6/dist/gitrev.json
+* https://github.com/edrlab/r2-testapp-js-dist/blob/v1.0.6/dist/gitrev.json
+
+Git commit history:
+* https://github.com/readium/r2-testapp-js/commits/v1.0.6
+
+Git diff:
+* https://github.com/readium/r2-testapp-js/compare/v1.0.5...v1.0.6
+
+# 1.0.5
+
+> Build environment: NodeJS `8.14.1`, NPM `6.4.1`
+
+Changes:
+* NPM updates
+* Switched to more up-to-date variant of material-design-icons
+* Now checks ReadiumWebPubManifest type using HTTP HEAD request and content-type header
+* Enable direct support for remote publications, including LCP (in which case proxy through streamer to handle decryption)
+* Added basic test UI for TTS read aloud
+* Added switch for popup footnotes (user preference)
+* Mouse wheel can be used on left/right navigation arrows to turn pages
+* Fixed URL concatenation issue (links with relative hrefs, TOC, etc.)
+
+Git revision info:
+* https://unpkg.com/r2-testapp-js@1.0.5/dist/gitrev.json
+* https://github.com/edrlab/r2-testapp-js-dist/blob/v1.0.5/dist/gitrev.json
+
+Git commit history:
+* https://github.com/readium/r2-testapp-js/commits/v1.0.5
+
+Git diff:
+* https://github.com/readium/r2-testapp-js/compare/v1.0.4...v1.0.5
 
 # 1.0.4
 

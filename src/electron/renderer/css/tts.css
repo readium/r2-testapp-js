@@ -1,0 +1,25 @@
+#ttsControls {
+    position: absolute;
+    overflow: hidden;
+    right: 0;
+    top: 0;
+    width: auto;
+    height: var(--R2__specialDimension);
+    margin: 0;
+    padding: 0;
+    font-size: 80%;
+    background: white;
+    border-left: 2em solid white;
+}
+
+#ttsControls > button {
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: inherit;
+    margin: 0;
+    padding: 0;
+    width: var(--R2__specialDimension);
+    height: var(--R2__specialDimension);
+    min-width: var(--R2__specialDimension);
+    min-height: var(--R2__specialDimension);
+}

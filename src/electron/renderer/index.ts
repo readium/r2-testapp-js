@@ -21,13 +21,25 @@ import {
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
     LocatorExtended,
+    TTSStateEnum,
+    getCurrentReadingLocation,
+    handleLinkLocator,
     handleLinkUrl,
     installNavigatorDOM,
+    isLocatorVisible,
     navLeftOrRight,
     readiumCssOnOff,
     setEpubReadingSystemInfo,
     setReadingLocationSaver,
     setReadiumCssJsonGetter,
+    ttsClickEnable,
+    ttsListen,
+    ttsNext,
+    ttsPause,
+    ttsPlay,
+    ttsPrevious,
+    ttsResume,
+    ttsStop,
 } from "@r2-navigator-js/electron/renderer/index";
 import {
     initGlobalConverters_OPDS,
@@ -39,9 +51,11 @@ import {
 import { Locator } from "@r2-shared-js/models/locator";
 import { IStringMap } from "@r2-shared-js/models/metadata-multilang";
 import { Publication } from "@r2-shared-js/models/publication";
+import { Link } from "@r2-shared-js/models/publication-link";
 import { debounce } from "debounce";
 import { ipcRenderer } from "electron";
 import { JSON as TAJSON } from "ta-json-x";
+import * as throttle from "throttleit";
 
 import {
     IEventPayload_R2_EVENT_LCP_LSD_RENEW,
@@ -59,6 +73,8 @@ import {
 } from "../common/events";
 import { IStore } from "../common/store";
 import { StoreElectron } from "../common/store-electron";
+import { HTML_COLORS } from "./colours";
+import { setupDragDrop } from "./drag-drop";
 import {
     IRiotOptsLinkList,
     IRiotOptsLinkListItem,
@@ -130,6 +146,8 @@ initGlobalConverters_GENERIC();
 const pubServerRoot = queryParams["pubServerRoot"];
 console.log(pubServerRoot);
 
+let _publication: Publication | undefined;
+
 const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
 
     const on = electronStore.get("readiumCSSEnable");
@@ -163,7 +181,531 @@ interface IReadingLocation {
     locPosition: number;
 }
 
+function isFixedLayout(publication: Publication, link: Link | undefined): boolean {
+    if (link && link.Properties) {
+        if (link.Properties.Layout === "fixed") {
+            return true;
+        }
+        if (typeof link.Properties.Layout !== "undefined") {
+            return false;
+        }
+    }
+    if (publication &&
+        publication.Metadata &&
+        publication.Metadata.Rendition) {
+        return publication.Metadata.Rendition.Layout === "fixed";
+    }
+    return false;
+}
+
+function sanitizeText(str: string): string {
+    // tslint:disable-next-line:max-line-length
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, " ").replace(/\s\s+/g, " ").trim();
+}
+
+function onChangeReadingProgressionSlider() {
+    const positionSelector = document.getElementById("positionSelector") as HTMLElement;
+    const mdcSlider = (positionSelector as any).mdcSlider;
+    if (typeof mdcSlider.functionMode === "undefined") {
+        return;
+    }
+
+    if (mdcSlider.functionMode === "fixed-layout" ||
+        mdcSlider.functionMode === "reflow-scrolled") {
+        if (_publication && _publication.Spine) {
+            const zeroBasedIndex = mdcSlider.value - 1;
+            const foundLink = _publication.Spine.find((_link, i) => {
+                return zeroBasedIndex === i;
+            });
+            if (foundLink) {
+                const locator = {
+                    href: foundLink.Href,
+                    locations: {
+                        cfi: undefined,
+                        cssSelector: undefined,
+                        position: undefined,
+                        progression: undefined,
+                    },
+                };
+                handleLinkLocator(locator);
+            }
+        }
+        return;
+    }
+
+    // if (mdcSlider.functionMode === "reflow-scrolled") {
+    //     const currentPos = getCurrentReadingLocation(); // LocatorExtended
+    //     if (!currentPos) {
+    //         return;
+    //     }
+    //     const locator = {
+    //         href: currentPos.locator.href,
+    //         locations: {
+    //             cfi: undefined,
+    //             cssSelector: undefined,
+    //             position: undefined,
+
+    //             // zero-based percentage, reaches 100% unlike scroll offset
+    //             progression: mdcSlider.value / 100,
+    //         },
+    //     };
+    //     handleLinkLocator(locator);
+    //     return;
+    // }
+
+    if (mdcSlider.functionMode === "reflow-paginated") {
+        const currentPos = getCurrentReadingLocation(); // LocatorExtended
+        if (!currentPos) {
+            return;
+        }
+
+        const locator = {
+            href: currentPos.locator.href,
+            locations: {
+                cfi: undefined,
+                cssSelector: undefined,
+                position: undefined,
+
+                // zero-based percentage, does not reach 100% (column/spread begin)
+                progression: (mdcSlider.value - 1) / mdcSlider.max,
+            },
+        };
+        handleLinkLocator(locator);
+    }
+}
+
+function updateReadingProgressionSlider(locatorExtended: LocatorExtended | undefined) {
+    const locator = locatorExtended ? locatorExtended.locator : undefined;
+
+    const positionSelector = document.getElementById("positionSelector") as HTMLElement;
+    positionSelector.style.visibility = "visible";
+    const positionSelectorValue = document.getElementById("positionSelectorValue") as HTMLElement;
+    const mdcSlider = (positionSelector as any).mdcSlider;
+
+    let foundLink: Link | undefined;
+    let spineIndex = -1;
+    if (_publication && locator) {
+        if (_publication.Spine) {
+            foundLink = _publication.Spine.find((link, i) => {
+                const ok = link.Href === locator.href;
+                if (ok) {
+                    spineIndex = i;
+                }
+                return ok;
+            });
+        }
+        if (!foundLink && _publication.Resources) {
+            foundLink = _publication.Resources.find((link) => {
+                return link.Href === locator.href;
+            });
+        }
+    }
+    const fixedLayout = (locatorExtended && locatorExtended.docInfo) ?
+        locatorExtended.docInfo.isFixedLayout :
+        (_publication ? isFixedLayout(_publication, foundLink) : false);
+
+    let label = (foundLink && foundLink.Title) ? sanitizeText(foundLink.Title) : undefined;
+    if (!label || !label.length) {
+        label = (locator && locator.title) ? sanitizeText(locator.title) : undefined;
+    }
+    if (!label || !label.length) {
+        label = foundLink ? foundLink.Href : undefined;
+    }
+
+    if (fixedLayout) {
+        if (spineIndex >= 0 && _publication && _publication.Spine) {
+
+            mdcSlider.functionMode = "fixed-layout";
+
+            if (_publication.Spine.length === 1) {
+                positionSelector.style.visibility = "hidden";
+            }
+            if (mdcSlider.min !== 1) {
+                mdcSlider.min = 1;
+            }
+            if (mdcSlider.max !== _publication.Spine.length) {
+                mdcSlider.max = _publication.Spine.length;
+            }
+            if (mdcSlider.step !== 1) {
+                mdcSlider.step = 1;
+            }
+            mdcSlider.value = spineIndex + 1;
+
+            const pagePosStr = `Page ${spineIndex + 1} / ${_publication.Spine.length}`;
+            // if (label) {
+            //     positionSelectorValue.innerHTML = `[<strong>${label}</strong>] ` + pagePosStr;
+            // } else {
+            //     positionSelectorValue.textContent = pagePosStr;
+            // }
+            positionSelectorValue.textContent = pagePosStr;
+            return;
+        }
+    } else {
+        const current = getCurrentReadingLocation(); // LocatorExtended
+        if (!current || !current.paginationInfo ||
+            (typeof current.paginationInfo.isTwoPageSpread === "undefined") ||
+            (typeof current.paginationInfo.spreadIndex === "undefined") ||
+            (typeof current.paginationInfo.currentColumn === "undefined") ||
+            (typeof current.paginationInfo.totalColumns === "undefined")) {
+
+            if (spineIndex >= 0 && _publication && _publication.Spine) {
+
+                mdcSlider.functionMode = "reflow-scrolled";
+
+                if (_publication.Spine.length === 1) {
+                    positionSelector.style.visibility = "hidden";
+                }
+                if (mdcSlider.min !== 1) {
+                    mdcSlider.min = 1;
+                }
+                if (mdcSlider.max !== _publication.Spine.length) {
+                    mdcSlider.max = _publication.Spine.length;
+                }
+                if (mdcSlider.step !== 1) {
+                    mdcSlider.step = 1;
+                }
+                mdcSlider.value = spineIndex + 1;
+
+                const pagePosStr = `Chapter ${spineIndex + 1} / ${_publication.Spine.length}`;
+                if (label) {
+                    positionSelectorValue.innerHTML = `[<strong>${label}</strong>] ` + pagePosStr;
+                } else {
+                    positionSelectorValue.textContent = pagePosStr;
+                }
+                return;
+            }
+
+            // const percent = (!locator || !locator.locations.progression) ? 0 :
+            //     Math.round(locator.locations.progression * 10) * 10;
+            // if (mdcSlider.min !== 0) {
+            //     mdcSlider.min = 0;
+            // }
+            // if (mdcSlider.max !== 100) {
+            //     mdcSlider.max = 100;
+            // }
+            // if (mdcSlider.step !== 1) {
+            //     mdcSlider.step = 1;
+            // }
+            // mdcSlider.value = percent;
+            // positionSelectorValue.textContent = percent + "%";
+            // return;
+        } else {
+
+            mdcSlider.functionMode = "reflow-paginated";
+
+            const totalColumns = current.paginationInfo.totalColumns;
+            const totalSpreads = Math.ceil(totalColumns / 2);
+            const totalSpreadsOrColumns = current.paginationInfo.isTwoPageSpread ? totalSpreads : totalColumns;
+
+            const nColumn = current.paginationInfo.currentColumn + 1;
+            const nSpread = current.paginationInfo.spreadIndex + 1;
+            const nSpreadOrColumn = current.paginationInfo.isTwoPageSpread ? nSpread : nColumn;
+
+            if (totalSpreadsOrColumns === 1) {
+                positionSelector.style.visibility = "hidden";
+            }
+            if (mdcSlider.min !== 1) {
+                mdcSlider.min = 1;
+            }
+            if (mdcSlider.max !== totalSpreadsOrColumns) {
+                mdcSlider.max = totalSpreadsOrColumns;
+            }
+            if (mdcSlider.step !== 1) {
+                mdcSlider.step = 1;
+            }
+            mdcSlider.value = nSpreadOrColumn;
+
+            const nSpreadColumn = (current.paginationInfo.spreadIndex * 2) + 1;
+
+            const pageStr = current.paginationInfo.isTwoPageSpread ?
+                ((nSpreadColumn + 1) <= totalColumns ? `Pages ${nSpreadColumn}-${nSpreadColumn + 1} / ${totalColumns}` :
+                    `Page ${nSpreadColumn} / ${totalColumns}`) : `Page ${nColumn} / ${totalColumns}`;
+            if (label) {
+                positionSelectorValue.innerHTML = `[<strong>${label}</strong>] ` + pageStr;
+            } else {
+                positionSelectorValue.textContent = pageStr;
+            }
+            return;
+        }
+    }
+
+    // default fallback
+    mdcSlider.functionMode = undefined;
+    positionSelector.style.visibility = "hidden";
+    if (mdcSlider.min !== 0) {
+        mdcSlider.min = 0;
+    }
+    if (mdcSlider.max !== 100) {
+        mdcSlider.max = 100;
+    }
+    if (mdcSlider.step !== 1) {
+        mdcSlider.step = 1;
+    }
+    mdcSlider.value = 0;
+    positionSelectorValue.textContent = "";
+}
+
+const _bookmarks: Locator[] = [];
+
+function getBookmarkMenuGroupLabel(bookmark: Locator): string {
+    return bookmark.title ? `${bookmark.title} (${bookmark.href})` : `${bookmark.href}`;
+}
+
+function refreshBookmarksMenu() {
+
+    const bookmarksEl = document.getElementById("reader_controls_BOOKMARKS");
+    const tagBookmarks: IRiotTagLinkListGroup = (bookmarksEl as any)._tag;
+
+    const bookmarksListGroups =
+        ((tagBookmarks.opts as IRiotOptsLinkListGroup).linksgroup as IRiotOptsLinkListGroupItem[]);
+    for (let i = bookmarksListGroups.length - 1; i >= 0; i--) { // remove all
+        bookmarksListGroups.splice(i, 1);
+    }
+
+    let sortedBookmarks: Locator[];
+    if (_publication) {
+        sortedBookmarks = [];
+        for (const bookmark of _bookmarks) {
+            sortedBookmarks.push(bookmark);
+
+            let foundLink: Link | undefined;
+            let spineIndex = -1;
+            if (_publication.Spine) {
+                foundLink = _publication.Spine.find((link, i) => {
+                    const ok = link.Href === bookmark.href;
+                    if (ok) {
+                        spineIndex = i;
+                    }
+                    return ok;
+                });
+                if (foundLink) {
+                    (bookmark as any).sortIndex = spineIndex;
+                }
+            }
+            if (!foundLink && _publication.Resources) {
+                foundLink = _publication.Resources.find((link) => {
+                    return link.Href === bookmark.href;
+                });
+                if (foundLink) {
+                    (bookmark as any).sortIndex = -1;
+                } else {
+                    (bookmark as any).sortIndex = -2;
+                }
+            }
+        }
+
+        sortedBookmarks.sort((l1, l2) => {
+            if ((l1 as any).sortIndex === -2) {
+                if ((l2 as any).sortIndex === -2) {
+                    return 0; // l1 "equal" l2
+                } else if ((l2 as any).sortIndex === -1) {
+                    return 1; // l1 "greater than" l2
+                } else {
+                    return 1; // l1 "greater than" l2
+                }
+            }
+            if ((l1 as any).sortIndex === -1) {
+                if ((l2 as any).sortIndex === -2) {
+                    return -1; // l1 "less than" l2
+                } else if ((l2 as any).sortIndex === -1) {
+                    return 0; // l1 "equal" l2
+                } else {
+                    return 1; // l1 "greater than" l2
+                }
+            }
+
+            if ((l1 as any).sortIndex !== (l2 as any).sortIndex ||
+                typeof l1.locations.progression === "undefined" ||
+                typeof l2.locations.progression === "undefined") {
+
+                return (l1 as any).sortIndex - (l2 as any).sortIndex;
+            }
+
+            return l1.locations.progression - l2.locations.progression;
+        });
+
+    } else { // should never happen!
+        sortedBookmarks = _bookmarks;
+    }
+
+    for (const bookmark of sortedBookmarks) {
+        const label = getBookmarkMenuGroupLabel(bookmark);
+
+        let listgroup: IRiotOptsLinkListGroupItem | undefined = bookmarksListGroups.find((lg) => {
+            return lg.label === label;
+        });
+        if (!listgroup) {
+            listgroup = {
+                label,
+                links: [],
+            };
+            bookmarksListGroups.push(listgroup);
+        }
+        if (bookmark.locations.cssSelector) {
+            const link: IRiotOptsLinkListItem = {
+                href: bookmark.href + "#r2loc(" + bookmark.locations.cssSelector + ")",
+
+                title: (typeof bookmark.locations.progression !== "undefined") ?
+                    // tslint:disable-next-line:max-line-length
+                    `Bookmark #${listgroup.links.length + 1} (${Math.round(bookmark.locations.progression * 1000) / 10}%)` :
+                    `Bookmark #${listgroup.links.length + 1}`,
+            };
+            listgroup.links.push(link);
+        }
+    }
+    tagBookmarks.update();
+}
+
+function visualDebugBookmarks() {
+
+    refreshBookmarksMenu();
+
+    const current = getCurrentReadingLocation(); // LocatorExtended
+
+    if ((window as any).READIUM2) {
+        if ((window as any).READIUM2.debugItems) {
+
+            let cssSelector = "";
+            let first = true;
+            for (const bookmark of _bookmarks) {
+                if (!current || current.locator.href !== bookmark.href) {
+                    continue;
+                }
+                if (bookmark.locations.cssSelector) {
+                    cssSelector += first ? "" : ", ";
+                    cssSelector += `${bookmark.locations.cssSelector}`;
+                    first = false;
+                }
+            }
+
+            const cssClass = "R2_DEBUG_VISUALS_BOOKMARKS";
+            const cssStyles = `:root[style] .R2_DEBUG_VISUALS_BOOKMARKS, :root .R2_DEBUG_VISUALS_BOOKMARKS {
+                outline-color: #b43519 !important;
+                outline-style: solid !important;
+                outline-width: 3px !important;
+                outline-offset: 0px !important;
+
+                background-color: #fee3dd !important;
+            }`;
+            (window as any).READIUM2.debugItems(cssSelector, cssClass, undefined); // clear
+            if (cssSelector.length && (window as any).READIUM2.DEBUG_VISUALS) {
+                setTimeout(() => {
+                    (window as any).READIUM2.debugItems(cssSelector, cssClass, cssStyles); // set all
+                }, 100);
+            }
+        }
+    }
+}
+
+function addCurrentVisibleBookmark() {
+    const current = getCurrentReadingLocation(); // LocatorExtended
+    if (current && current.locator) {
+        const found = _bookmarks.find((locator) => {
+            return locator.href === current.locator.href &&
+            // locator.locations.cfi === current.locator.locations.cfi &&
+            // locator.locations.progression === current.locator.locations.progression &&
+            // locator.locations.position === current.locator.locations.position &&
+            locator.locations.cssSelector === current.locator.locations.cssSelector;
+        });
+        if (!found) {
+            _bookmarks.push(current.locator);
+        }
+    }
+}
+function removeAllBookmarks(): Locator[] {
+    const removed: Locator[] = [];
+    for (let i = _bookmarks.length - 1; i >= 0; i--) {
+        const bookmark = _bookmarks[i];
+        removed.push(bookmark);
+        _bookmarks.splice(i, 1);
+    }
+    return removed;
+}
+async function removeAllCurrentVisibleBookmarks(): Promise<Locator[]> {
+    return new Promise(async (resolve, _reject) => {
+        const removed: Locator[] = [];
+        for (let i = _bookmarks.length - 1; i >= 0; i--) {
+            const bookmark = _bookmarks[i];
+            try {
+                const visible = await isLocatorVisible(bookmark);
+                if (visible) {
+                    removed.push(bookmark);
+                    _bookmarks.splice(i, 1);
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        resolve(removed);
+    });
+}
+async function isAnyBookmarkVisible(): Promise<boolean> {
+    return new Promise(async (resolve, _reject) => {
+        for (const bookmark of _bookmarks) {
+            try {
+                const visible = await isLocatorVisible(bookmark);
+                if (visible) {
+                    resolve(true);
+                    return;
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        resolve(false);
+    });
+}
+function refreshBookmarksState() {
+    // tslint:disable-next-line:no-floating-promises
+    (async () => {
+        const buttonBookmarkTOGGLE = document.getElementById("bookmarkTOGGLE") as HTMLElement;
+        try {
+            const atLeastOneBookmarkIsVisible = await isAnyBookmarkVisible();
+            (buttonBookmarkTOGGLE as any).mdcButton.on = atLeastOneBookmarkIsVisible;
+        } catch (err) {
+            console.log(err);
+        }
+    })();
+}
+function refreshBookmarksStore() {
+    let obj = electronStore.get("bookmarks");
+    if (!obj) {
+        obj = {};
+    }
+    obj[pathDecoded] = [];
+    _bookmarks.forEach((bookmark) => {
+        obj[pathDecoded].push(bookmark);
+    });
+    electronStore.set("bookmarks", obj);
+}
+function initBookmarksFromStore() {
+    let obj = electronStore.get("bookmarks");
+    if (!obj) {
+        obj = {};
+    }
+    removeAllBookmarks();
+    if (obj[pathDecoded]) {
+        // _bookmarks = [];
+        obj[pathDecoded].forEach((bookmark: Locator) => {
+            _bookmarks.push(bookmark);
+        });
+    }
+}
+
+electronStore.onChanged("bookmarks", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+    initBookmarksFromStore();
+
+    visualDebugBookmarks();
+    refreshBookmarksState();
+});
+
 const saveReadingLocation = (location: LocatorExtended) => {
+
+    updateReadingProgressionSlider(location);
+
     let obj = electronStore.get("readingLocation");
     if (!obj) {
         obj = {};
@@ -177,6 +719,9 @@ const saveReadingLocation = (location: LocatorExtended) => {
         locProgression: location.locator.locations.progression,
     } as IReadingLocation;
     electronStore.set("readingLocation", obj);
+
+    visualDebugBookmarks();
+    refreshBookmarksState();
 };
 setReadingLocationSaver(saveReadingLocation);
 
@@ -197,12 +742,22 @@ console.log(publicationJsonUrl);
 const publicationJsonUrl_ = publicationJsonUrl.startsWith(READIUM2_ELECTRON_HTTP_PROTOCOL) ?
     convertCustomSchemeToHttpUrl(publicationJsonUrl) : publicationJsonUrl;
 console.log(publicationJsonUrl_);
-const pathBase64 = publicationJsonUrl_.
-    replace(/.*\/pub\/(.*)\/manifest.json.*/, "$1");
-// replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
-console.log(pathBase64);
-const pathDecoded = new Buffer(decodeURIComponent(pathBase64), "base64").toString("utf8");
-console.log(pathDecoded);
+
+// tslint:disable-next-line:no-string-literal
+const isHttpWebPubWithoutLCP = queryParams["isHttpWebPub"];
+console.log(isHttpWebPubWithoutLCP);
+
+let pathDecoded = "";
+if (isHttpWebPubWithoutLCP) {
+    pathDecoded = publicationJsonUrl;
+} else {
+    const pathBase64 = publicationJsonUrl_.
+        replace(/.*\/pub\/(.*)\/manifest.json.*/, "$1");
+    // replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
+    console.log(pathBase64);
+    pathDecoded = new Buffer(decodeURIComponent(pathBase64), "base64").toString("utf8");
+    console.log(pathDecoded);
+}
 const pathFileName = pathDecoded.substr(
     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
     pathDecoded.length - 1);
@@ -216,6 +771,16 @@ electronStore.onChanged("readiumCSS.colCount", (newValue: any, oldValue: any) =>
         return;
     }
     console.log("readiumCSS.colCount: ", oldValue, " => ", newValue);
+
+    const radioColCountAutoEl = document.getElementById("radioColCountAuto") as HTMLInputElement;
+    radioColCountAutoEl.checked = newValue === "auto";
+
+    const radioColCount1El = document.getElementById("radioColCount1") as HTMLInputElement;
+    radioColCount1El.checked = newValue === "1";
+
+    const radioColCount2El = document.getElementById("radioColCount2") as HTMLInputElement;
+    radioColCount2El.checked = newValue === "2";
+
     refreshReadiumCSS();
 });
 
@@ -224,17 +789,104 @@ electronStore.onChanged("readiumCSS.night", (newValue: any, oldValue: any) => {
         return;
     }
 
+    if (newValue) {
+        // const sepiaSwitchEl = document.getElementById("sepia_switch") as HTMLElement;
+        // const sepiaSwitch = (sepiaSwitchEl as any).mdcSwitch;
+        // if (sepiaSwitch.checked) {
+        //     sepiaSwitch.checked = false;
+        // }
+        if (electronStore.get("readiumCSS.sepia")) {
+            electronStore.set("readiumCSS.sepia", false);
+        }
+        if (electronStore.get("readiumCSS.backgroundColor")) {
+            electronStore.set("readiumCSS.backgroundColor", null);
+        }
+        if (electronStore.get("readiumCSS.textColor")) {
+            electronStore.set("readiumCSS.textColor", null);
+        }
+    }
+
     // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
     const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
     const nightSwitch = (nightSwitchEl as any).mdcSwitch;
     nightSwitch.checked = newValue;
 
-    // TODO DARK THEME
+    // TODO DARK THEME UI
     // if (newValue) {
     //     document.body.classList.add("mdc-theme--dark");
     // } else {
     //     document.body.classList.remove("mdc-theme--dark");
     // }
+
+    const darkenSwitchEl = document.getElementById("darken_switch") as HTMLElement;
+    const darkenSwitch = (darkenSwitchEl as any).mdcSwitch;
+    darkenSwitch.disabled = !newValue;
+    if (!newValue) {
+        electronStore.set("readiumCSS.darken", false);
+    }
+
+    const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
+    const invertSwitch = (invertSwitchEl as any).mdcSwitch;
+    invertSwitch.disabled = !newValue;
+    if (!newValue) {
+        electronStore.set("readiumCSS.invert", false);
+    }
+
+    const nightDiv = document.getElementById("night_div") as HTMLElement;
+    nightDiv.style.display = newValue ? "block" : "none";
+
+    refreshReadiumCSS();
+});
+
+electronStore.onChanged("readiumCSS.sepia", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    if (newValue) {
+        // const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
+        // const nightSwitch = (nightSwitchEl as any).mdcSwitch;
+        // if (nightSwitch.checked) {
+        //     nightSwitch.checked = false;
+        // }
+        if (electronStore.get("readiumCSS.night")) {
+            electronStore.set("readiumCSS.night", false);
+        }
+        if (electronStore.get("readiumCSS.backgroundColor")) {
+            electronStore.set("readiumCSS.backgroundColor", null);
+        }
+        if (electronStore.get("readiumCSS.textColor")) {
+            electronStore.set("readiumCSS.textColor", null);
+        }
+    }
+
+    const sepiaSwitchEl = document.getElementById("sepia_switch") as HTMLElement;
+    const sepiaSwitch = (sepiaSwitchEl as any).mdcSwitch;
+    sepiaSwitch.checked = newValue;
+
+    refreshReadiumCSS();
+});
+
+electronStore.onChanged("readiumCSS.darken", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    const darkenSwitchEl = document.getElementById("darken_switch") as HTMLElement;
+    const darkenSwitch = (darkenSwitchEl as any).mdcSwitch;
+    darkenSwitch.checked = newValue;
+
+    refreshReadiumCSS();
+});
+
+electronStore.onChanged("readiumCSS.invert", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
+    const invertSwitch = (invertSwitchEl as any).mdcSwitch;
+    invertSwitch.checked = newValue;
 
     refreshReadiumCSS();
 });
@@ -252,6 +904,32 @@ electronStore.onChanged("readiumCSS.textAlign", (newValue: any, oldValue: any) =
     refreshReadiumCSS();
 });
 
+electronStore.onChanged("readiumCSS.noFootnotes", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    // const footnotesSwitch = document.getElementById("footnotes_switch-input") as HTMLInputElement;
+    const footnotesSwitchEl = document.getElementById("footnotes_switch") as HTMLElement;
+    const footnotesSwitch = (footnotesSwitchEl as any).mdcSwitch;
+    footnotesSwitch.checked = newValue ? false : true;
+
+    refreshReadiumCSS();
+});
+
+electronStore.onChanged("readiumCSS.reduceMotion", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    // const reduceMotionSwitch = document.getElementById("reduceMotion_switch-input") as HTMLInputElement;
+    const reduceMotionSwitchEl = document.getElementById("reduceMotion_switch") as HTMLElement;
+    const reduceMotionSwitch = (reduceMotionSwitchEl as any).mdcSwitch;
+    reduceMotionSwitch.checked = newValue ? true : false;
+
+    refreshReadiumCSS();
+});
+
 electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
@@ -261,6 +939,13 @@ electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
     const paginateSwitch = (paginateSwitchEl as any).mdcSwitch;
     paginateSwitch.checked = newValue;
+
+    const colCountRadiosEl = document.getElementById("colCountRadios") as HTMLElement;
+    if (newValue) {
+        colCountRadiosEl.style.display = "block";
+    } else {
+        colCountRadiosEl.style.display = "none";
+    }
 
     refreshReadiumCSS();
 });
@@ -273,11 +958,14 @@ const refreshReadiumCSS = debounce(() => {
 // https://github.com/material-components/material-components-web/issues/1017#issuecomment-340068426
 function ensureSliderLayout() {
     setTimeout(() => {
-        const fontSizeSelector = document.getElementById("fontSizeSelector") as HTMLElement;
-        (fontSizeSelector as any).mdcSlider.layout();
-
-        const lineHeightSelector = document.getElementById("lineHeightSelector") as HTMLElement;
-        (lineHeightSelector as any).mdcSlider.layout();
+        document.querySelectorAll(".settingSlider").forEach((elem) => {
+            if ((elem as any).mdcSlider) {
+                (elem as any).mdcSlider.layout();
+            }
+            // if ((elem as any).mdcSwitch) {
+            //     (elem as any).mdcSwitch.layout();
+            // }
+        });
     }, 100);
 }
 
@@ -303,6 +991,16 @@ electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
     const justifySwitch = (justifySwitchEl as any).mdcSwitch;
     justifySwitch.disabled = !newValue;
 
+    // const footnotesSwitch = document.getElementById("footnotes_switch-input") as HTMLInputElement;
+    const footnotesSwitchEl = document.getElementById("footnotes_switch") as HTMLElement;
+    const footnotesSwitch = (footnotesSwitchEl as any).mdcSwitch;
+    footnotesSwitch.disabled = !newValue;
+
+    // const reduceMotionSwitch = document.getElementById("reduceMotion_switch-input") as HTMLInputElement;
+    const reduceMotionSwitchEl = document.getElementById("reduceMotion_switch") as HTMLElement;
+    const reduceMotionSwitch = (reduceMotionSwitchEl as any).mdcSwitch;
+    reduceMotionSwitch.disabled = !newValue;
+
     // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
     const paginateSwitch = (paginateSwitchEl as any).mdcSwitch;
@@ -312,9 +1010,30 @@ electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
     const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
     const nightSwitch = (nightSwitchEl as any).mdcSwitch;
     nightSwitch.disabled = !newValue;
-    if (!newValue) {
-        electronStore.set("readiumCSS.night", false);
-    }
+    // if (!newValue) {
+    //     electronStore.set("readiumCSS.night", false);
+    // }
+
+    const sepiaSwitchEl = document.getElementById("sepia_switch") as HTMLElement;
+    const sepiaSwitch = (sepiaSwitchEl as any).mdcSwitch;
+    sepiaSwitch.disabled = !newValue;
+    // if (!newValue) {
+    //     electronStore.set("readiumCSS.sepia", false);
+    // }
+
+    const darkenSwitchEl = document.getElementById("darken_switch") as HTMLElement;
+    const darkenSwitch = (darkenSwitchEl as any).mdcSwitch;
+    darkenSwitch.disabled = !newValue;
+    // if (!newValue) {
+    //     electronStore.set("readiumCSS.darken", false);
+    // }
+
+    const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
+    const invertSwitch = (invertSwitchEl as any).mdcSwitch;
+    invertSwitch.disabled = !newValue;
+    // if (!newValue) {
+    //     electronStore.set("readiumCSS.invert", false);
+    // }
 });
 
 electronStore.onChanged("basicLinkTitles", (newValue: any, oldValue: any) => {
@@ -325,6 +1044,28 @@ electronStore.onChanged("basicLinkTitles", (newValue: any, oldValue: any) => {
     const basicSwitchEl = document.getElementById("nav_basic_switch") as HTMLElement;
     const basicSwitch = (basicSwitchEl as any).mdcSwitch;
     basicSwitch.checked = !newValue;
+});
+
+function visualDebug(doDebug: boolean) {
+
+    if ((window as any).READIUM2) {
+        if ((window as any).READIUM2.debug) {
+            (window as any).READIUM2.debug(doDebug);
+        }
+        // (window as any).READIUM2.DEBUG_VISUALS ? false : true
+    }
+    visualDebugBookmarks();
+}
+
+electronStore.onChanged("visualDebug", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+    const debugSwitchEl = document.getElementById("visual_debug_switch") as HTMLElement;
+    const debugSwitch = (debugSwitchEl as any).mdcSwitch;
+    debugSwitch.checked = newValue;
+
+    visualDebug(debugSwitch.checked);
 });
 
 let snackBar: any;
@@ -533,6 +1274,10 @@ function installKeyboardMouseFocusHandler() {
 
 const initLineHeightSelector = () => {
 
+    const lineHeightSelectorDefault = 150;
+
+    const lineHeightSelectorValue = document.getElementById("lineHeightSelectorValue") as HTMLElement;
+
     const lineHeightSelector = document.getElementById("lineHeightSelector") as HTMLElement;
     const slider = new (window as any).mdc.slider.MDCSlider(lineHeightSelector);
     (lineHeightSelector as any).mdcSlider = slider;
@@ -546,8 +1291,9 @@ const initLineHeightSelector = () => {
     if (val) {
         slider.value = parseFloat(val) * 100;
     } else {
-        slider.value = 1.5 * 100;
+        slider.value = lineHeightSelectorDefault;
     }
+    lineHeightSelectorValue.textContent = slider.value + "%";
 
     // console.log(slider.min);
     // console.log(slider.max);
@@ -565,8 +1311,8 @@ const initLineHeightSelector = () => {
     //     console.log(event.detail.value);
     // });
     slider.listen("MDCSlider:change", (event: any) => {
-        electronStore.set("readiumCSS.lineHeight",
-            "" + (event.detail.value / 100));
+        electronStore.set("readiumCSS.lineHeight", "" + (event.detail.value / 100));
+        lineHeightSelectorValue.textContent = event.detail.value + "%";
     });
 
     electronStore.onChanged("readiumCSS.lineHeight", (newValue: any, oldValue: any) => {
@@ -574,13 +1320,348 @@ const initLineHeightSelector = () => {
             return;
         }
 
-        slider.value = parseFloat(newValue) * 100;
+        slider.value = (newValue ? (parseFloat(newValue) * 100) : lineHeightSelectorDefault);
+        lineHeightSelectorValue.textContent = slider.value + "%";
+
+        refreshReadiumCSS();
+    });
+};
+
+const initPageMarginSelector = () => {
+
+    const pageMarginsSelectorDefault = 100;
+
+    const pageMarginsSelectorValue = document.getElementById("pageMarginsSelectorValue") as HTMLElement;
+
+    const pageMarginsSelector = document.getElementById("pageMarginsSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(pageMarginsSelector);
+    (pageMarginsSelector as any).mdcSlider = slider;
+    // const step = pageMarginsSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.pageMargins");
+    if (val) {
+        slider.value = parseFloat(val) * 100;
+    } else {
+        slider.value = pageMarginsSelectorDefault;
+    }
+    pageMarginsSelectorValue.textContent = slider.value + "%";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.pageMargins", "" + (event.detail.value / 100));
+        pageMarginsSelectorValue.textContent = event.detail.value + "%";
+    });
+
+    electronStore.onChanged("readiumCSS.pageMargins", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue) * 100) : pageMarginsSelectorDefault);
+        pageMarginsSelectorValue.textContent = slider.value + "%";
+
+        refreshReadiumCSS();
+    });
+};
+
+const initTypeScaleSelector = () => {
+
+    const typeScaleSelectorDefault = 120;
+
+    const typeScaleSelectorValue = document.getElementById("typeScaleSelectorValue") as HTMLElement;
+
+    const typeScaleSelector = document.getElementById("typeScaleSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(typeScaleSelector);
+    (typeScaleSelector as any).mdcSlider = slider;
+    // const step = typeScaleSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.typeScale");
+    if (val) {
+        slider.value = parseFloat(val) * 100;
+    } else {
+        slider.value = typeScaleSelectorDefault;
+    }
+    typeScaleSelectorValue.textContent = slider.value + "%";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.typeScale", "" + (event.detail.value / 100));
+        typeScaleSelectorValue.textContent = event.detail.value + "%";
+    });
+
+    electronStore.onChanged("readiumCSS.typeScale", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue) * 100) : typeScaleSelectorDefault);
+        typeScaleSelectorValue.textContent = slider.value + "%";
+
+        refreshReadiumCSS();
+    });
+};
+
+const initLetterSpacingSelector = () => {
+
+    const letterSpacingSelectorDefault = 0;
+
+    const letterSpacingSelectorValue = document.getElementById("letterSpacingSelectorValue") as HTMLElement;
+
+    const letterSpacingSelector = document.getElementById("letterSpacingSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(letterSpacingSelector);
+    (letterSpacingSelector as any).mdcSlider = slider;
+    // const step = letterSpacingSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.letterSpacing");
+    if (val) {
+        slider.value = parseFloat(val.replace("rem", "")) * 100;
+    } else {
+        slider.value = letterSpacingSelectorDefault;
+    }
+    letterSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.letterSpacing", (event.detail.value / 100) + "rem");
+        letterSpacingSelectorValue.textContent = (event.detail.value / 100).toFixed(2) + "rem";
+    });
+
+    electronStore.onChanged("readiumCSS.letterSpacing", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : letterSpacingSelectorDefault);
+        letterSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+        refreshReadiumCSS();
+    });
+};
+
+const initWordSpacingSelector = () => {
+
+    const wordSpacingSelectorDefault = 0;
+
+    const wordSpacingSelectorValue = document.getElementById("wordSpacingSelectorValue") as HTMLElement;
+
+    const wordSpacingSelector = document.getElementById("wordSpacingSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(wordSpacingSelector);
+    (wordSpacingSelector as any).mdcSlider = slider;
+    // const step = wordSpacingSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.wordSpacing");
+    if (val) {
+        slider.value = parseFloat(val.replace("rem", "")) * 100;
+    } else {
+        slider.value = wordSpacingSelectorDefault;
+    }
+    wordSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.wordSpacing", (event.detail.value / 100) + "rem");
+        wordSpacingSelectorValue.textContent = (event.detail.value / 100).toFixed(2) + "rem";
+    });
+
+    electronStore.onChanged("readiumCSS.wordSpacing", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : wordSpacingSelectorDefault);
+        wordSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+        refreshReadiumCSS();
+    });
+};
+
+const initParaSpacingSelector = () => {
+
+    const paraSpacingSelectorDefault = 0;
+
+    const paraSpacingSelectorValue = document.getElementById("paraSpacingSelectorValue") as HTMLElement;
+
+    const paraSpacingSelector = document.getElementById("paraSpacingSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(paraSpacingSelector);
+    (paraSpacingSelector as any).mdcSlider = slider;
+    // const step = paraSpacingSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.paraSpacing");
+    if (val) {
+        slider.value = parseFloat(val.replace("rem", "")) * 100;
+    } else {
+        slider.value = paraSpacingSelectorDefault;
+    }
+    paraSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.paraSpacing", (event.detail.value / 100) + "rem");
+        paraSpacingSelectorValue.textContent = (event.detail.value / 100).toFixed(2) + "rem";
+    });
+
+    electronStore.onChanged("readiumCSS.paraSpacing", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : paraSpacingSelectorDefault);
+        paraSpacingSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+        refreshReadiumCSS();
+    });
+};
+
+const initParaIndentSelector = () => {
+
+    const paraIndentSelectorDefault = 200;
+
+    const paraIndentSelectorValue = document.getElementById("paraIndentSelectorValue") as HTMLElement;
+
+    const paraIndentSelector = document.getElementById("paraIndentSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(paraIndentSelector);
+    (paraIndentSelector as any).mdcSlider = slider;
+    // const step = paraIndentSelector.getAttribute("data-step") as string;
+    // console.log("step: " + step);
+    // slider.step = parseFloat(step);
+    // console.log("slider.step: " + slider.step);
+
+    slider.disabled = !electronStore.get("readiumCSSEnable");
+    const val = electronStore.get("readiumCSS.paraIndent");
+    if (val) {
+        slider.value = parseFloat(val.replace("rem", "")) * 100;
+    } else {
+        slider.value = paraIndentSelectorDefault;
+    }
+    paraIndentSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
+
+    // console.log(slider.min);
+    // console.log(slider.max);
+    // console.log(slider.value);
+    // console.log(slider.step);
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        slider.disabled = !newValue;
+    });
+
+    // slider.listen("MDCSlider:input", (event: any) => {
+    //     console.log(event.detail.value);
+    // });
+    slider.listen("MDCSlider:change", (event: any) => {
+        electronStore.set("readiumCSS.paraIndent", (event.detail.value / 100) + "rem");
+        paraIndentSelectorValue.textContent = (event.detail.value / 100).toFixed(2) + "rem";
+    });
+
+    electronStore.onChanged("readiumCSS.paraIndent", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+
+        slider.value = (newValue ? (parseFloat(newValue.replace("rem", "")) * 100) : paraIndentSelectorDefault);
+        paraIndentSelectorValue.textContent = (slider.value / 100).toFixed(2) + "rem";
 
         refreshReadiumCSS();
     });
 };
 
 const initFontSizeSelector = () => {
+
+    const fontSizeSelectorDefault = 100;
+
+    const fontSizeSelectorValue = document.getElementById("fontSizeSelectorValue") as HTMLElement;
 
     const fontSizeSelector = document.getElementById("fontSizeSelector") as HTMLElement;
     const slider = new (window as any).mdc.slider.MDCSlider(fontSizeSelector);
@@ -609,8 +1690,9 @@ const initFontSizeSelector = () => {
     if (val) {
         slider.value = parseInt(val.replace("%", ""), 10);
     } else {
-        slider.value = 100;
+        slider.value = fontSizeSelectorDefault;
     }
+    fontSizeSelectorValue.textContent = slider.value + "%";
 
     // console.log(slider.min);
     // console.log(slider.max);
@@ -629,7 +1711,9 @@ const initFontSizeSelector = () => {
     // });
     slider.listen("MDCSlider:change", (event: any) => {
         // console.log(event.detail.value);
-        electronStore.set("readiumCSS.fontSize", event.detail.value + "%");
+        const percent = event.detail.value + "%";
+        electronStore.set("readiumCSS.fontSize", percent);
+        fontSizeSelectorValue.textContent = percent;
     });
 
     electronStore.onChanged("readiumCSS.fontSize", (newValue: any, oldValue: any) => {
@@ -637,10 +1721,144 @@ const initFontSizeSelector = () => {
             return;
         }
 
-        slider.value = parseInt(newValue.replace("%", ""), 10);
+        slider.value = (newValue ? (parseInt(newValue.replace("%", ""), 10)) : fontSizeSelectorDefault);
+        fontSizeSelectorValue.textContent = slider.value + "%";
 
         refreshReadiumCSS();
     });
+};
+
+const initTextColorSelector = () => {
+    initColorSelector("textColor", "Text colour");
+};
+
+const initBackgroundColorSelector = () => {
+    initColorSelector("backgroundColor", "Background colour");
+};
+
+const initColorSelector = (who: string, label: string) => {
+    const ID_PREFIX = who + "Select_";
+
+    const options: IRiotOptsMenuSelectItem[] = [];
+    options.push({
+        id: ID_PREFIX,
+        label: "default",
+    });
+    Object.keys(HTML_COLORS).forEach((colorName) => {
+        const colorCode = (HTML_COLORS as any)[colorName];
+        options.push({
+            id: ID_PREFIX + colorName,
+            label: colorName,
+            style: `border: 10px solid ${colorCode};`,
+        });
+    });
+
+    const currentColorCode = electronStore.get("readiumCSS." + who);
+    let foundColorName: string | undefined;
+    const colorNames = Object.keys(HTML_COLORS);
+    for (const colorName of colorNames) {
+        const colorCode = (HTML_COLORS as any)[colorName];
+        if (currentColorCode === colorCode) {
+            foundColorName = colorName;
+            break;
+        }
+    }
+    let selectedID = ID_PREFIX;
+    if (foundColorName) {
+        selectedID = ID_PREFIX + foundColorName;
+    }
+
+    const foundItem = options.find((item) => {
+        return item.id === selectedID;
+    });
+    if (!foundItem) {
+        selectedID = options[0].id;
+    }
+    const opts: IRiotOptsMenuSelect = {
+        disabled: !electronStore.get("readiumCSSEnable"),
+        label,
+        options,
+        selected: selectedID,
+    };
+    const tag = riotMountMenuSelect("#" + who + "Select", opts)[0] as IRiotTagMenuSelect;
+
+    tag.on("selectionChanged", (index: number) => {
+        if (!index) {
+            electronStore.set("readiumCSS." + who, null);
+            return;
+        }
+        // console.log("selectionChanged");
+        // console.log(index);
+        const id = tag.getIdForIndex(index);
+        // console.log(id);
+        if (!id) {
+            return;
+        }
+        // const element = tag.root.ownerDocument.getElementById(val) as HTMLElement;
+        //     console.log(element.textContent);
+        const colorName = id.replace(ID_PREFIX, "");
+        // console.log(id);
+        const colorCode = (HTML_COLORS as any)[colorName] || undefined;
+        electronStore.set("readiumCSS." + who, colorCode);
+    });
+
+    function updateLabelColor(colorCode: string | undefined) {
+        if (tag.root) {
+            const labelText = tag.root.querySelector(".mdc-select__selected-text");
+            if (labelText) {
+                (labelText as HTMLElement).style.border = colorCode ? `6px solid ${colorCode}` : "none";
+            }
+        }
+    }
+
+    electronStore.onChanged("readiumCSS." + who, (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        // console.log("onDidChange");
+        // console.log(newValue);
+
+        // newValue can be null!
+
+        if (newValue) {
+            if (electronStore.get("readiumCSS.night")) {
+                electronStore.set("readiumCSS.night", false);
+            }
+            if (electronStore.get("readiumCSS.sepia")) {
+                electronStore.set("readiumCSS.sepia", false);
+            }
+        }
+
+        updateLabelColor(newValue);
+
+        let foundColor: string | undefined;
+        if (newValue) {
+            const colNames = Object.keys(HTML_COLORS);
+            for (const colName of colNames) {
+                const colCode = (HTML_COLORS as any)[colName];
+                if (newValue === colCode) {
+                    foundColor = colName;
+                    break;
+                }
+            }
+        }
+        if (foundColor) {
+            tag.setSelectedItem(ID_PREFIX + foundColor);
+        } else {
+            tag.setSelectedItem(ID_PREFIX);
+        }
+
+        refreshReadiumCSS();
+    });
+
+    electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
+        if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+            return;
+        }
+        tag.setDisabled(!newValue);
+    });
+
+    updateLabelColor(electronStore.get("readiumCSS." + who));
 };
 
 const initFontSelector = () => {
@@ -697,18 +1915,69 @@ const initFontSelector = () => {
     const tag = riotMountMenuSelect("#fontSelect", opts)[0] as IRiotTagMenuSelect;
 
     tag.on("selectionChanged", (index: number) => {
-        console.log("selectionChanged");
-        console.log(index);
+        // console.log("selectionChanged");
+        // console.log(index);
         let id = tag.getIdForIndex(index);
-        console.log(id);
+        // console.log(id);
         if (!id) {
             return;
         }
         // const element = tag.root.ownerDocument.getElementById(val) as HTMLElement;
         //     console.log(element.textContent);
         id = id.replace(ID_PREFIX, "");
+        // console.log(id);
         electronStore.set("readiumCSS.font", id);
     });
+
+    function updateLabelFont(newValue: string) {
+        if (tag.root) {
+            const label = tag.root.querySelector(".mdc-select__selected-text");
+            if (label) {
+                let fontFamily: string | undefined = newValue;
+                if (fontFamily === "DEFAULT") {
+                    fontFamily = undefined;
+                } else if (fontFamily === "DUO") {
+                    // fontFamily = "IA Writer Duospace";
+                } else if (fontFamily === "DYS") {
+                    // fontFamily = "AccessibleDfa";
+                } else if (fontFamily === "OLD") {
+                    // fontFamily = options[1].style; // "oldStyleTf";
+                } else if (fontFamily === "MODERN") {
+                    // fontFamily = options[2].style; // "modernTf";
+                } else if (fontFamily === "SANS") {
+                    // fontFamily = "sansTf";
+                } else if (fontFamily === "HUMAN") {
+                    // fontFamily = "humanistTf";
+                } else if (fontFamily === "MONO") {
+                    // fontFamily = "monospaceTf";
+                } else if (fontFamily === "JA") {
+                    // fontFamily = "serif-ja";
+                } else if (fontFamily === "JA-SANS") {
+                    // fontFamily = "sans-serif-ja";
+                } else if (fontFamily === "JA-V") {
+                    // fontFamily = "serif-ja-v";
+                } else if (fontFamily === "JA_V_SANS") {
+                    // fontFamily = "sans-serif-ja-v";
+                } else {
+                    (label as HTMLElement).style.fontFamily = fontFamily;
+                    return;
+                }
+                if (!fontFamily) {
+                    label.removeAttribute("style");
+                } else {
+                    const idToFind = ID_PREFIX + newValue;
+                    const optionFound = options.find((item) => {
+                        return item.id === idToFind;
+                    });
+                    if (!optionFound || !optionFound.style) {
+                        label.removeAttribute("style");
+                        return;
+                    }
+                    label.setAttribute("style", optionFound.style);
+                }
+            }
+        }
+    }
 
     electronStore.onChanged("readiumCSS.font", (newValue: any, oldValue: any) => {
         if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
@@ -717,6 +1986,8 @@ const initFontSelector = () => {
         // console.log("onDidChange");
         // console.log(newValue);
         tag.setSelectedItem(ID_PREFIX + newValue);
+
+        updateLabelFont(newValue);
 
         refreshReadiumCSS();
     });
@@ -741,12 +2012,15 @@ const initFontSelector = () => {
         }
         if (_sysFonts && _sysFonts.length) {
             const arr = ((tag.opts as IRiotOptsMenuSelect).options as IRiotOptsMenuSelectItem[]);
-            // const divider: IRiotOptsMenuSelectItem = {
-            //     id: ID_PREFIX + "_",
-            //     label: "_",
-            // };
-            // arr.push(divider);
+            const divider: IRiotOptsMenuSelectItem = {
+                id: ID_PREFIX + "_",
+                label: "_",
+            };
+            arr.push(divider);
             _sysFonts.forEach((sysFont) => {
+                if (sysFont.startsWith(".")) {
+                    return;
+                }
                 const option: IRiotOptsMenuSelectItem = {
                     id: ID_PREFIX + sysFont, // .replace(/ /g, "_"),
                     label: sysFont,
@@ -764,6 +2038,8 @@ const initFontSelector = () => {
             (tag.opts as IRiotOptsMenuSelect).selected = newSelectedID;
             tag.update();
         }
+
+        updateLabelFont(electronStore.get("readiumCSS.font"));
     }, 100);
 };
 
@@ -771,6 +2047,8 @@ const initFontSelector = () => {
 // });
 
 window.addEventListener("DOMContentLoaded", () => {
+
+    setupDragDrop();
 
     (window as any).mdc.menu.MDCMenuFoundation.numbers.TRANSITION_DURATION_MS = 200;
 
@@ -855,21 +2133,63 @@ window.addEventListener("DOMContentLoaded", () => {
     //     }
     // }, true);
 
+    initTextColorSelector();
+    initBackgroundColorSelector();
     initFontSelector();
     initFontSizeSelector();
     initLineHeightSelector();
+    initTypeScaleSelector();
+    initPageMarginSelector();
+    initWordSpacingSelector();
+    initParaSpacingSelector();
+    initParaIndentSelector();
+    initLetterSpacingSelector();
 
     // const nightSwitch = document.getElementById("night_switch-input") as HTMLInputElement;
     const nightSwitchEl = document.getElementById("night_switch") as HTMLElement;
     const nightSwitch = new (window as any).mdc.switchControl.MDCSwitch(nightSwitchEl);
     (nightSwitchEl as any).mdcSwitch = nightSwitch;
     nightSwitch.checked = electronStore.get("readiumCSS.night");
+
+    const nightDiv = document.getElementById("night_div") as HTMLElement;
+    nightDiv.style.display = nightSwitch.checked ? "block" : "none";
+
     nightSwitchEl.addEventListener("change", (_event: any) => {
         // nightSwitch.handleChange("change", (_event: any) => {
         const checked = nightSwitch.checked;
         electronStore.set("readiumCSS.night", checked);
     });
     nightSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
+    const sepiaSwitchEl = document.getElementById("sepia_switch") as HTMLElement;
+    const sepiaSwitch = new (window as any).mdc.switchControl.MDCSwitch(sepiaSwitchEl);
+    (sepiaSwitchEl as any).mdcSwitch = sepiaSwitch;
+    sepiaSwitch.checked = electronStore.get("readiumCSS.sepia");
+    sepiaSwitchEl.addEventListener("change", (_event: any) => {
+        const checked = sepiaSwitch.checked;
+        electronStore.set("readiumCSS.sepia", checked);
+    });
+    sepiaSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
+    const invertSwitchEl = document.getElementById("invert_switch") as HTMLElement;
+    const invertSwitch = new (window as any).mdc.switchControl.MDCSwitch(invertSwitchEl);
+    (invertSwitchEl as any).mdcSwitch = invertSwitch;
+    invertSwitch.checked = electronStore.get("readiumCSS.invert");
+    invertSwitchEl.addEventListener("change", (_event: any) => {
+        const checked = invertSwitch.checked;
+        electronStore.set("readiumCSS.invert", checked);
+    });
+    invertSwitch.disabled = !nightSwitch.checked || !electronStore.get("readiumCSSEnable");
+
+    const darkenSwitchEl = document.getElementById("darken_switch") as HTMLElement;
+    const darkenSwitch = new (window as any).mdc.switchControl.MDCSwitch(darkenSwitchEl);
+    (darkenSwitchEl as any).mdcSwitch = darkenSwitch;
+    darkenSwitch.checked = electronStore.get("readiumCSS.darken");
+    darkenSwitchEl.addEventListener("change", (_event: any) => {
+        const checked = darkenSwitch.checked;
+        electronStore.set("readiumCSS.darken", checked);
+    });
+    darkenSwitch.disabled = !nightSwitch.checked || !electronStore.get("readiumCSSEnable");
 
     // const justifySwitch = document.getElementById("justify_switch-input") as HTMLInputElement;
     const justifySwitchEl = document.getElementById("justify_switch") as HTMLElement;
@@ -883,6 +2203,30 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     justifySwitch.disabled = !electronStore.get("readiumCSSEnable");
 
+    // const footnotesSwitch = document.getElementById("footnotes_switch-input") as HTMLInputElement;
+    const footnotesSwitchEl = document.getElementById("footnotes_switch") as HTMLElement;
+    const footnotesSwitch = new (window as any).mdc.switchControl.MDCSwitch(footnotesSwitchEl);
+    (footnotesSwitchEl as any).mdcSwitch = footnotesSwitch;
+    footnotesSwitch.checked = electronStore.get("readiumCSS.noFootnotes") ? false : true;
+    footnotesSwitchEl.addEventListener("change", (_event: any) => {
+        // footnotesSwitch.handleChange("change", (_event: any) => {
+        const checked = footnotesSwitch.checked;
+        electronStore.set("readiumCSS.noFootnotes", checked ? false : true);
+    });
+    footnotesSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
+    // const reduceMotionSwitch = document.getElementById("reduceMotion_switch-input") as HTMLInputElement;
+    const reduceMotionSwitchEl = document.getElementById("reduceMotion_switch") as HTMLElement;
+    const reduceMotionSwitch = new (window as any).mdc.switchControl.MDCSwitch(reduceMotionSwitchEl);
+    (reduceMotionSwitchEl as any).mdcSwitch = reduceMotionSwitch;
+    reduceMotionSwitch.checked = electronStore.get("readiumCSS.reduceMotion") ? true : false;
+    reduceMotionSwitchEl.addEventListener("change", (_event: any) => {
+        // footnotesSwitch.handleChange("change", (_event: any) => {
+        const checked = reduceMotionSwitch.checked;
+        electronStore.set("readiumCSS.reduceMotion", checked ? true : false);
+    });
+    reduceMotionSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
     // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
     const paginateSwitch = new (window as any).mdc.switchControl.MDCSwitch(paginateSwitchEl);
@@ -892,8 +2236,44 @@ window.addEventListener("DOMContentLoaded", () => {
         // paginateSwitch.handleChange("change", (_event: any) => {
         const checked = paginateSwitch.checked;
         electronStore.set("readiumCSS.paged", checked);
+
+        const colCountRadiosEl = document.getElementById("colCountRadios") as HTMLElement;
+        if (checked) {
+            colCountRadiosEl.style.display = "block";
+        } else {
+            colCountRadiosEl.style.display = "none";
+        }
     });
     paginateSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
+    const colCountRadiosElem = document.getElementById("colCountRadios") as HTMLElement;
+    if (paginateSwitch.checked) {
+        colCountRadiosElem.style.display = "block";
+    } else {
+        colCountRadiosElem.style.display = "none";
+    }
+
+    const radioColCountAutoEl = document.getElementById("radioColCountAuto") as HTMLInputElement;
+    radioColCountAutoEl.checked = electronStore.get("readiumCSS.colCount") === "auto";
+    radioColCountAutoEl.addEventListener("change", () => {
+        if (radioColCountAutoEl.checked) {
+            electronStore.set("readiumCSS.colCount", "auto");
+        }
+    });
+    const radioColCount1El = document.getElementById("radioColCount1") as HTMLInputElement;
+    radioColCount1El.checked = electronStore.get("readiumCSS.colCount") === "1";
+    radioColCount1El.addEventListener("change", () => {
+        if (radioColCount1El.checked) {
+            electronStore.set("readiumCSS.colCount", "1");
+        }
+    });
+    const radioColCount2El = document.getElementById("radioColCount2") as HTMLInputElement;
+    radioColCount2El.checked = electronStore.get("readiumCSS.colCount") === "2";
+    radioColCount2El.addEventListener("change", () => {
+        if (radioColCount2El.checked) {
+            electronStore.set("readiumCSS.colCount", "2");
+        }
+    });
 
     // const readiumcssSwitch = document.getElementById("readiumcss_switch-input") as HTMLInputElement;
     const readiumcssSwitchEl = document.getElementById("readiumcss_switch") as HTMLElement;
@@ -920,12 +2300,32 @@ window.addEventListener("DOMContentLoaded", () => {
         // basicSwitch.handleChange("change", (_event: any) => {
         const checked = basicSwitch.checked;
         electronStore.set("basicLinkTitles", !checked);
+
+        setTimeout(() => {
+            snackBar.labelText = `Link URLs now ${checked ? "shown" : "hidden"}.`;
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
+        }, 500);
+    });
+
+    const debugSwitchEl = document.getElementById("visual_debug_switch") as HTMLElement;
+    const debugSwitch = new (window as any).mdc.switchControl.MDCSwitch(debugSwitchEl);
+    (debugSwitchEl as any).mdcSwitch = debugSwitch;
+    debugSwitch.checked = electronStore.get("visualDebug");
+    debugSwitchEl.addEventListener("change", (_event: any) => {
+        const checked = debugSwitch.checked;
+        electronStore.set("visualDebug", checked);
+
+        setTimeout(() => {
+            snackBar.labelText = `Visual debugging now ${checked ? "enabled" : "disabled"}.`;
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
+        }, 500);
     });
 
     const snackBarElem = document.getElementById("snackbar") as HTMLElement;
     snackBar = new (window as any).mdc.snackbar.MDCSnackbar(snackBarElem);
     (snackBarElem as any).mdcSnackbar = snackBar;
-    snackBar.dismissesOnAction = true;
 
     //     drawerElement.addEventListener("MDCTemporaryDrawer:open", () => {
     //         console.log("MDCTemporaryDrawer:open");
@@ -945,18 +2345,20 @@ window.addEventListener("DOMContentLoaded", () => {
     const selectElement = document.getElementById("nav-select") as HTMLElement;
     const navSelector = new (window as any).mdc.select.MDCSelect(selectElement); // , undefined, menuFactory
     (selectElement as any).mdcSelect = navSelector;
-    navSelector.listen("change", (ev: any) => {
+    navSelector.listen("MDCSelect:change", (ev: any) => {
         // console.log("MDCSelect:change");
         // console.log(ev);
-        // console.log(ev.target.selectedOptions[0].textContent);
-        // console.log(ev.target.selectedIndex);
-        // console.log(ev.target.value);
+        // console.log(ev.detail);
+        // console.log(ev.detail.index); // ev.detail.selectedIndex
+        // console.log(ev.detail.value);
+
+        // console.log(ev.detail.selectedOptions[0].textContent);
 
         const activePanel = document.querySelector(".tabPanel.active");
         if (activePanel) {
             activePanel.classList.remove("active");
         }
-        const newActivePanel = document.querySelector(".tabPanel:nth-child(" + (ev.target.selectedIndex + 1) + ")");
+        const newActivePanel = document.querySelector(".tabPanel:nth-child(" + (ev.detail.index + 1) + ")");
         if (newActivePanel) {
             newActivePanel.classList.add("active");
 
@@ -1006,6 +2408,14 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    const positionSelector = document.getElementById("positionSelector") as HTMLElement;
+    const slider = new (window as any).mdc.slider.MDCSlider(positionSelector);
+    (positionSelector as any).mdcSlider = slider;
+
+    slider.listen("MDCSlider:change", (_event: any) => {
+        onChangeReadingProgressionSlider();
+    });
+
     if (lcpPassInput) {
         lcpPassInput.addEventListener("keyup", (ev) => {
             if (ev.keyCode === 13) {
@@ -1044,20 +2454,13 @@ window.addEventListener("DOMContentLoaded", () => {
     buttonClearReadingLocations.addEventListener("click", () => {
         electronStore.set("readingLocation", {});
 
+        electronStore.set("bookmarks", {});
+
         drawer.open = false;
         setTimeout(() => {
-            const message = "Reading locations reset.";
-            const data = {
-                actionHandler: () => {
-                    // console.log("SnackBar OK");
-                },
-                actionOnBottom: false,
-                actionText: "OK",
-                message,
-                multiline: false,
-                timeout: 2000,
-            };
-            snackBar.show(data);
+            snackBar.labelText = "Reading locations / bookmarks reset.";
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
         }, 500);
     });
 
@@ -1069,18 +2472,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
         drawer.open = false;
         setTimeout(() => {
-            const message = "Settings reset.";
-            const data = {
-                actionHandler: () => {
-                    // console.log("SnackBar OK");
-                },
-                actionOnBottom: false,
-                actionText: "OK",
-                message,
-                multiline: false,
-                timeout: 2000,
-            };
-            snackBar.show(data);
+            snackBar.labelText = "Settings reset.";
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
         }, 500);
     });
 
@@ -1089,21 +2483,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
         electronStore.set("readiumCSS", electronStore.getDefaults().readiumCSS);
 
-        drawer.open = false;
-        setTimeout(() => {
-            const message = "Default styles.";
-            const data = {
-                actionHandler: () => {
-                    // console.log("SnackBar OK");
-                },
-                actionOnBottom: false,
-                actionText: "OK",
-                message,
-                multiline: false,
-                timeout: 2000,
-            };
-            snackBar.show(data);
-        }, 500);
+        // drawer.open = false;
+        // setTimeout(() => {
+        //     snackBar.labelText = "Default styles.";
+        //     snackBar.actionButtonText = "OK";
+        //     snackBar.open();
+        // }, 500);
     });
 
     const buttonOpenSettings = document.getElementById("buttonOpenSettings") as HTMLElement;
@@ -1111,9 +2496,14 @@ window.addEventListener("DOMContentLoaded", () => {
         if ((electronStore as any).reveal) {
             (electronStore as any).reveal();
         }
+    });
+
+    const buttonOpenLcpSettings = document.getElementById("buttonOpenLcpSettings") as HTMLElement;
+    buttonOpenLcpSettings.addEventListener("click", () => {
         if ((electronStoreLCP as any).reveal) {
             (electronStoreLCP as any).reveal();
         }
+        ipcRenderer.send("R2_EVENT_LCP_LSD_OPEN_SETTINGS");
     });
 
     const buttonLSDRenew = document.getElementById("buttonLSDRenew") as HTMLElement;
@@ -1123,6 +2513,13 @@ window.addEventListener("DOMContentLoaded", () => {
             publicationFilePath: pathDecoded,
         };
         ipcRenderer.send(R2_EVENT_LCP_LSD_RENEW, payload);
+
+        drawer.open = false;
+        setTimeout(() => {
+            snackBar.labelText = "LCP LSD renew message sent.";
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
+        }, 500);
     });
 
     const buttonLSDReturn = document.getElementById("buttonLSDReturn") as HTMLElement;
@@ -1131,12 +2528,43 @@ window.addEventListener("DOMContentLoaded", () => {
             publicationFilePath: pathDecoded,
         };
         ipcRenderer.send(R2_EVENT_LCP_LSD_RETURN, payload);
+
+        drawer.open = false;
+        setTimeout(() => {
+            snackBar.labelText = "LCP LSD return message sent.";
+            snackBar.actionButtonText = "OK";
+            snackBar.open();
+        }, 500);
     });
 
     // const buttonDevTools = document.getElementById("buttonDevTools") as HTMLElement;
     //     buttonDevTools.addEventListener("click", () => {
     //         ipcRenderer.send(R2_EVENT_DEVTOOLS, "test");
     //     });
+
+    document.querySelectorAll("#tabsPanels .mdc-switch__native-control").forEach((elem) => {
+        elem.addEventListener("focusin", (ev) => {
+
+            // .mdc-switch__thumb-underlay div
+            // tslint:disable-next-line:max-line-length
+            (((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).style.setProperty("--mdc-ripple-fg-scale", "1.7");
+            // tslint:disable-next-line:max-line-length
+            (((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).style.setProperty("--mdc-ripple-fg-size", "28px");
+            // tslint:disable-next-line:max-line-length
+            (((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).style.setProperty("--mdc-ripple-left", "10px");
+            // tslint:disable-next-line:max-line-length
+            (((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).style.setProperty("--mdc-ripple-top", "10px");
+
+            // .switchWrap div
+            // tslint:disable-next-line:max-line-length
+            (((((ev.target as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).classList.add("keyboardfocus");
+        });
+        elem.addEventListener("focusout", (ev) => {
+            // .switchWrap div
+            // tslint:disable-next-line:max-line-length
+            (((((ev.target as HTMLElement).parentElement as HTMLElement).parentNode as HTMLElement).parentNode as HTMLElement).parentNode as HTMLElement).classList.remove("keyboardfocus");
+        });
+    });
 });
 
 ipcRenderer.on(R2_EVENT_LCP_LSD_RENEW_RES, (_event: any, payload: IEventPayload_R2_EVENT_LCP_LSD_RENEW_RES) => {
@@ -1169,6 +2597,7 @@ function startNavigatorExperiment() {
             response = await fetch(publicationJsonUrl_);
         } catch (e) {
             console.log(e);
+            console.log(publicationJsonUrl_);
             return;
         }
         if (!response.ok) {
@@ -1189,8 +2618,7 @@ function startNavigatorExperiment() {
         }
         // const pubJson = global.JSON.parse(publicationStr);
 
-        // let _publication: Publication | undefined;
-        const _publication = TAJSON.deserialize<Publication>(_publicationJSON, Publication);
+        _publication = TAJSON.deserialize<Publication>(_publicationJSON, Publication);
 
         if (_publication.Metadata && _publication.Metadata.Title) {
             let title: string | undefined;
@@ -1206,11 +2634,189 @@ function startNavigatorExperiment() {
             if (title) {
                 const h1 = document.getElementById("pubTitle") as HTMLElement;
                 h1.textContent = title;
-                h1.addEventListener("click", (_event: any) => {
-                    if ((window as any).READIUM2 && (window as any).READIUM2.debug) {
-                        (window as any).READIUM2.debug((window as any).READIUM2.DEBUG_VISUALS ? false : true);
-                    }
-                });
+                h1.setAttribute("title", title);
+                // h1.addEventListener("click", (_event: any) => {
+                // });
+            }
+        }
+
+        initBookmarksFromStore();
+
+        const buttonBookmarkTOGGLE = document.getElementById("bookmarkTOGGLE") as HTMLElement;
+        buttonBookmarkTOGGLE.addEventListener("MDCIconButtonToggle:change", async (_event) => {
+            if ((event as any).detail.isOn) {
+                addCurrentVisibleBookmark();
+            } else {
+                try {
+                    const removed = await removeAllCurrentVisibleBookmarks();
+                    console.log("removed bookmarks:");
+                    removed.forEach((bookmark) => {
+                        console.log(JSON.stringify(bookmark, null, 4));
+                    });
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+            visualDebugBookmarks();
+            refreshBookmarksStore();
+        });
+        const mdcButtonBookmarkTOGGLE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonBookmarkTOGGLE);
+        (buttonBookmarkTOGGLE as any).mdcButton = mdcButtonBookmarkTOGGLE;
+
+        // const buttonBookmarkHighlightTOGGLE = document.getElementById("bookmarkHighlightTOGGLE") as HTMLElement;
+        // buttonBookmarkHighlightTOGGLE.addEventListener("MDCIconButtonToggle:change", async (_event) => {
+        //     const bookmarkHighlightTOGGLELabel =
+        //         document.getElementById("bookmarkHighlightTOGGLELabel") as HTMLElement;
+        //     if ((event as any).detail.isOn) {
+        //         bookmarkHighlightTOGGLELabel.textContent = "hide bookmarks";
+        //     } else {
+        //         bookmarkHighlightTOGGLELabel.textContent = "show bookmarks";
+        //     }
+        // });
+        // const mdcButtonBookmarkHighlightTOGGLE =
+        //     new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonBookmarkHighlightTOGGLE);
+        // (buttonBookmarkHighlightTOGGLE as any).mdcButton = mdcButtonBookmarkHighlightTOGGLE;
+
+        const buttonttsPLAYPAUSE = document.getElementById("ttsPLAYPAUSE") as HTMLElement;
+        buttonttsPLAYPAUSE.addEventListener("MDCIconButtonToggle:change", (event) => {
+            // console.log("MDCIconButtonToggle:change");
+            // console.log((event as any).detail.isOn);
+
+            if ((event as any).detail.isOn) {
+                if (_ttsState === TTSStateEnum.PAUSED) {
+                    ttsResume();
+                } else {
+                    ttsPlay();
+                }
+            } else {
+                ttsPause();
+            }
+        });
+        const mdcButtonttsPLAYPAUSE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonttsPLAYPAUSE);
+        (buttonttsPLAYPAUSE as any).mdcButton = mdcButtonttsPLAYPAUSE;
+        // console.log("(buttonttsPLAYPAUSE as any).mdcButton.on");
+        // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+
+        // const buttonttsPLAY = document.getElementById("ttsPLAY") as HTMLElement;
+        // buttonttsPLAY.addEventListener("click", (_event) => {
+        //     ttsPlay();
+        // });
+        // const buttonttsPAUSE = document.getElementById("ttsPAUSE") as HTMLElement;
+        // buttonttsPAUSE.addEventListener("click", (_event) => {
+        //     ttsPause();
+        // });
+        const buttonttsSTOP = document.getElementById("ttsSTOP") as HTMLElement;
+        buttonttsSTOP.addEventListener("click", (_event) => {
+            ttsStop();
+        });
+        // const buttonttsRESUME = document.getElementById("ttsRESUME") as HTMLElement;
+        // buttonttsRESUME.addEventListener("click", (_event) => {
+        //     ttsResume();
+        // });
+        const buttonttsNEXT = document.getElementById("ttsNEXT") as HTMLElement;
+        buttonttsNEXT.addEventListener("click", (_event) => {
+            ttsNext();
+        });
+        const buttonttsPREVIOUS = document.getElementById("ttsPREVIOUS") as HTMLElement;
+        buttonttsPREVIOUS.addEventListener("click", (_event) => {
+            ttsPrevious();
+        });
+
+        // const buttonttsENABLE = document.getElementById("ttsENABLE") as HTMLElement;
+        // buttonttsENABLE.addEventListener("click", (_event) => {
+        //     ttsEnableToggle();
+        // });
+
+        // const buttonttsDISABLE = document.getElementById("ttsDISABLE") as HTMLElement;
+        // buttonttsDISABLE.addEventListener("click", (_event) => {
+        //     ttsEnableToggle();
+        // });
+
+        const buttonttsTOGGLE = document.getElementById("ttsTOGGLE") as HTMLElement;
+        buttonttsTOGGLE.addEventListener("MDCIconButtonToggle:change", (_event) => {
+            ttsEnableToggle();
+        });
+        const mdcButtonttsTOGGLE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonttsTOGGLE);
+        (buttonttsTOGGLE as any).mdcButton = mdcButtonttsTOGGLE;
+
+        let _ttsState: TTSStateEnum | undefined;
+        refreshTtsUiState();
+
+        ttsListen((ttsState: TTSStateEnum) => {
+            if (!_ttsEnabled) {
+                return;
+            }
+            _ttsState = ttsState;
+            refreshTtsUiState();
+        });
+
+        function refreshTtsUiState() {
+            if (_ttsState === TTSStateEnum.PAUSED) {
+                // console.log("refreshTtsUiState _ttsState === TTSStateEnum.PAUSED");
+                // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+                (buttonttsPLAYPAUSE as any).mdcButton.on = false;
+                // buttonttsPLAY.style.display = "none";
+                // buttonttsRESUME.style.display = "inline-block";
+                // buttonttsPAUSE.style.display = "none";
+                buttonttsPLAYPAUSE.style.display = "inline-block";
+                buttonttsSTOP.style.display = "inline-block";
+                buttonttsPREVIOUS.style.display = "inline-block";
+                buttonttsNEXT.style.display = "inline-block";
+            } else if (_ttsState === TTSStateEnum.STOPPED) {
+                // console.log("refreshTtsUiState _ttsState === TTSStateEnum.STOPPED");
+                // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+                (buttonttsPLAYPAUSE as any).mdcButton.on = false;
+                // buttonttsPLAY.style.display = "inline-block";
+                // buttonttsRESUME.style.display = "none";
+                // buttonttsPAUSE.style.display = "none";
+                buttonttsPLAYPAUSE.style.display = "inline-block";
+                buttonttsSTOP.style.display = "none";
+                buttonttsPREVIOUS.style.display = "none";
+                buttonttsNEXT.style.display = "none";
+            } else if (_ttsState === TTSStateEnum.PLAYING) {
+                // console.log("refreshTtsUiState _ttsState === TTSStateEnum.PLAYING");
+                // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+                (buttonttsPLAYPAUSE as any).mdcButton.on = true;
+                // buttonttsPLAY.style.display = "none";
+                // buttonttsRESUME.style.display = "none";
+                // buttonttsPAUSE.style.display = "inline-block";
+                buttonttsPLAYPAUSE.style.display = "inline-block";
+                buttonttsSTOP.style.display = "inline-block";
+                buttonttsPREVIOUS.style.display = "inline-block";
+                buttonttsNEXT.style.display = "inline-block";
+            } else {
+                // console.log("refreshTtsUiState _ttsState === undefined");
+                // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
+                (buttonttsPLAYPAUSE as any).mdcButton.on = false;
+                // buttonttsPLAY.style.display = "none";
+                // buttonttsRESUME.style.display = "none";
+                // buttonttsPAUSE.style.display = "none";
+                buttonttsPLAYPAUSE.style.display = "none";
+                buttonttsSTOP.style.display = "none";
+                buttonttsPREVIOUS.style.display = "none";
+                buttonttsNEXT.style.display = "none";
+            }
+        }
+
+        // buttonttsDISABLE.style.display = "none";
+        let _ttsEnabled = false;
+        function ttsEnableToggle() {
+            if (_ttsEnabled) {
+                // buttonttsENABLE.style.display = "inline-block";
+                // buttonttsDISABLE.style.display = "none";
+                ttsClickEnable(false);
+                _ttsEnabled = false;
+                _ttsState = undefined;
+                refreshTtsUiState();
+                ttsStop();
+            } else {
+                // buttonttsENABLE.style.display = "none";
+                // buttonttsDISABLE.style.display = "inline-block";
+                ttsClickEnable(true);
+                _ttsEnabled = true;
+                _ttsState = TTSStateEnum.STOPPED;
+                refreshTtsUiState();
+                ttsStop();
             }
         }
 
@@ -1222,6 +2828,51 @@ function startNavigatorExperiment() {
         const buttonNavRight = document.getElementById("buttonNavRight") as HTMLElement;
         buttonNavRight.addEventListener("click", (_event) => {
             navLeftOrRight(false);
+        });
+
+        const onWheel = throttle((ev: WheelEvent) => {
+
+            console.log("wheel: " + ev.deltaX + " - " + ev.deltaY);
+
+            if (ev.deltaY < 0 || ev.deltaX < 0) {
+                navLeftOrRight(true);
+            } else if (ev.deltaY > 0 || ev.deltaX > 0) {
+                navLeftOrRight(false);
+            }
+        }, 300);
+        buttonNavLeft.addEventListener("wheel", onWheel);
+        buttonNavRight.addEventListener("wheel", onWheel);
+
+        const FAKE_URL = "https://dummy.me/";
+        const optsBookmarks: IRiotOptsLinkListGroup = {
+            basic: electronStore.get("basicLinkTitles"),
+            handleLink: (href: string) => {
+                href = href.substr(FAKE_URL.length);
+                const fragToken = "#r2loc(";
+                const i = href.indexOf(fragToken);
+                if (i > 0) {
+                    const j = i + fragToken.length;
+                    const cssSelector = href.substr(j, href.length - j - 1);
+                    href = href.substr(0, i);
+                    const locator = {
+                        href,
+                        locations: {
+                            cssSelector,
+                        },
+                    };
+                    handleLinkLocator_(locator);
+                }
+            },
+            linksgroup: [] as IRiotOptsLinkListGroupItem[],
+            url: FAKE_URL, // publicationJsonUrl,
+        };
+        const tagBookmarks =
+            riotMountLinkListGroup("#reader_controls_BOOKMARKS", optsBookmarks)[0] as IRiotTagLinkListGroup;
+        electronStore.onChanged("basicLinkTitles", (newValue: any, oldValue: any) => {
+            if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+                return;
+            }
+            tagBookmarks.setBasic(newValue);
         });
 
         if (_publication.Spine && _publication.Spine.length) {
@@ -1385,7 +3036,35 @@ function startNavigatorExperiment() {
             //     unhideWebView();
             // });
 
-            installNavigatorDOM(_publication, publicationJsonUrl,
+            let foundLink: Link | undefined;
+            if (_publication && location) {
+                if (_publication.Spine) {
+                    foundLink = _publication.Spine.find((link) => {
+                        return typeof location !== "undefined" &&
+                            link.Href === location.href;
+                    });
+                }
+                if (!foundLink && _publication.Resources) {
+                    foundLink = _publication.Resources.find((link) => {
+                        return typeof location !== "undefined" &&
+                            link.Href === location.href;
+                    });
+                }
+            }
+            // console.log(location);
+            const locatorExtended: LocatorExtended | undefined = location ? {
+                docInfo: {
+                    isFixedLayout: isFixedLayout(_publication as Publication, foundLink),
+                    isRightToLeft: false,
+                    isVerticalWritingMode: false,
+                },
+                locator: location,
+                paginationInfo: undefined,
+                selectionInfo: undefined,
+            } : undefined;
+            updateReadingProgressionSlider(locatorExtended);
+
+            installNavigatorDOM(_publication as Publication, publicationJsonUrl,
                 rootHtmlElementID,
                 preloadPath,
                 location);
@@ -1433,5 +3112,16 @@ function handleLink_(href: string) {
         }, 200);
     } else {
         handleLinkUrl(href);
+    }
+}
+
+function handleLinkLocator_(locator: Locator) {
+    if (drawer.open) {
+        drawer.open = false;
+        setTimeout(() => {
+            handleLinkLocator(locator);
+        }, 200);
+    } else {
+        handleLinkLocator(locator);
     }
 }

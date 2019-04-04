@@ -11,3 +11,4 @@
 
 declare module "filehound";
 declare module "system-font-families";
+declare module "throttleit";

@@ -1,9 +1,11 @@
-/* #nav-select.mdc-select {
+#nav-select.mdc-select {
   width: 100% !important;
 }
 #nav-select-menu.mdc-select__menu {
-  width: 100% !important;
+  margin-left: 10px;
+  width: 236px; /* 256px for aside drawer - 10x2 margin*/
 }
+/*
 #nav-select .mdc-select__surface {
   padding-bottom: 0px;
 }
@@ -17,6 +19,7 @@
   padding-top: 2px;
   padding-bottom: 2px;
 }
+*/
 #nav-select-menu > ul > li.mdc-list-item {
   padding-left: 46px;
 }
@@ -34,32 +37,47 @@
   direction: ltr;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+  display: inline-block;
 
   vertical-align: bottom;
 
-  display: inline-block;
   position: absolute;
   left: 8px;
   top: 11px;
 
   background: transparent;
   opacity: 1;
-} */
+}
+
+/* https://github.com/google/material-design-icons/blob/master/iconfont/codepoints */
+
+/* home */
 #selectTOC::after {
-    content: "\E88A"; /* home */
+    content: "\E88A";
 }
+/* place */
 #selectLandmarks::after {
-    content: "\E55F"; /* place */
+    content: "\E55F";
 }
+/* format_list_bulleted */
 #selectPageList::after {
-    content: "\E241"; /* format_list_bulleted */
+    content: "\E241";
 }
+/* linear_scale */
 #selectSpine::after {
-    content: "\E260"; /* linear_scale */
+    content: "\E260";
 }
+/* bookmarks */
+#selectBookmarks::after {
+    content: "\e866";
+}
+/* format_color_text */
 #selectStyles::after {
-    content: "\E8F4"; /* format_color_text */
+    content: "\E8F4";
 }
+/* settings */
 #selectAdvanced::after {
-    content: "\E8B8"; /* settings */
+    content: "\E8B8";
 }

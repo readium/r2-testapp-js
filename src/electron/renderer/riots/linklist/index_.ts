@@ -53,7 +53,7 @@ export const riotMountLinkList = (selector: string, opts: IRiotOptsLinkList): Ri
             while (!thiz.opts.handleLink && thiz.parent) {
                 thiz = thiz.parent;
             }
-            thiz.opts.handleLink(href);
+            thiz.opts.handleLink(new URL(href, thiz.opts.url).toString());
         }
     };
 };
