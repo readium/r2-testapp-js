@@ -94,7 +94,7 @@
     "rimraf": "^2.6.3",
     "riot-typed": "github:danielweck/riot-typed#master",
     "sorcery": "^0.10.0",
-    "tslint": "^5.15.0",
+    "tslint": "^5.16.0",
     "tslint-language-service": "^0.9.9",
     "typescript": "^3.4.3",
     "uglify-es": "^3.3.10"
