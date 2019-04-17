@@ -5,6 +5,8 @@
 // that can be found in the LICENSE file exposed on Github (readium) in the project repository.
 // ==LICENSE-END==
 
+import { LSD } from "@r2-lcp-js/parser/epub/lsd";
+
 // in RENDERER: ipcRenderer.send()
 // in MAIN: ipcMain.on()
 export const R2_EVENT_DEVTOOLS = "R2_EVENT_DEVTOOLS";
@@ -32,7 +34,7 @@ export const R2_EVENT_LCP_LSD_RETURN_RES = "R2_EVENT_LCP_LSD_RETURN_RES";
 export interface IEventPayload_R2_EVENT_LCP_LSD_RETURN_RES {
     okay: boolean;
     error: string | undefined;
-    lsdJson: any | undefined;
+    lsd: LSD | undefined;
 }
 
 // in RENDERER: ipcRenderer.send()
@@ -51,7 +53,7 @@ export const R2_EVENT_LCP_LSD_RENEW_RES = "R2_EVENT_LCP_LSD_RENEW_RES";
 export interface IEventPayload_R2_EVENT_LCP_LSD_RENEW_RES {
     okay: boolean;
     error: string | undefined;
-    lsdJson: any | undefined;
+    lsd: LSD | undefined;
 }
 
 // in RENDERER: ipcRenderer.send()

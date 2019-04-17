@@ -2571,14 +2571,14 @@ ipcRenderer.on(R2_EVENT_LCP_LSD_RENEW_RES, (_event: any, payload: IEventPayload_
     console.log("R2_EVENT_LCP_LSD_RENEW_RES");
     console.log(payload.okay);
     console.log(payload.error);
-    console.log(payload.lsdJson);
+    console.log(payload.lsd);
 });
 
 ipcRenderer.on(R2_EVENT_LCP_LSD_RETURN_RES, (_event: any, payload: IEventPayload_R2_EVENT_LCP_LSD_RETURN_RES) => {
     console.log("R2_EVENT_LCP_LSD_RETURN_RES");
     console.log(payload.okay);
     console.log(payload.error);
-    console.log(payload.lsdJson);
+    console.log(payload.lsd);
 });
 
 function startNavigatorExperiment() {
