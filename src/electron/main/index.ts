@@ -27,8 +27,9 @@ import * as path from "path";
 import { URL } from "url";
 
 import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-processing";
-import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { LCP } from "@r2-lcp-js/parser/epub/lcp";
+import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
+import { StatusEnum } from "@r2-lcp-js/parser/epub/lsd";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
 import { IEventPayload_R2_EVENT_READIUMCSS } from "@r2-navigator-js/electron/common/events";
 import {
@@ -231,8 +232,12 @@ async function isManifestJSON(urlOrPath: string): Promise<boolean> {
 async function tryLSD(publication: Publication, publicationFilePath: string): Promise<boolean> {
 
     return new Promise(async (resolve, reject) => {
+        if (!publication.LCP) {
+            reject("No LCP data!");
+            return;
+        }
         try {
-            await launchStatusDocumentProcessing(publication.LCP as LCP, deviceIDManager,
+            await launchStatusDocumentProcessing(publication.LCP, deviceIDManager,
                 async (licenseUpdateJson: string | undefined) => {
                     debug("launchStatusDocumentProcessing DONE.");
 
@@ -636,13 +641,27 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             debug(err);
         }
 
-        if (publication.LCP.Encryption &&
-            publication.LCP.Encryption.UserKey &&
-            publication.LCP.Encryption.UserKey.TextHint) {
-            lcpHint = publication.LCP.Encryption.UserKey.TextHint;
+        let blockBecauseLSD = false;
+        if (publication.LCP.LSD) {
+            // publication.LCP.LSD.Status !== StatusEnum.Active && publication.LCP.LSD.Status !== StatusEnum.Ready
+            if (publication.LCP.LSD.Status === StatusEnum.Revoked
+                || publication.LCP.LSD.Status === StatusEnum.Returned
+                || publication.LCP.LSD.Status === StatusEnum.Cancelled
+                || publication.LCP.LSD.Status === StatusEnum.Expired) {
+
+                blockBecauseLSD = true;
+                debug(">>>> LICENSE LSD STATUS BLOCK ACCESS!");
+            }
         }
-        if (!lcpHint) {
-            lcpHint = "LCP passphrase";
+        if (!blockBecauseLSD) {
+            if (publication.LCP.Encryption &&
+                publication.LCP.Encryption.UserKey &&
+                publication.LCP.Encryption.UserKey.TextHint) {
+                lcpHint = publication.LCP.Encryption.UserKey.TextHint;
+            }
+            if (!lcpHint) {
+                lcpHint = "LCP passphrase";
+            }
         }
     }
 
