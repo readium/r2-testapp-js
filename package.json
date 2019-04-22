@@ -70,12 +70,12 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@octokit/rest": "^16.24.3",
+    "@octokit/rest": "^16.25.0",
     "@types/debounce": "^3.0.0",
     "@types/debug": "^4.1.4",
     "@types/electron-store": "^3.2.0",
     "@types/express": "^4.16.0",
-    "@types/node": "^11.13.4",
+    "@types/node": "^11.13.6",
     "@types/request": "^2.48.1",
     "@types/request-promise-native": "^1.0.15",
     "@types/uuid": "^3.4.4",
@@ -96,7 +96,7 @@
     "sorcery": "^0.10.0",
     "tslint": "^5.16.0",
     "tslint-language-service": "^0.9.9",
-    "typescript": "^3.4.3",
+    "typescript": "^3.4.4",
     "uglify-es": "^3.3.10"
   },
   "main": "dist/bundle-es8-es2017/main.js",
