@@ -730,7 +730,12 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
     // `file://${process.cwd()}/src/electron/renderer/index.html`;
     // `file://${__dirname}/../../../../src/electron/renderer/index.html`
     debug(fullUrl);
-    electronBrowserWindow.webContents.loadURL(fullUrl, { extraHeaders: "pragma: no-cache\n" });
+
+    try {
+        await electronBrowserWindow.webContents.loadURL(fullUrl, { extraHeaders: "pragma: no-cache\n" });
+    } catch (err) {
+        debug(err);
+    }
 }
 
 initSessions();
@@ -1111,7 +1116,14 @@ file drag-and-drop
         _electronBrowserWindowFileOrUrlDialog = undefined;
     });
 
-    _electronBrowserWindowFileOrUrlDialog.webContents.loadURL("data:text/html," + html);
+    // tslint:disable-next-line:no-floating-promises
+    (async () => {
+        try {
+            await _electronBrowserWindowFileOrUrlDialog.webContents.loadURL("data:text/html," + html);
+        } catch (err) {
+            debug(err);
+        }
+    })();
 }
 
 ipcMain.on(R2_EVENT_OPEN_URL_OR_PATH, async (_event: any, payload: IEventPayload_R2_EVENT_OPEN_URL_OR_PATH) => {
@@ -1465,7 +1477,15 @@ function resetMenu(browserWindow: BrowserWindow | undefined) {
             submenu: [
                 {
                     click: (_item: any, _focusedWindow: any) => {
-                        shell.openExternal("https://github.com/readium/r2-testapp-js/");
+
+                        // tslint:disable-next-line:no-floating-promises
+                        (async () => {
+                            try {
+                                await shell.openExternal("https://github.com/readium/r2-testapp-js/");
+                            } catch (err) {
+                                debug(err);
+                            }
+                        })();
                     },
                     label: "Website...",
                 },

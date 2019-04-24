@@ -85,7 +85,7 @@
     "cross-env": "^5.2.0",
     "cson": "^5.1.0",
     "eclint": "^2.8.1",
-    "electron": "^4.1.4",
+    "electron": "^5.0.0",
     "electron-builder": "^20.39.0",
     "exorcist": "^1.0.1",
     "git-rev-sync": "^1.12.0",
