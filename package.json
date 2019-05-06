@@ -79,7 +79,7 @@
     "@types/request": "^2.48.1",
     "@types/request-promise-native": "^1.0.16",
     "@types/uuid": "^3.4.4",
-    "asar": "^1.0.0",
+    "asar": "^2.0.1",
     "browserify": "^16.2.3",
     "cpy-cli": "^2.0.0",
     "cross-env": "^5.2.0",
