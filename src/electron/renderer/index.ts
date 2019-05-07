@@ -10,6 +10,7 @@ import * as path from "path";
 import {
     IEventPayload_R2_EVENT_READIUMCSS,
 } from "@r2-navigator-js/electron/common/events";
+import { IHighlight, IHighlightDefinition } from "@r2-navigator-js/electron/common/highlight";
 import {
     IReadiumCSS,
     readiumCSSDefaults,
@@ -25,6 +26,9 @@ import {
     getCurrentReadingLocation,
     handleLinkLocator,
     handleLinkUrl,
+    highlightCreate,
+    highlightRemove,
+    highlightsClickListen,
     installNavigatorDOM,
     isLocatorVisible,
     navLeftOrRight,
@@ -602,10 +606,10 @@ function addCurrentVisibleBookmark() {
     if (current && current.locator) {
         const found = _bookmarks.find((locator) => {
             return locator.href === current.locator.href &&
-            // locator.locations.cfi === current.locator.locations.cfi &&
-            // locator.locations.progression === current.locator.locations.progression &&
-            // locator.locations.position === current.locator.locations.position &&
-            locator.locations.cssSelector === current.locator.locations.cssSelector;
+                // locator.locations.cfi === current.locator.locations.cfi &&
+                // locator.locations.progression === current.locator.locations.progression &&
+                // locator.locations.position === current.locator.locations.position &&
+                locator.locations.cssSelector === current.locator.locations.cssSelector;
         });
         if (!found) {
             _bookmarks.push(current.locator);
@@ -702,7 +706,168 @@ electronStore.onChanged("bookmarks", (newValue: any, oldValue: any) => {
     refreshBookmarksState();
 });
 
-const saveReadingLocation = (location: LocatorExtended) => {
+interface IHighlightData {
+    highlight: IHighlight;
+    locator: Locator;
+}
+const _highlights: IHighlightData[] = [];
+
+function getHighlightMenuGroupLabel(highlight: IHighlightData): string {
+    return highlight.locator.title ?
+        `${highlight.locator.title} (${highlight.locator.href})` : `${highlight.locator.href}`;
+}
+
+function refreshHighlightsMenu() {
+
+    const highlightsEl = document.getElementById("reader_controls_HIGHLIGHTS");
+    const tagHighlights: IRiotTagLinkListGroup = (highlightsEl as any)._tag;
+
+    const highlightsListGroups =
+        ((tagHighlights.opts as IRiotOptsLinkListGroup).linksgroup as IRiotOptsLinkListGroupItem[]);
+    for (let i = highlightsListGroups.length - 1; i >= 0; i--) { // remove all
+        highlightsListGroups.splice(i, 1);
+    }
+
+    let sortedHighlights: IHighlightData[];
+    if (_publication) {
+        sortedHighlights = [];
+        for (const highlight of _highlights) {
+            sortedHighlights.push(highlight);
+
+            let foundLink: Link | undefined;
+            let spineIndex = -1;
+            if (_publication.Spine) {
+                foundLink = _publication.Spine.find((link, i) => {
+                    const ok = link.Href === highlight.locator.href;
+                    if (ok) {
+                        spineIndex = i;
+                    }
+                    return ok;
+                });
+                if (foundLink) {
+                    (highlight as any).sortIndex = spineIndex;
+                }
+            }
+            if (!foundLink && _publication.Resources) {
+                foundLink = _publication.Resources.find((link) => {
+                    return link.Href === highlight.locator.href;
+                });
+                if (foundLink) {
+                    (highlight as any).sortIndex = -1;
+                } else {
+                    (highlight as any).sortIndex = -2;
+                }
+            }
+        }
+
+        sortedHighlights.sort((l1, l2) => {
+            if ((l1 as any).sortIndex === -2) {
+                if ((l2 as any).sortIndex === -2) {
+                    return 0; // l1 "equal" l2
+                } else if ((l2 as any).sortIndex === -1) {
+                    return 1; // l1 "greater than" l2
+                } else {
+                    return 1; // l1 "greater than" l2
+                }
+            }
+            if ((l1 as any).sortIndex === -1) {
+                if ((l2 as any).sortIndex === -2) {
+                    return -1; // l1 "less than" l2
+                } else if ((l2 as any).sortIndex === -1) {
+                    return 0; // l1 "equal" l2
+                } else {
+                    return 1; // l1 "greater than" l2
+                }
+            }
+
+            if ((l1 as any).sortIndex !== (l2 as any).sortIndex ||
+                typeof l1.locator.locations.progression === "undefined" ||
+                typeof l2.locator.locations.progression === "undefined") {
+
+                return (l1 as any).sortIndex - (l2 as any).sortIndex;
+            }
+
+            return l1.locator.locations.progression - l2.locator.locations.progression;
+        });
+
+    } else { // should never happen!
+        sortedHighlights = _highlights;
+    }
+
+    for (const highlight of sortedHighlights) {
+        const label = getHighlightMenuGroupLabel(highlight);
+
+        let listgroup: IRiotOptsLinkListGroupItem | undefined = highlightsListGroups.find((lg) => {
+            return lg.label === label;
+        });
+        if (!listgroup) {
+            listgroup = {
+                label,
+                links: [],
+            };
+            highlightsListGroups.push(listgroup);
+        }
+        if (highlight.locator.locations.cssSelector) {
+            const textTrim = highlight.highlight.selectionInfo.cleanText.substr(0, 50);
+            const link: IRiotOptsLinkListItem = {
+                href: highlight.locator.href + "#r2loc(" + highlight.locator.locations.cssSelector + ")",
+
+                title: (typeof highlight.locator.locations.progression !== "undefined") ?
+                    // tslint:disable-next-line:max-line-length
+                    `#${listgroup.links.length + 1} (${Math.round(highlight.locator.locations.progression * 1000) / 10}%) ${textTrim}` :
+                    `#${listgroup.links.length + 1} ${textTrim}`,
+            };
+            listgroup.links.push(link);
+        }
+    }
+    tagHighlights.update();
+}
+
+function removeAllHighlights(): IHighlightData[] {
+    const removed: IHighlightData[] = [];
+    for (let i = _highlights.length - 1; i >= 0; i--) {
+        const highlight = _highlights[i];
+        removed.push(highlight);
+        _highlights.splice(i, 1);
+    }
+    return removed;
+}
+function refreshHighlightsStore() {
+    let obj = electronStore.get("highlights");
+    if (!obj) {
+        obj = {};
+    }
+    obj[pathDecoded] = [];
+    _highlights.forEach((highlight) => {
+        obj[pathDecoded].push(highlight);
+    });
+    electronStore.set("highlights", obj);
+}
+function initHighlightsFromStore() {
+    let obj = electronStore.get("highlights");
+    if (!obj) {
+        obj = {};
+    }
+    removeAllHighlights();
+    if (obj[pathDecoded]) {
+        // _highlights = [];
+        obj[pathDecoded].forEach((highlight: IHighlightData) => {
+            _highlights.push(highlight);
+        });
+    }
+}
+electronStore.onChanged("highlights", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+    initHighlightsFromStore();
+    refreshHighlightsMenu();
+});
+
+let _lastSavedReadingLocationHref: string | undefined;
+const saveReadingLocation = async (location: LocatorExtended) => {
+    const hrefHasChanged = _lastSavedReadingLocationHref !== location.locator.href;
+    _lastSavedReadingLocationHref = location.locator.href;
 
     updateReadingProgressionSlider(location);
 
@@ -722,6 +887,54 @@ const saveReadingLocation = (location: LocatorExtended) => {
 
     visualDebugBookmarks();
     refreshBookmarksState();
+
+    let highlightsStoreWasRefreshed = false;
+
+    const selectionInfo = location.selectionInfo;
+    if (selectionInfo && location.selectionIsNew) {
+        const highlightToCreate = { selectionInfo } as IHighlightDefinition;
+        let createdHighlights: Array<IHighlight | null> | undefined;
+        try {
+            createdHighlights = await highlightCreate(location.locator.href, [highlightToCreate]);
+        } catch (err) {
+            console.log(err);
+        }
+        if (createdHighlights) {
+            createdHighlights.forEach((highlight) => {
+                if (highlight) {
+                    const hd = { highlight, locator: location.locator } as IHighlightData;
+                    _highlights.push(hd);
+                }
+            });
+            highlightsStoreWasRefreshed = true;
+            refreshHighlightsStore();
+        }
+    }
+
+    if (hrefHasChanged) {
+        const highlightsToCreate: IHighlightDefinition[] = [];
+        _highlights.forEach((highlightData) => {
+            if (highlightData.locator.href === location.locator.href) {
+                const h = {
+                    color: highlightData.highlight.color,
+                    id: highlightData.highlight.id,
+                    selectionInfo: highlightData.highlight.selectionInfo,
+                } as IHighlightDefinition;
+                highlightsToCreate.push(h);
+            }
+        });
+        if (highlightsToCreate.length) {
+            try {
+                await highlightCreate(location.locator.href, highlightsToCreate);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+    }
+
+    if (!highlightsStoreWasRefreshed) {
+        refreshHighlightsMenu();
+    }
 };
 setReadingLocationSaver(saveReadingLocation);
 
@@ -2820,6 +3033,54 @@ function startNavigatorExperiment() {
             }
         }
 
+        initHighlightsFromStore();
+
+        highlightsClickListen((href: string, highlight: IHighlight) => {
+            highlightRemove(href, [highlight.id]);
+            const foundHighlightData = _highlights.find((highlightData) => {
+                return highlightData.highlight.id === highlight.id;
+            });
+            if (foundHighlightData) {
+                const i = _highlights.indexOf(foundHighlightData);
+                if (i >= 0) {
+                    _highlights.splice(i, 1);
+                    refreshHighlightsStore();
+                }
+            }
+        });
+
+        const FAKE_URL_HIGHLIGHTS = "https://highlights.me/";
+        const optsHighlights: IRiotOptsLinkListGroup = {
+            basic: electronStore.get("basicLinkTitles"),
+            handleLink: (href: string) => {
+                href = href.substr(FAKE_URL_HIGHLIGHTS.length);
+                const fragToken = "#r2loc(";
+                const i = href.indexOf(fragToken);
+                if (i > 0) {
+                    const j = i + fragToken.length;
+                    const cssSelector = decodeURIComponent(href.substr(j, href.length - j - 1));
+                    href = href.substr(0, i);
+                    const locator = {
+                        href,
+                        locations: {
+                            cssSelector,
+                        },
+                    };
+                    handleLinkLocator_(locator);
+                }
+            },
+            linksgroup: [] as IRiotOptsLinkListGroupItem[],
+            url: FAKE_URL_HIGHLIGHTS, // publicationJsonUrl,
+        };
+        const tagHighlights =
+            riotMountLinkListGroup("#reader_controls_HIGHLIGHTS", optsHighlights)[0] as IRiotTagLinkListGroup;
+        electronStore.onChanged("basicLinkTitles", (newValue: any, oldValue: any) => {
+            if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+                return;
+            }
+            tagHighlights.setBasic(newValue);
+        });
+
         const buttonNavLeft = document.getElementById("buttonNavLeft") as HTMLElement;
         buttonNavLeft.addEventListener("click", (_event) => {
             navLeftOrRight(true);
@@ -2843,16 +3104,16 @@ function startNavigatorExperiment() {
         buttonNavLeft.addEventListener("wheel", onWheel);
         buttonNavRight.addEventListener("wheel", onWheel);
 
-        const FAKE_URL = "https://dummy.me/";
+        const FAKE_URL_BOOKMARKS = "https://bookmarks.me/";
         const optsBookmarks: IRiotOptsLinkListGroup = {
             basic: electronStore.get("basicLinkTitles"),
             handleLink: (href: string) => {
-                href = href.substr(FAKE_URL.length);
+                href = href.substr(FAKE_URL_BOOKMARKS.length);
                 const fragToken = "#r2loc(";
                 const i = href.indexOf(fragToken);
                 if (i > 0) {
                     const j = i + fragToken.length;
-                    const cssSelector = href.substr(j, href.length - j - 1);
+                    const cssSelector = decodeURIComponent(href.substr(j, href.length - j - 1));
                     href = href.substr(0, i);
                     const locator = {
                         href,
@@ -2864,7 +3125,7 @@ function startNavigatorExperiment() {
                 }
             },
             linksgroup: [] as IRiotOptsLinkListGroupItem[],
-            url: FAKE_URL, // publicationJsonUrl,
+            url: FAKE_URL_BOOKMARKS, // publicationJsonUrl,
         };
         const tagBookmarks =
             riotMountLinkListGroup("#reader_controls_BOOKMARKS", optsBookmarks)[0] as IRiotTagLinkListGroup;
@@ -3061,6 +3322,7 @@ function startNavigatorExperiment() {
                 locator: location,
                 paginationInfo: undefined,
                 selectionInfo: undefined,
+                selectionIsNew: undefined,
             } : undefined;
             updateReadingProgressionSlider(locatorExtended);
 
