@@ -51,8 +51,8 @@
     "debug": "^4.1.1",
     "electron-store": "^3.2.0",
     "filehound": "^1.17.0",
-    "material-components-web": "^2.0.0",
-    "material-design-icons-iconfont": "^4.0.5",
+    "material-components-web": "^2.1.0",
+    "material-design-icons-iconfont": "^5.0.1",
     "portfinder": "^1.0.20",
     "r2-lcp-js": "^1.0.9",
     "r2-navigator-js": "^1.0.22",
@@ -70,7 +70,7 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@octokit/rest": "^16.25.2",
+    "@octokit/rest": "^16.25.3",
     "@types/debounce": "^3.0.0",
     "@types/debug": "^4.1.4",
     "@types/electron-store": "^3.2.0",
