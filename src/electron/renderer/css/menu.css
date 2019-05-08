@@ -51,7 +51,10 @@
   opacity: 1;
 }
 
-/* https://github.com/google/material-design-icons/blob/master/iconfont/codepoints */
+/*
+https://github.com/google/material-design-icons/blob/master/iconfont/codepoints
+https://material.io/tools/icons/?style=baseline
+*/
 
 /* home */
 #selectTOC::after {
@@ -72,6 +75,10 @@
 /* bookmarks */
 #selectBookmarks::after {
     content: "\e866";
+}
+/* bookmarks */
+#selectHighlights::after {
+    content: "\e8b0";
 }
 /* format_color_text */
 #selectStyles::after {

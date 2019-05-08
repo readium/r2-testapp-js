@@ -1,10 +1,28 @@
 # Next
 
 Git diff:
-* https://github.com/readium/r2-testapp-js/compare/v1.0.6...develop
+* https://github.com/readium/r2-testapp-js/compare/v1.0.7...develop
 
 Changes:
 * TODO
+
+# 1.0.7
+
+> Build environment: NodeJS `10.15.3`, NPM `6.9.0`
+
+Changes:
+* NPM updates
+* Electron v3 (to match readium-desktop / Thorium app)
+
+Git revision info:
+* https://unpkg.com/r2-testapp-js@1.0.7/dist/gitrev.json
+* https://github.com/edrlab/r2-testapp-js-dist/blob/v1.0.7/dist/gitrev.json
+
+Git commit history:
+* https://github.com/readium/r2-testapp-js/commits/v1.0.7
+
+Git diff:
+* https://github.com/readium/r2-testapp-js/compare/v1.0.6...v1.0.7
 
 # 1.0.6
 
