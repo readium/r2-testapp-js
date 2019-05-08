@@ -21,14 +21,16 @@ import {
 } from "@r2-navigator-js/electron/common/sessions";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
+    highlightsClickListen,
+    highlightsCreate,
+    highlightsRemove,
+} from "@r2-navigator-js/electron/renderer/highlight";
+import {
     LocatorExtended,
     TTSStateEnum,
     getCurrentReadingLocation,
     handleLinkLocator,
     handleLinkUrl,
-    highlightCreate,
-    highlightRemove,
-    highlightsClickListen,
     installNavigatorDOM,
     isLocatorVisible,
     navLeftOrRight,
@@ -895,7 +897,7 @@ const saveReadingLocation = async (location: LocatorExtended) => {
         const highlightToCreate = { selectionInfo } as IHighlightDefinition;
         let createdHighlights: Array<IHighlight | null> | undefined;
         try {
-            createdHighlights = await highlightCreate(location.locator.href, [highlightToCreate]);
+            createdHighlights = await highlightsCreate(location.locator.href, [highlightToCreate]);
         } catch (err) {
             console.log(err);
         }
@@ -925,7 +927,7 @@ const saveReadingLocation = async (location: LocatorExtended) => {
         });
         if (highlightsToCreate.length) {
             try {
-                await highlightCreate(location.locator.href, highlightsToCreate);
+                await highlightsCreate(location.locator.href, highlightsToCreate);
             } catch (err) {
                 console.log(err);
             }
@@ -3036,7 +3038,7 @@ function startNavigatorExperiment() {
         initHighlightsFromStore();
 
         highlightsClickListen((href: string, highlight: IHighlight) => {
-            highlightRemove(href, [highlight.id]);
+            highlightsRemove(href, [highlight.id]);
             const foundHighlightData = _highlights.find((highlightData) => {
                 return highlightData.highlight.id === highlight.id;
             });
