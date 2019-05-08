@@ -21,16 +21,14 @@ import {
 } from "@r2-navigator-js/electron/common/sessions";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
-    highlightsClickListen,
-    highlightsCreate,
-    highlightsRemove,
-} from "@r2-navigator-js/electron/renderer/highlight";
-import {
     LocatorExtended,
     TTSStateEnum,
     getCurrentReadingLocation,
     handleLinkLocator,
     handleLinkUrl,
+    highlightsClickListen,
+    highlightsCreate,
+    highlightsRemove,
     installNavigatorDOM,
     isLocatorVisible,
     navLeftOrRight,
