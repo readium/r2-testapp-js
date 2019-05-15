@@ -55,7 +55,7 @@
     cpy ./dist/bundle-#ECMASCRIPT#/electron-main.js.map ./dist/bundle-#ECMASCRIPT#/ --rename=electron-main-.js.map &&
     json -I -f ./dist/bundle-#ECMASCRIPT#/electron-main-.js.map -e "this.sourcesContent=false" &&
 
-    uglifyjs
+    terse
       ./dist/bundle-#ECMASCRIPT#/electron-main.js
       --output
       ./dist/bundle-#ECMASCRIPT#/electron-main.min.js
@@ -64,7 +64,7 @@
       --keep-classnames
       --keep-fnames
       --beautify
-      "beautify=false,preserve_line=false,indent_level=0"
+      "beautify=false,ecma=6,indent_level=0"
       --source-map
       "root=\'\',url=\'electron-main.min.js.map\',content=\'./dist/bundle-#ECMASCRIPT#/electron-main-.js.map\'" &&
 
@@ -141,7 +141,7 @@
     cpy ./dist/bundle-#ECMASCRIPT#/electron-renderer.js.map ./dist/bundle-#ECMASCRIPT#/ --rename=electron-renderer-.js.map &&
     json -I -f ./dist/bundle-#ECMASCRIPT#/electron-renderer-.js.map -e "this.sourcesContent=false" &&
 
-    uglifyjs
+    terse
       ./dist/bundle-#ECMASCRIPT#/electron-renderer.js
       --output
       ./dist/bundle-#ECMASCRIPT#/electron-renderer.min.js
@@ -150,7 +150,7 @@
       --keep-classnames
       --keep-fnames
       --beautify
-      "beautify=false,preserve_line=false,indent_level=0"
+      "beautify=false,ecma=6,indent_level=0"
       --source-map
       "root=\'\',url=\'electron-renderer.min.js.map\',content=\'./dist/bundle-#ECMASCRIPT#/electron-renderer-.js.map\'" &&
 
@@ -210,7 +210,7 @@
     cpy ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.js.map ./dist/bundle-#ECMASCRIPT#/ --rename=electron-webview-preload-.js.map &&
     json -I -f ./dist/bundle-#ECMASCRIPT#/electron-webview-preload-.js.map -e "this.sourcesContent=false" &&
 
-    uglifyjs
+    terse
       ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.js
       --output
       ./dist/bundle-#ECMASCRIPT#/electron-webview-preload.min.js
@@ -219,7 +219,7 @@
       --keep-classnames
       --keep-fnames
       --beautify
-      "beautify=false,preserve_line=false,indent_level=0"
+      "beautify=false,ecma=6,indent_level=0"
       --source-map
       "root=\'\',url=\'electron-webview-preload.min.js.map\',content=\'./dist/bundle-#ECMASCRIPT#/electron-webview-preload-.js.map\'" &&
 
