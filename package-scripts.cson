@@ -49,25 +49,25 @@
   '
 
   'electron-pack': '
-    build
+    electron-builder
       --publish
       never
   '
 
   'electron-pack:travis-docker-linux-win': '
-    build -lw --x64 --publish never
+    electron-builder -lw --x64 --publish never
   '
 
   'electron-pack:travis-linux': '
-    build -l --x64 --publish never
+    electron-builder -l --x64 --publish never
   '
 
   'electron-pack:travis-mac': '
-    build -m --x64 --publish never
+    electron-builder -m --x64 --publish never
   '
 
   'electron-pack:travis-win': '
-    build -w --x64 --publish never
+    electron-builder -w --x64 --publish never
   '
 
   'preelectron-pack:win': '
@@ -76,7 +76,7 @@
   '
 
   'electron-pack:win': '
-    build
+    electron-builder
       --win
       --x64
   '
@@ -87,7 +87,7 @@
   '
 
   'electron-pack:linux': '
-    build
+    electron-builder
       --linux
   '
 
@@ -97,7 +97,7 @@
   '
 
   'electron-pack:mac': '
-    build
+    electron-builder
       --mac &&
     asar l electron-pack/mac/*.app/Contents/Resources/app.asar
   '
