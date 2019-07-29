@@ -455,7 +455,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             // const pathBase64 =
             //      decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
             // debug(pathBase64);
-            // const pathDecoded = new Buffer(pathBase64, "base64").toString("utf8");
+            // const pathDecoded = Buffer.from(pathBase64, "base64").toString("utf8");
             // debug(pathDecoded);
             // // const pathFileName = pathDecoded.substr(
             // //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
