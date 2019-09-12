@@ -8,8 +8,7 @@
 import { ipcRenderer } from "electron";
 
 import {
-    IEventPayload_R2_EVENT_OPEN_URL_OR_PATH,
-    R2_EVENT_OPEN_URL_OR_PATH,
+    IEventPayload_R2_EVENT_OPEN_URL_OR_PATH, R2_EVENT_OPEN_URL_OR_PATH,
 } from "../common/events";
 
 export function setupDragDrop() {
