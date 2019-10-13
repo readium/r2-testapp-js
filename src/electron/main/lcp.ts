@@ -6,17 +6,15 @@
 // ==LICENSE-END==
 
 import * as crypto from "crypto";
-
-import { doTryLcpPass } from "@r2-navigator-js/electron/main/lcp";
-import { Server } from "@r2-streamer-js/http/server";
 import * as debug_ from "debug";
 import { ipcMain } from "electron";
 
+import { doTryLcpPass } from "@r2-navigator-js/electron/main/lcp";
+import { Server } from "@r2-streamer-js/http/server";
+
 import {
-    IEventPayload_R2_EVENT_TRY_LCP_PASS,
-    IEventPayload_R2_EVENT_TRY_LCP_PASS_RES,
-    R2_EVENT_TRY_LCP_PASS,
-    R2_EVENT_TRY_LCP_PASS_RES,
+    IEventPayload_R2_EVENT_TRY_LCP_PASS, IEventPayload_R2_EVENT_TRY_LCP_PASS_RES,
+    R2_EVENT_TRY_LCP_PASS, R2_EVENT_TRY_LCP_PASS_RES,
 } from "../common/events";
 
 const debug = debug_("r2:testapp#electron/main/lcp");
@@ -42,8 +40,8 @@ export function installLcpHandler(publicationsServer: Server) {
                 const checkSum = crypto.createHash("sha256");
                 checkSum.update(payload.lcpPass);
                 passSha256Hex = checkSum.digest("hex");
-                // const lcpPass64 = new Buffer(hash).toString("base64");
-                // const lcpPassHex = new Buffer(lcpPass64, "base64").toString("utf8");
+                // const lcpPass64 = Buffer.from(hash).toString("base64");
+                // const lcpPassHex = Buffer.from(lcpPass64, "base64").toString("utf8");
             } else {
                 passSha256Hex = payload.lcpPass;
             }

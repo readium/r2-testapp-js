@@ -10,7 +10,7 @@ import { IStore } from "./store";
 import ElectronStore = require("electron-store");
 
 export class StoreElectron implements IStore {
-    private _electronStore: ElectronStore;
+    private _electronStore: ElectronStore<unknown>;
 
     constructor(name: string, readonly defaults: any) {
         this._electronStore = new ElectronStore({

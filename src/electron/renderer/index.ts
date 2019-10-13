@@ -5,103 +5,62 @@
 // that can be found in the LICENSE file exposed on Github (readium) in the project repository.
 // ==LICENSE-END==
 
+import { debounce } from "debounce";
+import { ipcRenderer } from "electron";
 import * as path from "path";
+import { JSON as TAJSON } from "ta-json-x";
+import * as throttle from "throttleit";
 
 import {
-    IEventPayload_R2_EVENT_READIUMCSS,
+    IEventPayload_R2_EVENT_READIUMCSS, IEventPayload_R2_EVENT_WEBVIEW_KEYDOWN,
 } from "@r2-navigator-js/electron/common/events";
 import { IHighlight, IHighlightDefinition } from "@r2-navigator-js/electron/common/highlight";
 import {
-    IReadiumCSS,
-    readiumCSSDefaults,
+    IReadiumCSS, readiumCSSDefaults,
 } from "@r2-navigator-js/electron/common/readium-css-settings";
 import {
-    READIUM2_ELECTRON_HTTP_PROTOCOL,
-    convertCustomSchemeToHttpUrl,
+    READIUM2_ELECTRON_HTTP_PROTOCOL, convertCustomSchemeToHttpUrl,
 } from "@r2-navigator-js/electron/common/sessions";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
-    LocatorExtended,
-    TTSStateEnum,
-    getCurrentReadingLocation,
-    handleLinkLocator,
-    handleLinkUrl,
-    highlightsClickListen,
-    highlightsCreate,
-    highlightsRemove,
-    installNavigatorDOM,
-    isLocatorVisible,
-    navLeftOrRight,
-    readiumCssOnOff,
-    setEpubReadingSystemInfo,
-    setReadingLocationSaver,
-    setReadiumCssJsonGetter,
-    ttsClickEnable,
-    ttsListen,
-    ttsNext,
-    ttsPause,
-    ttsPlay,
-    ttsPrevious,
-    ttsResume,
-    ttsStop,
+    LocatorExtended, TTSStateEnum, getCurrentReadingLocation, handleLinkLocator, handleLinkUrl,
+    highlightsClickListen, highlightsCreate, highlightsRemove, installNavigatorDOM,
+    isLocatorVisible, navLeftOrRight, readiumCssOnOff, setEpubReadingSystemInfo,
+    setKeyDownEventHandler, setReadingLocationSaver, setReadiumCssJsonGetter, ttsClickEnable,
+    ttsListen, ttsNext, ttsPause, ttsPlay, ttsPrevious, ttsResume, ttsStop,
 } from "@r2-navigator-js/electron/renderer/index";
+import { initGlobalConverters_OPDS } from "@r2-opds-js/opds/init-globals";
 import {
-    initGlobalConverters_OPDS,
-} from "@r2-opds-js/opds/init-globals";
-import {
-    initGlobalConverters_GENERIC,
-    initGlobalConverters_SHARED,
+    initGlobalConverters_GENERIC, initGlobalConverters_SHARED,
 } from "@r2-shared-js/init-globals";
 import { Locator } from "@r2-shared-js/models/locator";
 import { IStringMap } from "@r2-shared-js/models/metadata-multilang";
 import { Publication } from "@r2-shared-js/models/publication";
 import { Link } from "@r2-shared-js/models/publication-link";
-import { debounce } from "debounce";
-import { ipcRenderer } from "electron";
-import { JSON as TAJSON } from "ta-json-x";
-import * as throttle from "throttleit";
 
 import {
-    IEventPayload_R2_EVENT_LCP_LSD_RENEW,
-    IEventPayload_R2_EVENT_LCP_LSD_RENEW_RES,
-    IEventPayload_R2_EVENT_LCP_LSD_RETURN,
-    IEventPayload_R2_EVENT_LCP_LSD_RETURN_RES,
-    IEventPayload_R2_EVENT_TRY_LCP_PASS,
-    IEventPayload_R2_EVENT_TRY_LCP_PASS_RES,
-    R2_EVENT_LCP_LSD_RENEW,
-    R2_EVENT_LCP_LSD_RENEW_RES,
-    R2_EVENT_LCP_LSD_RETURN,
-    R2_EVENT_LCP_LSD_RETURN_RES,
-    R2_EVENT_TRY_LCP_PASS,
-    R2_EVENT_TRY_LCP_PASS_RES,
+    IEventPayload_R2_EVENT_LCP_LSD_RENEW, IEventPayload_R2_EVENT_LCP_LSD_RENEW_RES,
+    IEventPayload_R2_EVENT_LCP_LSD_RETURN, IEventPayload_R2_EVENT_LCP_LSD_RETURN_RES,
+    IEventPayload_R2_EVENT_TRY_LCP_PASS, IEventPayload_R2_EVENT_TRY_LCP_PASS_RES,
+    R2_EVENT_LCP_LSD_RENEW, R2_EVENT_LCP_LSD_RENEW_RES, R2_EVENT_LCP_LSD_RETURN,
+    R2_EVENT_LCP_LSD_RETURN_RES, R2_EVENT_TRY_LCP_PASS, R2_EVENT_TRY_LCP_PASS_RES,
 } from "../common/events";
 import { IStore } from "../common/store";
 import { StoreElectron } from "../common/store-electron";
 import { HTML_COLORS } from "./colours";
 import { setupDragDrop } from "./drag-drop";
 import {
-    IRiotOptsLinkList,
-    IRiotOptsLinkListItem,
-    IRiotTagLinkList,
-    riotMountLinkList,
+    IRiotOptsLinkList, IRiotOptsLinkListItem, IRiotTagLinkList, riotMountLinkList,
 } from "./riots/linklist/index_";
 import {
-    IRiotOptsLinkListGroup,
-    IRiotOptsLinkListGroupItem,
-    IRiotTagLinkListGroup,
+    IRiotOptsLinkListGroup, IRiotOptsLinkListGroupItem, IRiotTagLinkListGroup,
     riotMountLinkListGroup,
 } from "./riots/linklistgroup/index_";
 import {
-    IRiotOptsLinkTree,
-    IRiotOptsLinkTreeItem,
-    IRiotTagLinkTree,
-    riotMountLinkTree,
+    IRiotOptsLinkTree, IRiotOptsLinkTreeItem, IRiotTagLinkTree, riotMountLinkTree,
 } from "./riots/linktree/index_";
 import {
-    IRiotOptsMenuSelect,
-    IRiotOptsMenuSelectItem,
-    IRiotTagMenuSelect,
-    riotMountMenuSelect,
+    IRiotOptsMenuSelect, IRiotOptsMenuSelectItem, IRiotTagMenuSelect, riotMountMenuSelect,
 } from "./riots/menuselect/index_";
 
 import SystemFonts = require("system-font-families");
@@ -943,7 +902,7 @@ setReadingLocationSaver(saveReadingLocation);
 // // tslint:disable-next-line:no-string-literal
 // const lcpPluginBase64 = queryParams["lcpPlugin"];
 // if (lcpPluginBase64) {
-//     const lcpPlugin = new Buffer(lcpPluginBase64, "base64").toString("utf8");
+//     const lcpPlugin = Buffer.from(lcpPluginBase64, "base64").toString("utf8");
 //     setLcpNativePluginPath(lcpPlugin);
 // } else {
 //     setLcpNativePluginPath(path.join(process.cwd(), "LCP", "lcp.node"));
@@ -968,7 +927,7 @@ if (isHttpWebPubWithoutLCP) {
         replace(/.*\/pub\/(.*)\/manifest.json.*/, "$1");
     // replace("*-URL_LCP_PASS_PLACEHOLDER-*", ""); // lcpBeginToken + lcpEndToken
     console.log(pathBase64);
-    pathDecoded = new Buffer(decodeURIComponent(pathBase64), "base64").toString("utf8");
+    pathDecoded = Buffer.from(decodeURIComponent(pathBase64), "base64").toString("utf8");
     console.log(pathDecoded);
 }
 const pathFileName = pathDecoded.substr(
@@ -2265,6 +2224,23 @@ window.addEventListener("DOMContentLoaded", () => {
 
     (window as any).mdc.menu.MDCMenuFoundation.numbers.TRANSITION_DURATION_MS = 200;
 
+    const keyDownEventHandler = (ev: IEventPayload_R2_EVENT_WEBVIEW_KEYDOWN) => {
+        // DEPRECATED
+        // if (ev.keyCode === 37 || ev.keyCode === 39) { // left / right
+        // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
+        // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code
+        // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code/code_values
+        const leftKey = ev.code === "ArrowLeft";
+        const rightKey = ev.code === "ArrowRight";
+        if (leftKey || rightKey) {
+            const noModifierKeys = !ev.ctrlKey && !ev.shiftKey && !ev.altKey && !ev.metaKey;
+            const spineNavModifierKeys = ev.ctrlKey && ev.shiftKey;
+            if (noModifierKeys || spineNavModifierKeys) {
+                navLeftOrRight(leftKey, spineNavModifierKeys);
+            }
+        }
+    };
+    setKeyDownEventHandler(keyDownEventHandler);
     // TODO this seems to hijack MDC slider thumb change
     window.document.addEventListener("keydown", (ev: KeyboardEvent) => {
         if (drawer.open) {
@@ -2273,12 +2249,7 @@ window.addEventListener("DOMContentLoaded", () => {
         if ((ev.target as any).mdcSlider) {
             return;
         }
-
-        if (ev.keyCode === 37) { // left
-            navLeftOrRight(true);
-        } else if (ev.keyCode === 39) { // right
-            navLeftOrRight(false);
-        }
+        keyDownEventHandler(ev);
     });
 
     setTimeout(() => {
@@ -2631,7 +2602,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     if (lcpPassInput) {
         lcpPassInput.addEventListener("keyup", (ev) => {
-            if (ev.keyCode === 13) {
+            if (ev.key === "Enter") {
                 ev.preventDefault();
                 const lcpDialogAcceptButton = document.getElementById("lcpDialogAcceptButton") as HTMLElement;
                 lcpDialogAcceptButton.click();

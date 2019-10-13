@@ -20,56 +20,50 @@
 // https://github.com/electron/electron/blob/master/docs/api/dialog.md
 // https://github.com/electron/electron/blob/master/docs/api/ipc-renderer.md
 
+import * as debug_ from "debug";
+import {
+    BrowserWindow, Menu, MenuItemConstructorOptions, app, dialog, ipcMain, shell, webContents,
+} from "electron";
+import * as express from "express";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
 import * as path from "path";
+import * as portfinder from "portfinder";
+import * as request from "request";
+import * as requestPromise from "request-promise-native";
+import { JSON as TAJSON } from "ta-json-x";
 import { URL } from "url";
+import * as uuid from "uuid";
 
 import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-processing";
-import { LCP } from "@r2-lcp-js/parser/epub/lcp";
-import { setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
+import { LCP, setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { StatusEnum } from "@r2-lcp-js/parser/epub/lsd";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
 import { IEventPayload_R2_EVENT_READIUMCSS } from "@r2-navigator-js/electron/common/events";
 import {
-    IReadiumCSS,
-    readiumCSSDefaults,
+    IReadiumCSS, readiumCSSDefaults,
 } from "@r2-navigator-js/electron/common/readium-css-settings";
 import { convertHttpUrlToCustomScheme } from "@r2-navigator-js/electron/common/sessions";
 import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-window-tracker";
 import { lsdLcpUpdateInject } from "@r2-navigator-js/electron/main/lsd-injectlcpl";
 import { setupReadiumCSS } from "@r2-navigator-js/electron/main/readium-css";
 import { initSessions, secureSessions } from "@r2-navigator-js/electron/main/sessions";
+import { initGlobalConverters_OPDS } from "@r2-opds-js/opds/init-globals";
 import {
-    initGlobalConverters_OPDS,
-} from "@r2-opds-js/opds/init-globals";
-import {
-    initGlobalConverters_GENERIC,
-    initGlobalConverters_SHARED,
+    initGlobalConverters_GENERIC, initGlobalConverters_SHARED,
 } from "@r2-shared-js/init-globals";
 import { Publication } from "@r2-shared-js/models/publication";
 import { Link } from "@r2-shared-js/models/publication-link";
 import { isEPUBlication } from "@r2-shared-js/parser/epub";
 import { Server } from "@r2-streamer-js/http/server";
-import { isHTTP } from "@r2-utils-js/_utils/http/UrlUtils";
-import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
+import { encodeURIComponent_RFC3986, isHTTP } from "@r2-utils-js/_utils/http/UrlUtils";
 import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
 import { ZipExploded } from "@r2-utils-js/_utils/zip/zip-ex";
 import { ZipExplodedHTTP } from "@r2-utils-js/_utils/zip/zip-ex-http";
-import * as debug_ from "debug";
-import { BrowserWindow, Menu, MenuItemConstructorOptions, app, dialog, ipcMain, shell, webContents } from "electron";
-import * as express from "express";
-import * as portfinder from "portfinder";
-import * as request from "request";
-import * as requestPromise from "request-promise-native";
-import { JSON as TAJSON } from "ta-json-x";
-import * as uuid from "uuid";
 
 import {
-    IEventPayload_R2_EVENT_OPEN_URL_OR_PATH,
-    R2_EVENT_DEVTOOLS,
-    R2_EVENT_OPEN_URL_OR_PATH,
+    IEventPayload_R2_EVENT_OPEN_URL_OR_PATH, R2_EVENT_DEVTOOLS, R2_EVENT_OPEN_URL_OR_PATH,
 } from "../common/events";
 import { IStore } from "../common/store";
 import { StoreElectron } from "../common/store-electron";
@@ -455,7 +449,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             // const pathBase64 =
             //      decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
             // debug(pathBase64);
-            // const pathDecoded = new Buffer(pathBase64, "base64").toString("utf8");
+            // const pathDecoded = Buffer.from(pathBase64, "base64").toString("utf8");
             // debug(pathDecoded);
             // // const pathFileName = pathDecoded.substr(
             // //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,

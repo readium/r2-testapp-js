@@ -5,23 +5,19 @@
 // that can be found in the LICENSE file exposed on Github (readium) in the project repository.
 // ==LICENSE-END==
 
-import { IDeviceIDManager } from "@r2-lcp-js/lsd/deviceid-manager";
-import { LSD } from "@r2-lcp-js/parser/epub/lsd";
-import { doLsdRenew } from "@r2-navigator-js/electron/main/lsd";
-import { doLsdReturn } from "@r2-navigator-js/electron/main/lsd";
-import { Server } from "@r2-streamer-js/http/server";
 import * as debug_ from "debug";
 import { ipcMain } from "electron";
 import { JSON as TAJSON } from "ta-json-x";
 
+import { IDeviceIDManager } from "@r2-lcp-js/lsd/deviceid-manager";
+import { LSD } from "@r2-lcp-js/parser/epub/lsd";
+import { doLsdRenew, doLsdReturn } from "@r2-navigator-js/electron/main/lsd";
+import { Server } from "@r2-streamer-js/http/server";
+
 import {
-    IEventPayload_R2_EVENT_LCP_LSD_RENEW,
-    IEventPayload_R2_EVENT_LCP_LSD_RENEW_RES,
-    IEventPayload_R2_EVENT_LCP_LSD_RETURN,
-    IEventPayload_R2_EVENT_LCP_LSD_RETURN_RES,
-    R2_EVENT_LCP_LSD_RENEW,
-    R2_EVENT_LCP_LSD_RENEW_RES,
-    R2_EVENT_LCP_LSD_RETURN,
+    IEventPayload_R2_EVENT_LCP_LSD_RENEW, IEventPayload_R2_EVENT_LCP_LSD_RENEW_RES,
+    IEventPayload_R2_EVENT_LCP_LSD_RETURN, IEventPayload_R2_EVENT_LCP_LSD_RETURN_RES,
+    R2_EVENT_LCP_LSD_RENEW, R2_EVENT_LCP_LSD_RENEW_RES, R2_EVENT_LCP_LSD_RETURN,
     R2_EVENT_LCP_LSD_RETURN_RES,
 } from "../common/events";
 
