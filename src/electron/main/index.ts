@@ -1025,7 +1025,7 @@ file drag-and-drop
     // tslint:disable-next-line:max-line-length
     // https://github.com/electron/electron/blob/v4.0.0/docs/api/breaking-changes.md#new-browserwindow-webpreferences-
     _electronBrowserWindowFileOrUrlDialog = new BrowserWindow({
-        alwaysOnTop: true,
+        alwaysOnTop: false,
         height: 300,
         modal: false,
         resizable: false,
@@ -1063,7 +1063,7 @@ file drag-and-drop
             }, 200);
         } else if ((payload as any).fileChooser) {
             process.nextTick(async () => {
-                const choice = dialog.showOpenDialog({
+                const res = await dialog.showOpenDialog({
                     defaultPath: _lastBookPath, // || DEFAULT_BOOK_PATH,
                     filters: [
                         { name: "EPUB publication", extensions: ["epub", "epub3"] },
@@ -1076,10 +1076,10 @@ file drag-and-drop
                     properties: ["openFile"],
                     title: "Open from filesystem",
                 });
-                if (!choice || !choice.length) {
+                if (res.canceled || !res.filePaths || !res.filePaths.length) {
                     return;
                 }
-                const filePath = choice[0];
+                const filePath = res.filePaths[0];
                 debug(filePath);
 
                 // await openFileDownload(filePath);
@@ -1110,10 +1110,13 @@ file drag-and-drop
         _electronBrowserWindowFileOrUrlDialog = undefined;
     });
 
+    const htmlbase64 = Buffer.from(html).toString("base64");
+
     // tslint:disable-next-line:no-floating-promises
     (async () => {
         try {
-            await _electronBrowserWindowFileOrUrlDialog.webContents.loadURL("data:text/html," + html);
+            await _electronBrowserWindowFileOrUrlDialog.webContents.loadURL("data:text/html;base64," +
+                encodeURI(htmlbase64));
         } catch (err) {
             debug(err);
         }
@@ -1540,12 +1543,12 @@ async function openFileDownload(filePath: string) {
         try {
             epubFilePath = await downloadEPUBFromLCPL(filePath, dir, destFileName);
         } catch (err) {
-            process.nextTick(() => {
+            process.nextTick(async () => {
                 const detail = (typeof err === "string") ?
                     err :
                     (err.toString ? err.toString() : "ERROR!?");
                 const message = "LCP EPUB download fail!]";
-                const res = dialog.showMessageBox({
+                const res = await dialog.showMessageBox({
                     buttons: ["&OK"],
                     cancelId: 0,
                     defaultId: 0,
@@ -1556,7 +1559,7 @@ async function openFileDownload(filePath: string) {
                     title: "Readium2 Electron streamer / navigator",
                     type: "info",
                 });
-                if (res === 0) {
+                if (res.response === 0) {
                     debug("ok");
                 }
             });
@@ -1567,7 +1570,7 @@ async function openFileDownload(filePath: string) {
         process.nextTick(async () => {
             const detail = result[0] + " ---- [" + result[1] + "]";
             const message = "LCP EPUB file download success [" + destFileName + "]";
-            const res = dialog.showMessageBox({
+            const res = await dialog.showMessageBox({
                 buttons: ["&OK"],
                 cancelId: 0,
                 defaultId: 0,
@@ -1578,7 +1581,7 @@ async function openFileDownload(filePath: string) {
                 title: "Readium2 Electron streamer / navigator",
                 type: "info",
             });
-            if (res === 0) {
+            if (res.response === 0) {
                 debug("ok");
             }
 
@@ -1635,9 +1638,8 @@ app.on("before-quit", () => {
 app.on("window-all-closed", () => {
     debug("app window-all-closed");
 
-    setTimeout(() => {
-        dialog.showMessageBox(
-            {
+    setTimeout(async () => {
+        const res = await dialog.showMessageBox({
                 buttons: [ "yes", "no" ],
                 cancelId: 1,
                 checkboxChecked: undefined,
@@ -1650,15 +1652,12 @@ app.on("window-all-closed", () => {
                 normalizeAccessKeys: false,
                 title: "Readium2 test app, exit?",
                 type: "question",
-            },
-            (response: number, _checkboxChecked: boolean) => {
-
-            if (response === 0) {
-                app.quit();
-            } else {
-                loadFileOrUrlDialog("");
-            }
         });
+        if (res.response === 0) {
+            app.quit();
+        } else {
+            loadFileOrUrlDialog("");
+        }
     }, 300);
     // if (process.platform !== "darwin") {
     //     app.quit();

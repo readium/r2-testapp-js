@@ -236,7 +236,7 @@
     rimraf package-lock.json &&
     rimraf node_modules &&
     npm init -f -y &&
-    npm install conf@^1.4.0 --save &&
+    npm install conf@latest --save &&
     npm install bindings@latest --save &&
     rimraf package.json &&
     rimraf package-lock.json &&

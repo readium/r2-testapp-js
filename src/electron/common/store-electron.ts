@@ -9,8 +9,12 @@ import { IStore } from "./store";
 
 import ElectronStore = require("electron-store");
 
+export interface ConfStoreType {
+    [key: string]: any;
+}
+
 export class StoreElectron implements IStore {
-    private _electronStore: ElectronStore<unknown>;
+    private _electronStore: ElectronStore<ConfStoreType>;
 
     constructor(name: string, readonly defaults: any) {
         this._electronStore = new ElectronStore({
