@@ -1106,7 +1106,7 @@ file drag-and-drop
         //     return;
         // }
 
-        ipcMain.removeListener(R2_EVENT_OPEN_URL_OR_PATH + dialogid, dialogResult);
+        ipcMain.removeListener(R2_EVENT_OPEN_URL_OR_PATH + dialogid, dialogResult as unknown as () => void);
         _electronBrowserWindowFileOrUrlDialog = undefined;
     });
 
