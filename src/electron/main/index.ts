@@ -240,7 +240,7 @@ async function tryLSD(publication: Publication, publicationFilePath: string): Pr
                         try {
                             res = await lsdLcpUpdateInject(
                                 licenseUpdateJson,
-                                publication as Publication,
+                                publication,
                                 publicationFilePath);
                             debug("EPUB LCP INJECTED: " + res);
 
