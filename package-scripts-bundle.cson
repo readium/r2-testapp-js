@@ -302,6 +302,7 @@
     printf "require(\'./electron-webview-preload.js\');" > ./dist/bundle-#ECMASCRIPT#/preload.js &&
 
     cpy "./ReadiumCSS/**/*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents --no-dir &&
+    cpy "./mathjax/**/*" ./bundle-#ECMASCRIPT#/ --cwd=./dist/ --parents --no-dir &&
 
     npm run bundle-electron-main:#ECMASCRIPT# &&
     npm run bundle-electron-renderer:#ECMASCRIPT# &&

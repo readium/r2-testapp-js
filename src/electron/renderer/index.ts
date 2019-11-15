@@ -25,7 +25,7 @@ import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/que
 import {
     LocatorExtended, TTSStateEnum, getCurrentReadingLocation, handleLinkLocator, handleLinkUrl,
     highlightsClickListen, highlightsCreate, highlightsRemove, installNavigatorDOM,
-    isLocatorVisible, navLeftOrRight, readiumCssOnOff, setEpubReadingSystemInfo,
+    isLocatorVisible, navLeftOrRight, readiumCssOnOff, reloadContent, setEpubReadingSystemInfo,
     setKeyDownEventHandler, setReadingLocationSaver, setReadiumCssJsonGetter, ttsClickEnable,
     ttsListen, ttsNext, ttsPause, ttsPlay, ttsPrevious, ttsResume, ttsStop,
 } from "@r2-navigator-js/electron/renderer/index";
@@ -1102,6 +1102,23 @@ electronStore.onChanged("readiumCSS.reduceMotion", (newValue: any, oldValue: any
     refreshReadiumCSS();
 });
 
+electronStore.onChanged("readiumCSS.mathJax", (newValue: any, oldValue: any) => {
+    if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+        return;
+    }
+
+    // const mathJaxSwitch = document.getElementById("mathJax_switch-input") as HTMLInputElement;
+    const mathJaxSwitchEl = document.getElementById("mathJax_switch") as HTMLElement;
+    const mathJaxSwitch = (mathJaxSwitchEl as any).mdcSwitch;
+    mathJaxSwitch.checked = newValue ? true : false;
+
+    refreshReadiumCSS();
+    setTimeout(() => {
+        // window.location.reload();
+        reloadContent();
+    }, 300);
+});
+
 electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
     if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
         return;
@@ -1172,6 +1189,11 @@ electronStore.onChanged("readiumCSSEnable", (newValue: any, oldValue: any) => {
     const reduceMotionSwitchEl = document.getElementById("reduceMotion_switch") as HTMLElement;
     const reduceMotionSwitch = (reduceMotionSwitchEl as any).mdcSwitch;
     reduceMotionSwitch.disabled = !newValue;
+
+    // const mathJaxSwitch = document.getElementById("mathJax_switch-input") as HTMLInputElement;
+    const mathJaxSwitchEl = document.getElementById("mathJax_switch") as HTMLElement;
+    const mathJaxSwitch = (mathJaxSwitchEl as any).mdcSwitch;
+    mathJaxSwitch.disabled = !newValue;
 
     // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;
@@ -2410,6 +2432,18 @@ window.addEventListener("DOMContentLoaded", () => {
         electronStore.set("readiumCSS.reduceMotion", checked ? true : false);
     });
     reduceMotionSwitch.disabled = !electronStore.get("readiumCSSEnable");
+
+    // const mathJaxSwitch = document.getElementById("mathJax_switch-input") as HTMLInputElement;
+    const mathJaxSwitchEl = document.getElementById("mathJax_switch") as HTMLElement;
+    const mathJaxSwitch = new (window as any).mdc.switchControl.MDCSwitch(mathJaxSwitchEl);
+    (mathJaxSwitchEl as any).mdcSwitch = mathJaxSwitch;
+    mathJaxSwitch.checked = electronStore.get("readiumCSS.mathJax") ? true : false;
+    mathJaxSwitchEl.addEventListener("change", (_event: any) => {
+        // footnotesSwitch.handleChange("change", (_event: any) => {
+        const checked = mathJaxSwitch.checked;
+        electronStore.set("readiumCSS.mathJax", checked ? true : false);
+    });
+    mathJaxSwitch.disabled = !electronStore.get("readiumCSSEnable");
 
     // const paginateSwitch = document.getElementById("paginate_switch-input") as HTMLInputElement;
     const paginateSwitchEl = document.getElementById("paginate_switch") as HTMLElement;

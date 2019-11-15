@@ -118,7 +118,8 @@
 
   'electron-renderer:all': '
     npm run riot:all &&
-    cpy "./ReadiumCSS/**/*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents --no-dir
+    cpy "./ReadiumCSS/**/*" ../../../dist/ --cwd=./node_modules/r2-navigator-js/dist/ --parents --no-dir &&
+    cpy "./mathjax/**/*" ../dist/ --cwd=./node_modules/ --parents --no-dir
   '
 
   'postelectron-renderer:all': '

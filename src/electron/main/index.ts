@@ -56,6 +56,8 @@ import {
 import { Publication } from "@r2-shared-js/models/publication";
 import { Link } from "@r2-shared-js/models/publication-link";
 import { isEPUBlication } from "@r2-shared-js/parser/epub";
+import { Transformers } from "@r2-shared-js/transform/transformer";
+import { TransformerHTML } from "@r2-shared-js/transform/transformer-html";
 import { Server } from "@r2-streamer-js/http/server";
 import { encodeURIComponent_RFC3986, isHTTP } from "@r2-utils-js/_utils/http/UrlUtils";
 import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
@@ -1223,6 +1225,67 @@ app.on("ready", () => {
             path.join(__dirname, "ReadiumCSS").replace(/\\/g, "/");
 
         setupReadiumCSS(_publicationsServer, readiumCSSPath, __computeReadiumCssJsonMessage);
+
+        const mathJaxPath = IS_DEV ?
+            path.join(process.cwd(), "dist", "mathjax").replace(/\\/g, "/") :
+            path.join(__dirname, "mathjax").replace(/\\/g, "/");
+        debug("MathJax path:", mathJaxPath);
+        // https://expressjs.com/en/4x/api.html#express.static
+        const staticOptionsMathJax = {
+            dotfiles: "ignore",
+            etag: true,
+            fallthrough: false,
+            immutable: true,
+            index: false,
+            maxAge: "1d",
+            redirect: false,
+            // extensions: ["css", "otf"],
+            setHeaders: (res: express.Response, _path: string, _stat: any) => {
+                //   res.set('x-timestamp', Date.now())
+                _publicationsServer.setResponseCORS(res);
+            },
+        };
+        const MATHJAX_URL_PATH = "math-jax";
+        _publicationsServer.expressUse("/" + MATHJAX_URL_PATH, express.static(mathJaxPath, staticOptionsMathJax));
+        const transformer = (_publication: Publication, _link: Link, str: string): string => {
+
+            const mathJax = electronStore.get("readiumCSS.mathJax") || readiumCSSDefaults.mathJax;
+
+            debug("########################");
+            debug("########################");
+            debug("########################");
+            debug("########################");
+            debug("########################");
+            debug("########################");
+            debug("########################");
+            debug("########################");
+            debug("########################");
+            debug(`MATHJAX ENABLE: ${mathJax}`);
+
+            if (mathJax) {
+                const url = `${_publicationsServer.serverUrl()}/${MATHJAX_URL_PATH}/es5/tex-mml-chtml.js`;
+                const script = `
+                <script type="text/javascript">
+        window.MathJax = {
+            startup: {
+                ready: () => {
+                    console.log('MathJax is loaded, but not yet initialized');
+                    window.MathJax.startup.defaultReady();
+                    console.log('MathJax is initialized, and the initial typeset is queued');
+                    window.MathJax.startup.promise.then(() => {
+                        console.log('MathJax initial typesetting complete');
+                    });
+                }
+            }
+        };
+                </script>
+                <script type="text/javascript" async="async" src="${url}"> </script>`;
+                return str.replace(/<\/head>/, `${script}</head>`);
+            } else {
+                return str;
+            }
+        };
+        Transformers.instance().add(new TransformerHTML(transformer));
 
         // For the webview preload sourcemaps (local file URL)
         if (IS_DEV) {
