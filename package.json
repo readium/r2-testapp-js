@@ -51,7 +51,7 @@
     "debug": "^4.1.1",
     "electron-store": "^5.1.0",
     "filehound": "^1.17.3",
-    "material-components-web": "^3.2.0",
+    "material-components-web": "^4.0.0",
     "material-design-icons-iconfont": "^5.0.1",
     "portfinder": "^1.0.25",
     "r2-lcp-js": "^1.0.17",

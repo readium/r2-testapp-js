@@ -1,7 +1,9 @@
 <riot-menuselect class="mdc-select">
   <!-- <input type="hidden" name="enhanced-select"> -->
-  <i class="mdc-select__dropdown-icon"></i>
-  <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox">{ getLabelForId(opts.selected) }</div>
+  <div class="mdc-select__anchor">
+    <i class="mdc-select__dropdown-icon"></i>
+    <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox">{ getLabelForId(opts.selected) }</div>
+  </div>
   <div class="mdc-select__menu mdc-menu mdc-menu-surface" role="listbox">
     <ul class="mdc-list">
       <li each="{ opts.options }"
