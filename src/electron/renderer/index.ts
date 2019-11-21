@@ -8,9 +8,9 @@
 import { debounce } from "debounce";
 import { ipcRenderer } from "electron";
 import * as path from "path";
-import { JSON as TAJSON } from "ta-json-x";
 import * as throttle from "throttleit";
 
+import { TaJsonDeserialize } from "@r2-lcp-js/serializable";
 import {
     IEventPayload_R2_EVENT_READIUMCSS, IEventPayload_R2_EVENT_WEBVIEW_KEYDOWN,
 } from "@r2-navigator-js/electron/common/events";
@@ -2836,7 +2836,7 @@ function startNavigatorExperiment() {
         }
         // const pubJson = global.JSON.parse(publicationStr);
 
-        _publication = TAJSON.deserialize<Publication>(_publicationJSON, Publication);
+        _publication = TaJsonDeserialize<Publication>(_publicationJSON, Publication);
 
         if (_publication.Metadata && _publication.Metadata.Title) {
             let title: string | undefined;

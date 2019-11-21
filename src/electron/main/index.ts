@@ -32,7 +32,6 @@ import * as path from "path";
 import * as portfinder from "portfinder";
 import * as request from "request";
 import * as requestPromise from "request-promise-native";
-import { JSON as TAJSON } from "ta-json-x";
 import { URL } from "url";
 import * as uuid from "uuid";
 
@@ -40,6 +39,7 @@ import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-p
 import { LCP, setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
 import { StatusEnum } from "@r2-lcp-js/parser/epub/lsd";
 import { downloadEPUBFromLCPL } from "@r2-lcp-js/publication-download";
+import { TaJsonDeserialize } from "@r2-lcp-js/serializable";
 import { IEventPayload_R2_EVENT_READIUMCSS } from "@r2-navigator-js/electron/common/events";
 import {
     IReadiumCSS, readiumCSSDefaults,
@@ -316,7 +316,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             debug(responseJson);
 
             let lcpl: LCP | undefined;
-            lcpl = TAJSON.deserialize<LCP>(responseJson, LCP);
+            lcpl = TaJsonDeserialize<LCP>(responseJson, LCP);
             lcpl.ZipPath = "META-INF/license.lcpl";
             lcpl.JsonSource = responseStr;
             lcpl.init();
@@ -412,7 +412,7 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
             }
 
             try {
-                publication = TAJSON.deserialize<Publication>(manifestJson, Publication);
+                publication = TaJsonDeserialize<Publication>(manifestJson, Publication);
             } catch (erorz) {
                 debug(erorz);
                 return;

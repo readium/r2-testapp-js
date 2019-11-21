@@ -32,7 +32,7 @@ export function installLsdHandler(publicationsServer: Server, deviceIDManager: I
             const lsd = await doLsdReturn(publicationsServer, deviceIDManager, payload.publicationFilePath);
             // let lsd: LSD | undefined;
             // try {
-            //     lsd = TAJSON.deserialize<LSD>(lsdJSON, LSD);
+            //     lsd = TaJsonDeserialize<LSD>(lsdJSON, LSD);
             //     if (IS_DEV) {
             //         debug(lsd);
             //     }
@@ -64,7 +64,7 @@ export function installLsdHandler(publicationsServer: Server, deviceIDManager: I
                 payload.publicationFilePath, payload.endDateStr);
             // let lsd: LSD | undefined;
             // try {
-            //     lsd = TAJSON.deserialize<LSD>(lsdJSON, LSD);
+            //     lsd = TaJsonDeserialize<LSD>(lsdJSON, LSD);
             //     if (IS_DEV) {
             //         debug(lsd);
             //     }
