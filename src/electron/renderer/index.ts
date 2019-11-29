@@ -3334,7 +3334,9 @@ function startNavigatorExperiment() {
             installNavigatorDOM(_publication as Publication, publicationJsonUrl,
                 rootHtmlElementID,
                 preloadPath,
-                location);
+                location,
+                true,
+                undefined);
         }, 500);
     })();
 }
