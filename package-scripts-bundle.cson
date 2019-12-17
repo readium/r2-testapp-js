@@ -278,7 +278,7 @@
 
     npm run bundle-npm-externals:#ECMASCRIPT#_ &&
 
-    cpy ./LCP/lcp.node ./dist/bundle-#ECMASCRIPT#/ &&
+    (cpy ./LCP/lcp.node ./dist/bundle-#ECMASCRIPT#/ || echo "!LCP.node") &&
 
     cpy ./dist/#ECMASCRIPT#/src/electron/renderer/riot.js ./dist/bundle-#ECMASCRIPT#/ &&
 
