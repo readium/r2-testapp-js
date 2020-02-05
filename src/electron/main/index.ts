@@ -55,7 +55,8 @@ import {
 } from "@r2-shared-js/init-globals";
 import { Publication } from "@r2-shared-js/models/publication";
 import { Link } from "@r2-shared-js/models/publication-link";
-import { isEPUBlication } from "@r2-shared-js/parser/epub";
+import { AudioBookis, isAudioBookPublication } from "@r2-shared-js/parser/audiobook";
+import { EPUBis, isEPUBlication } from "@r2-shared-js/parser/epub";
 import { Transformers } from "@r2-shared-js/transform/transformer";
 import { TransformerHTML } from "@r2-shared-js/transform/transformer-html";
 import { Server } from "@r2-streamer-js/http/server";
@@ -182,7 +183,7 @@ async function isManifestJSON(urlOrPath: string): Promise<boolean> {
 
                 const okay = response.headers["content-type"] &&
                     (response.headers["content-type"].indexOf("application/webpub+json") >= 0 ||
-                        response.headers["content-type"].indexOf("application/audiobook+json") >= 0 ||
+                        // response.headers["content-type"].indexOf("application/audiobook+json") >= 0 ||
                         response.headers["content-type"].indexOf("application/json") >= 0);
                 resolve(okay as boolean);
 
@@ -268,277 +269,90 @@ async function tryLSD(publication: Publication, publicationFilePath: string): Pr
     });
 }
 
-async function createElectronBrowserWindow(publicationFilePath: string, publicationUrl: string) {
+async function createElectronBrowserWindow(
+    publicationFilePath: string,
+    publicationUrl: string,
+    isEPUBlicationCached: EPUBis | undefined,
+    isAudioBookPublicationCached: AudioBookis | undefined,
+    isManifestJSONCached: boolean,
+    ) {
 
     debug("createElectronBrowserWindow() " + publicationFilePath + " : " + publicationUrl);
 
     let lcpHint: string | undefined;
     let publication: Publication | undefined;
+    let isHttpWebPubWithoutLCP = false;
 
-    const isWebPub = await isManifestJSON(publicationFilePath);
-    const isHttpWebPub = isWebPub && isHTTP(publicationFilePath);
-    let isHttpWebPubWithoutLCP = isHttpWebPub;
-    if (isWebPub) {
-        // if (!isHTTP(publicationFilePath)) {
-        //     debug("**** isManifestJSON && !isHTTP");
-        //     const manifestJsonDir = path.dirname(publicationFilePath);
-        //     debug(manifestJsonDir);
-        //     const publicationFilePathBase64 =
-        //         encodeURIComponent_RFC3986(Buffer.from(publicationFilePath).toString("base64"));
-        //     const routePath = "/xpub/" + publicationFilePathBase64;
-        //     debug(routePath);
-        //     // https://expressjs.com/en/4x/api.html#express.static
-        //     const staticOptions = {
-        //         dotfiles: "ignore",
-        //         etag: false,
-        //         fallthrough: false,
-        //         immutable: true,
-        //         index: false,
-        //         maxAge: "1d",
-        //         redirect: false,
-        //         // extensions: ["css", "otf"],
-        //         // setHeaders: function (res, path, stat) {
-        //         //   res.set('x-timestamp', Date.now())
-        //         // }
-        //     };
-        //     _publicationsServer.expressUse(routePath,
-        //         express.static(manifestJsonDir, staticOptions));
-        //     publicationUrl = `${_publicationsServer.serverUrl()}${routePath}/manifest.json`;
-        //     debug(publicationUrl);
-        // }
+    if (isEPUBlicationCached || isAudioBookPublicationCached) {
 
-        const failure = async (err: any) => {
+        // const fileName = path.basename(publicationFilePath);
+        // const ext = path.extname(fileName).toLowerCase();
+
+        try {
+            publication = await _publicationsServer.loadOrGetCachedPublication(publicationFilePath);
+        } catch (err) {
             debug(err);
-        };
+            return;
+        }
+    } else {
+        const isWebPub = isManifestJSONCached;
+        const isHttpWebPub = isWebPub && isHTTP(publicationFilePath);
+        isHttpWebPubWithoutLCP = isHttpWebPub;
+        if (isWebPub) {
+            // if (!isHTTP(publicationFilePath)) {
+            //     debug("**** isManifestJSON && !isHTTP");
+            //     const manifestJsonDir = path.dirname(publicationFilePath);
+            //     debug(manifestJsonDir);
+            //     const publicationFilePathBase64 =
+            //         encodeURIComponent_RFC3986(Buffer.from(publicationFilePath).toString("base64"));
+            //     const routePath = "/xpub/" + publicationFilePathBase64;
+            //     debug(routePath);
+            //     // https://expressjs.com/en/4x/api.html#express.static
+            //     const staticOptions = {
+            //         dotfiles: "ignore",
+            //         etag: false,
+            //         fallthrough: false,
+            //         immutable: true,
+            //         index: false,
+            //         maxAge: "1d",
+            //         redirect: false,
+            //         // extensions: ["css", "otf"],
+            //         // setHeaders: function (res, path, stat) {
+            //         //   res.set('x-timestamp', Date.now())
+            //         // }
+            //     };
+            //     _publicationsServer.expressUse(routePath,
+            //         express.static(manifestJsonDir, staticOptions));
+            //     publicationUrl = `${_publicationsServer.serverUrl()}${routePath}/manifest.json`;
+            //     debug(publicationUrl);
+            // }
 
-        const handleLCP = (responseStr: string, pub: Publication) => {
-            const responseJson = global.JSON.parse(responseStr);
-            debug(responseJson);
+            const failure = async (err: any) => {
+                debug(err);
+            };
 
-            let lcpl: LCP | undefined;
-            lcpl = TaJsonDeserialize<LCP>(responseJson, LCP);
-            lcpl.ZipPath = "META-INF/license.lcpl";
-            lcpl.JsonSource = responseStr;
-            lcpl.init();
+            const handleLCP = (responseStr: string, pub: Publication) => {
+                const responseJson = global.JSON.parse(responseStr);
+                debug(responseJson);
 
-            // breakLength: 100  maxArrayLength: undefined
-            // console.log(util.inspect(lcpl,
-            //     { showHidden: false, depth: 1000, colors: true, customInspect: true }));
+                let lcpl: LCP | undefined;
+                lcpl = TaJsonDeserialize<LCP>(responseJson, LCP);
+                lcpl.ZipPath = "META-INF/license.lcpl";
+                lcpl.JsonSource = responseStr;
+                lcpl.init();
 
-            pub.LCP = lcpl;
-            // publicationUrl = publicationUrl.replace("/pub/",
-            //     "/pub/" + _publicationsServer.lcpBeginToken +
-            //     "URL_LCP_PASS_PLACEHOLDER" + _publicationsServer.lcpEndToken);
-            // debug(publicationUrl);
-        };
+                // breakLength: 100  maxArrayLength: undefined
+                // console.log(util.inspect(lcpl,
+                //     { showHidden: false, depth: 1000, colors: true, customInspect: true }));
 
-        const successLCP = async (response: request.RequestResponse, pub: Publication) => {
+                pub.LCP = lcpl;
+                // publicationUrl = publicationUrl.replace("/pub/",
+                //     "/pub/" + _publicationsServer.lcpBeginToken +
+                //     "URL_LCP_PASS_PLACEHOLDER" + _publicationsServer.lcpEndToken);
+                // debug(publicationUrl);
+            };
 
-            // Object.keys(response.headers).forEach((header: string) => {
-            //     debug(header + " => " + response.headers[header]);
-            // });
-
-            // debug(response);
-            // debug(response.body);
-
-            if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
-                await failure("HTTP CODE " + response.statusCode);
-                return;
-            }
-
-            let responseStr: string;
-            if (response.body) {
-                debug("RES BODY");
-                responseStr = response.body;
-            } else {
-                debug("RES STREAM");
-                let responseData: Buffer;
-                try {
-                    responseData = await streamToBufferPromise(response);
-                } catch (err) {
-                    debug(err);
-                    return;
-                }
-                responseStr = responseData.toString("utf8");
-            }
-
-            handleLCP(responseStr, pub);
-        };
-
-        // No response streaming! :(
-        // https://github.com/request/request-promise/issues/90
-        const needsStreamingResponse = true;
-
-        const handleManifestJson = async (responseStr: string) => {
-            const manifestJson = global.JSON.parse(responseStr);
-            debug(manifestJson);
-
-            // hacky! assumes obfuscated fonts are transformed on the server side
-            // (yet crypto info is present in manifest).
-            // Note that local manifest.json generated with the r2-shared-js CLI does not contain crypto info
-            // when resources are actually produced in plain text.
-            if (isHTTP(publicationFilePath)) {
-
-                const arrLinks = [];
-                if (manifestJson.readingOrder) {
-                    arrLinks.push(...manifestJson.readingOrder);
-                }
-                if (manifestJson.resources) {
-                    arrLinks.push(...manifestJson.resources);
-                }
-
-                arrLinks.forEach((link: any) => {
-                    if (link.properties && link.properties.encrypted &&
-                        (link.properties.encrypted.algorithm === "http://www.idpf.org/2008/embedding" ||
-                            link.properties.encrypted.algorithm === "http://ns.adobe.com/pdf/enc#RC")) {
-                        delete link.properties.encrypted;
-
-                        let atLeastOne = false;
-                        const jsonProps = Object.keys(link.properties);
-                        if (jsonProps) {
-                            jsonProps.forEach((jsonProp) => {
-                                if (link.properties.hasOwnProperty(jsonProp)) {
-                                    atLeastOne = true;
-                                    return false;
-                                }
-                                return true;
-                            });
-                        }
-                        if (!atLeastOne) {
-                            delete link.properties;
-                        }
-                    }
-                });
-            }
-
-            try {
-                publication = TaJsonDeserialize<Publication>(manifestJson, Publication);
-            } catch (erorz) {
-                debug(erorz);
-                return;
-            }
-            debug(publication);
-
-            const licenseLink = publication.Links ? publication.Links.find((link) => {
-                return link.Rel.indexOf("license") >= 0 &&
-                    link.TypeLink === "application/vnd.readium.lcp.license.v1.0+json";
-            }) : undefined;
-            isHttpWebPubWithoutLCP = isHttpWebPub && !licenseLink;
-
-            let p = publicationFilePath;
-            if (isHTTP(publicationFilePath)) {
-                const url = new URL(publicationFilePath);
-                p = url.pathname;
-            }
-            publication.AddToInternal("filename", path.basename(p));
-            publication.AddToInternal("type", "epub");
-
-            if (!isHttpWebPubWithoutLCP) {
-                if (!isHTTP(publicationFilePath)) {
-                    const dirPath = path.dirname(publicationFilePath);
-                    const zip = await ZipExploded.loadPromise(dirPath);
-                    publication.AddToInternal("zip", zip);
-                } else {
-                    const url = new URL(publicationFilePath);
-                    const dirPath = path.dirname(p);
-                    url.pathname = dirPath + "/";
-                    const zip = await ZipExplodedHTTP.loadPromise(url.toString());
-                    publication.AddToInternal("zip", zip);
-                }
-            }
-
-            const pathDecoded = publicationFilePath;
-            // const pathBase64 =
-            //      decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
-            // debug(pathBase64);
-            // const pathDecoded = Buffer.from(pathBase64, "base64").toString("utf8");
-            // debug(pathDecoded);
-            // // const pathFileName = pathDecoded.substr(
-            // //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
-            // //     pathDecoded.length - 1);
-            // // debug(pathFileName);
-
-            debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath);
-            const publicationUrls = _publicationsServer.addPublications([pathDecoded]);
-            _publicationsServer.cachePublication(pathDecoded, publication);
-            const pubCheck = _publicationsServer.cachedPublication(pathDecoded);
-            if (!pubCheck) {
-                debug("PUB CHECK FAIL?");
-            }
-
-            if (!isHttpWebPubWithoutLCP) {
-                // const publicationFilePathBase64 =
-                //     encodeURIComponent_RFC3986(Buffer.from(pathDecoded).toString("base64"));
-                // publicationUrl = `${_publicationsServer.serverUrl()}/pub/${publicationFilePathBase64}/manifest.json`;
-                publicationUrl = `${_publicationsServer.serverUrl()}${publicationUrls[0]}`;
-            }
-            debug(publicationUrl);
-
-            if (licenseLink && licenseLink.Href) {
-                let lcplHref = licenseLink.Href;
-                if (!isHTTP(lcplHref)) {
-                    if (isHTTP(publicationFilePath)) {
-                        lcplHref = new URL(lcplHref, publicationFilePath).toString();
-                    } else {
-                        lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href); // hacky!!
-                    }
-                }
-                debug(lcplHref);
-
-                if (isHTTP(lcplHref)) {
-                    // No response streaming! :(
-                    // https://github.com/request/request-promise/issues/90
-                    // const needsStreamingResponse = true;
-                    if (needsStreamingResponse) {
-                        const promise = new Promise((resolve, reject) => {
-                            request.get({
-                                headers: {},
-                                method: "GET",
-                                uri: lcplHref,
-                            })
-                                .on("response", async (responsez: request.RequestResponse) => {
-                                    await successLCP(responsez, publication as Publication);
-                                    resolve();
-                                })
-                                .on("error", async (err: any) => {
-                                    await failure(err);
-                                    reject();
-                                });
-                        });
-                        try {
-                            await promise;
-                        } catch (err) {
-                            return;
-                        }
-                    } else {
-                        let responsez: requestPromise.FullResponse;
-                        try {
-                            // tslint:disable-next-line:await-promise no-floating-promises
-                            responsez = await requestPromise({
-                                headers: {},
-                                method: "GET",
-                                resolveWithFullResponse: true,
-                                uri: lcplHref,
-                            });
-                        } catch (err) {
-                            await failure(err);
-                            return;
-                        }
-                        await successLCP(responsez, publication);
-                    }
-                } else {
-                    const responsezStr = fs.readFileSync(lcplHref, { encoding: "utf8" });
-                    if (!responsezStr) {
-                        await failure("Cannot read local file: " + lcplHref);
-                        return;
-                    }
-                    handleLCP(responsezStr, publication);
-                }
-            }
-        };
-
-        if (isHTTP(publicationFilePath)) {
-            const success = async (response: request.RequestResponse) => {
+            const successLCP = async (response: request.RequestResponse, pub: Publication) => {
 
                 // Object.keys(response.headers).forEach((header: string) => {
                 //     debug(header + " => " + response.headers[header]);
@@ -567,64 +381,261 @@ async function createElectronBrowserWindow(publicationFilePath: string, publicat
                     }
                     responseStr = responseData.toString("utf8");
                 }
-                await handleManifestJson(responseStr);
+
+                handleLCP(responseStr, pub);
             };
 
-            if (needsStreamingResponse) {
-                const promise = new Promise((resolve, reject) => {
-                    request.get({
-                        headers: {},
-                        method: "GET",
-                        uri: publicationFilePath,
-                    })
-                        .on("response", async (response: request.RequestResponse) => {
-                            await success(response);
-                            resolve();
-                        })
-                        .on("error", async (err: any) => {
-                            await failure(err);
-                            reject();
-                        });
-                });
+            // No response streaming! :(
+            // https://github.com/request/request-promise/issues/90
+            const needsStreamingResponse = true;
+
+            const handleManifestJson = async (responseStr: string) => {
+                const manifestJson = global.JSON.parse(responseStr);
+                debug(manifestJson);
+
+                // hacky! assumes obfuscated fonts are transformed on the server side
+                // (yet crypto info is present in manifest).
+                // Note that local manifest.json generated with the r2-shared-js CLI does not contain crypto info
+                // when resources are actually produced in plain text.
+                if (isHTTP(publicationFilePath)) {
+
+                    const arrLinks = [];
+                    if (manifestJson.readingOrder) {
+                        arrLinks.push(...manifestJson.readingOrder);
+                    }
+                    if (manifestJson.resources) {
+                        arrLinks.push(...manifestJson.resources);
+                    }
+
+                    arrLinks.forEach((link: any) => {
+                        if (link.properties && link.properties.encrypted &&
+                            (link.properties.encrypted.algorithm === "http://www.idpf.org/2008/embedding" ||
+                                link.properties.encrypted.algorithm === "http://ns.adobe.com/pdf/enc#RC")) {
+                            delete link.properties.encrypted;
+
+                            let atLeastOne = false;
+                            const jsonProps = Object.keys(link.properties);
+                            if (jsonProps) {
+                                jsonProps.forEach((jsonProp) => {
+                                    if (link.properties.hasOwnProperty(jsonProp)) {
+                                        atLeastOne = true;
+                                        return false;
+                                    }
+                                    return true;
+                                });
+                            }
+                            if (!atLeastOne) {
+                                delete link.properties;
+                            }
+                        }
+                    });
+                }
+
                 try {
-                    await promise;
-                } catch (err) {
+                    publication = TaJsonDeserialize<Publication>(manifestJson, Publication);
+                } catch (erorz) {
+                    debug(erorz);
                     return;
+                }
+                debug(publication);
+
+                const licenseLink = publication.Links ? publication.Links.find((link) => {
+                    return link.Rel.indexOf("license") >= 0 &&
+                        link.TypeLink === "application/vnd.readium.lcp.license.v1.0+json";
+                }) : undefined;
+                isHttpWebPubWithoutLCP = isHttpWebPub && !licenseLink;
+
+                let p = publicationFilePath;
+                if (isHTTP(publicationFilePath)) {
+                    const url = new URL(publicationFilePath);
+                    p = url.pathname;
+                }
+                publication.AddToInternal("filename", path.basename(p));
+                publication.AddToInternal("type", "epub");
+
+                if (!isHttpWebPubWithoutLCP) {
+                    if (!isHTTP(publicationFilePath)) {
+                        const dirPath = path.dirname(publicationFilePath);
+                        const zip = await ZipExploded.loadPromise(dirPath);
+                        publication.AddToInternal("zip", zip);
+                    } else {
+                        const url = new URL(publicationFilePath);
+                        const dirPath = path.dirname(p);
+                        url.pathname = dirPath + "/";
+                        const zip = await ZipExplodedHTTP.loadPromise(url.toString());
+                        publication.AddToInternal("zip", zip);
+                    }
+                }
+
+                const pathDecoded = publicationFilePath;
+                // const pathBase64 =
+                //      decodeURIComponent(publicationFilePath.replace(/.*\/pub\/(.*)\/manifest.json/, "$1"));
+                // debug(pathBase64);
+                // const pathDecoded = Buffer.from(pathBase64, "base64").toString("utf8");
+                // debug(pathDecoded);
+                // // const pathFileName = pathDecoded.substr(
+                // //     pathDecoded.replace(/\\/g, "/").lastIndexOf("/") + 1,
+                // //     pathDecoded.length - 1);
+                // // debug(pathFileName);
+
+                debug("ADDED HTTP pub to server cache: " + pathDecoded + " --- " + publicationFilePath);
+                const publicationUrls = _publicationsServer.addPublications([pathDecoded]);
+                _publicationsServer.cachePublication(pathDecoded, publication);
+                const pubCheck = _publicationsServer.cachedPublication(pathDecoded);
+                if (!pubCheck) {
+                    debug("PUB CHECK FAIL?");
+                }
+
+                if (!isHttpWebPubWithoutLCP) {
+                    // const publicationFilePathBase64 =
+                    //     encodeURIComponent_RFC3986(Buffer.from(pathDecoded).toString("base64"));
+                    // publicationUrl =
+                    // `${_publicationsServer.serverUrl()}/pub/${publicationFilePathBase64}/manifest.json`;
+                    publicationUrl = `${_publicationsServer.serverUrl()}${publicationUrls[0]}`;
+                }
+                debug(publicationUrl);
+
+                if (licenseLink && licenseLink.Href) {
+                    let lcplHref = licenseLink.Href;
+                    if (!isHTTP(lcplHref)) {
+                        if (isHTTP(publicationFilePath)) {
+                            lcplHref = new URL(lcplHref, publicationFilePath).toString();
+                        } else {
+                            lcplHref = publicationFilePath.replace("manifest.json", licenseLink.Href); // hacky!!
+                        }
+                    }
+                    debug(lcplHref);
+
+                    if (isHTTP(lcplHref)) {
+                        // No response streaming! :(
+                        // https://github.com/request/request-promise/issues/90
+                        // const needsStreamingResponse = true;
+                        if (needsStreamingResponse) {
+                            const promise = new Promise((resolve, reject) => {
+                                request.get({
+                                    headers: {},
+                                    method: "GET",
+                                    uri: lcplHref,
+                                })
+                                    .on("response", async (responsez: request.RequestResponse) => {
+                                        await successLCP(responsez, publication as Publication);
+                                        resolve();
+                                    })
+                                    .on("error", async (err: any) => {
+                                        await failure(err);
+                                        reject();
+                                    });
+                            });
+                            try {
+                                await promise;
+                            } catch (err) {
+                                return;
+                            }
+                        } else {
+                            let responsez: requestPromise.FullResponse;
+                            try {
+                                // tslint:disable-next-line:await-promise no-floating-promises
+                                responsez = await requestPromise({
+                                    headers: {},
+                                    method: "GET",
+                                    resolveWithFullResponse: true,
+                                    uri: lcplHref,
+                                });
+                            } catch (err) {
+                                await failure(err);
+                                return;
+                            }
+                            await successLCP(responsez, publication);
+                        }
+                    } else {
+                        const responsezStr = fs.readFileSync(lcplHref, { encoding: "utf8" });
+                        if (!responsezStr) {
+                            await failure("Cannot read local file: " + lcplHref);
+                            return;
+                        }
+                        handleLCP(responsezStr, publication);
+                    }
+                }
+            };
+
+            if (isHTTP(publicationFilePath)) {
+                const success = async (response: request.RequestResponse) => {
+
+                    // Object.keys(response.headers).forEach((header: string) => {
+                    //     debug(header + " => " + response.headers[header]);
+                    // });
+
+                    // debug(response);
+                    // debug(response.body);
+
+                    if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
+                        await failure("HTTP CODE " + response.statusCode);
+                        return;
+                    }
+
+                    let responseStr: string;
+                    if (response.body) {
+                        debug("RES BODY");
+                        responseStr = response.body;
+                    } else {
+                        debug("RES STREAM");
+                        let responseData: Buffer;
+                        try {
+                            responseData = await streamToBufferPromise(response);
+                        } catch (err) {
+                            debug(err);
+                            return;
+                        }
+                        responseStr = responseData.toString("utf8");
+                    }
+                    await handleManifestJson(responseStr);
+                };
+
+                if (needsStreamingResponse) {
+                    const promise = new Promise((resolve, reject) => {
+                        request.get({
+                            headers: {},
+                            method: "GET",
+                            uri: publicationFilePath,
+                        })
+                            .on("response", async (response: request.RequestResponse) => {
+                                await success(response);
+                                resolve();
+                            })
+                            .on("error", async (err: any) => {
+                                await failure(err);
+                                reject();
+                            });
+                    });
+                    try {
+                        await promise;
+                    } catch (err) {
+                        return;
+                    }
+                } else {
+                    let response: requestPromise.FullResponse;
+                    try {
+                        // tslint:disable-next-line:await-promise no-floating-promises
+                        response = await requestPromise({
+                            headers: {},
+                            method: "GET",
+                            resolveWithFullResponse: true,
+                            uri: publicationFilePath,
+                        });
+                    } catch (err) {
+                        await failure(err);
+                        return;
+                    }
+                    await success(response);
                 }
             } else {
-                let response: requestPromise.FullResponse;
-                try {
-                    // tslint:disable-next-line:await-promise no-floating-promises
-                    response = await requestPromise({
-                        headers: {},
-                        method: "GET",
-                        resolveWithFullResponse: true,
-                        uri: publicationFilePath,
-                    });
-                } catch (err) {
-                    await failure(err);
+                const responseStr = fs.readFileSync(publicationFilePath, { encoding: "utf8" });
+                if (!responseStr) {
+                    await failure("Cannot read local file: " + publicationFilePath);
                     return;
                 }
-                await success(response);
+                await handleManifestJson(responseStr);
             }
-        } else {
-            const responseStr = fs.readFileSync(publicationFilePath, { encoding: "utf8" });
-            if (!responseStr) {
-                await failure("Cannot read local file: " + publicationFilePath);
-                return;
-            }
-            await handleManifestJson(responseStr);
-        }
-    } else if (isEPUBlication(publicationFilePath)) {
-
-        // const fileName = path.basename(publicationFilePath);
-        // const ext = path.extname(fileName).toLowerCase();
-
-        try {
-            publication = await _publicationsServer.loadOrGetCachedPublication(publicationFilePath);
-        } catch (err) {
-            debug(err);
-            return;
         }
     }
 
@@ -1135,7 +1146,7 @@ async function loadFileOrUrl(argPath: string): Promise<boolean> {
     let filePath = argPath;
     debug(filePath);
     if (isHTTP(filePath)) {
-        await openFile(filePath);
+        await openFile_(filePath);
         return true;
     } else {
         if (!fs.existsSync(filePath)) {
@@ -1160,8 +1171,34 @@ async function loadFileOrUrl(argPath: string): Promise<boolean> {
     }
 
     if (filePathToLoadOnLaunch) {
-        if (isEPUBlication(filePathToLoadOnLaunch) || await isManifestJSON(filePathToLoadOnLaunch)) {
-            await openFile(filePathToLoadOnLaunch);
+
+        const isEPUBlicationCached = isEPUBlication(filePathToLoadOnLaunch);
+        let isAudioBookPublicationCached: AudioBookis | undefined;
+        let isManifestJSONCached = false;
+        if (!isEPUBlicationCached) {
+            try {
+                isAudioBookPublicationCached = await isAudioBookPublication(filePathToLoadOnLaunch);
+            } catch (err) {
+                debug(err);
+                isAudioBookPublicationCached = undefined;
+            }
+
+            if (!isAudioBookPublicationCached) {
+                isManifestJSONCached = await isManifestJSON(filePathToLoadOnLaunch);
+            }
+        }
+
+        if (isEPUBlicationCached ||
+            isAudioBookPublicationCached ||
+            isManifestJSONCached) {
+
+            await openFile(
+                filePathToLoadOnLaunch,
+                isEPUBlicationCached,
+                isAudioBookPublicationCached,
+                isManifestJSONCached,
+            );
+
             return true;
         } else if (!fs.lstatSync(filePathToLoadOnLaunch).isDirectory()) {
             await openFileDownload(filePathToLoadOnLaunch);
@@ -1648,25 +1685,49 @@ async function openFileDownload(filePath: string) {
                 debug("ok");
             }
 
-            await openFile(result[0]);
+            await openFile_(result[0]);
         });
     } else {
-        await openFile(filePath);
+        await openFile_(filePath);
     }
 }
 
-async function openFile(filePath: string) {
+async function openFile_(filePath: string) {
+
+    const isEPUBlicationCached = isEPUBlication(filePath);
+    let isAudioBookPublicationCached: AudioBookis | undefined;
+    let isManifestJSONCached = false;
+    if (!isEPUBlicationCached) {
+        try {
+            isAudioBookPublicationCached = await isAudioBookPublication(filePath);
+        } catch (err) {
+            debug(err);
+            isAudioBookPublicationCached = undefined;
+        }
+
+        if (!isAudioBookPublicationCached) {
+            isManifestJSONCached = await isManifestJSON(filePath);
+        }
+    }
+
+    return await openFile(
+        filePath,
+        isEPUBlicationCached,
+        isAudioBookPublicationCached,
+        isManifestJSONCached,
+    );
+}
+
+async function openFile(
+    filePath: string,
+    isEPUBlicationCached: EPUBis | undefined,
+    isAudioBookPublicationCached: AudioBookis | undefined,
+    isManifestJSONCached: boolean,
+    ) {
+
     let n = _publicationsFilePaths.indexOf(filePath);
     if (n < 0) {
-        if (await isManifestJSON(filePath)) {
-            _publicationsFilePaths.push(filePath);
-            debug(_publicationsFilePaths);
-
-            _publicationsUrls.push(filePath);
-            debug(_publicationsUrls);
-
-            n = _publicationsFilePaths.length - 1; // === _publicationsUrls.length - 1
-        } else {
+        if (isEPUBlicationCached || isAudioBookPublicationCached) {
             const publicationPaths = _publicationsServer.addPublications([filePath]);
             debug(publicationPaths);
 
@@ -1674,6 +1735,14 @@ async function openFile(filePath: string) {
             debug(_publicationsFilePaths);
 
             _publicationsUrls.push(`${_publicationsRootUrl}${publicationPaths[0]}`);
+            debug(_publicationsUrls);
+
+            n = _publicationsFilePaths.length - 1; // === _publicationsUrls.length - 1
+        } else if (isManifestJSONCached) {
+            _publicationsFilePaths.push(filePath);
+            debug(_publicationsFilePaths);
+
+            _publicationsUrls.push(filePath);
             debug(_publicationsUrls);
 
             n = _publicationsFilePaths.length - 1; // === _publicationsUrls.length - 1
@@ -1687,7 +1756,13 @@ async function openFile(filePath: string) {
     const file = _publicationsFilePaths[n];
     const pubManifestUrl = _publicationsUrls[n];
 
-    await createElectronBrowserWindow(file, pubManifestUrl);
+    await createElectronBrowserWindow(
+        file,
+        pubManifestUrl,
+        isEPUBlicationCached,
+        isAudioBookPublicationCached,
+        isManifestJSONCached,
+    );
 }
 
 app.on("activate", () => {
