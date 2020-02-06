@@ -14,7 +14,6 @@ export interface IRiotOptsLinkListItem {
 }
 export interface IRiotOptsLinkList {
     basic: boolean;
-    fixBasic?: boolean;
     handleLink: (href: string) => void;
     links: IRiotOptsLinkListItem[];
     url: string;

@@ -1,3 +1,8 @@
+.mdc-drawer {
+  width: auto !important;
+  min-width: 256px;
+}
+
 /* switch/toggle control: shrinks the oversized keyboard/mouse focus "ring" (knob ring)
 .mdc-switch__native-control:focus ~ .mdc-switch__background .mdc-switch__knob::before {
   width: 30px;

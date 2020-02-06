@@ -443,6 +443,7 @@ function refreshBookmarksMenu() {
                 });
                 if (foundLink) {
                     (bookmark as any).sortIndex = spineIndex;
+                    (bookmark as any).link = foundLink;
                 }
             }
             if (!foundLink && _publication.Resources) {
@@ -451,6 +452,7 @@ function refreshBookmarksMenu() {
                 });
                 if (foundLink) {
                     (bookmark as any).sortIndex = -1;
+                    (bookmark as any).link = foundLink;
                 } else {
                     (bookmark as any).sortIndex = -2;
                 }
@@ -504,14 +506,20 @@ function refreshBookmarksMenu() {
             };
             bookmarksListGroups.push(listgroup);
         }
-        if (bookmark.locations.cssSelector) {
+        if (bookmark.locations.cssSelector || typeof bookmark.locations.progression !== "undefined") {
+            const href = bookmark.href +
+                (bookmark.locations.cssSelector ? `#r2locCssSelector(${bookmark.locations.cssSelector})` :
+                `#r2locProgression(${bookmark.locations.progression})`);
+            const r2Link = (bookmark as any).link ? (bookmark as any).link as Link : undefined;
+            const isAudio = (r2Link &&
+                ((r2Link.TypeLink && r2Link.TypeLink.startsWith("audio/")) || r2Link.Duration));
+            const txt = isAudio ? "Audiomark" : "Bookmark";
             const link: IRiotOptsLinkListItem = {
-                href: bookmark.href + "#r2loc(" + bookmark.locations.cssSelector + ")",
-
+                href,
                 title: (typeof bookmark.locations.progression !== "undefined") ?
                     // tslint:disable-next-line:max-line-length
-                    `Bookmark #${listgroup.links.length + 1} (${Math.round(bookmark.locations.progression * 1000) / 10}%)` :
-                    `Bookmark #${listgroup.links.length + 1}`,
+                    `${txt} #${listgroup.links.length + 1} (${Math.round(bookmark.locations.progression * 1000) / 10}%)` :
+                    `${txt} #${listgroup.links.length + 1}`,
             };
             listgroup.links.push(link);
         }
@@ -568,7 +576,12 @@ function addCurrentVisibleBookmark() {
                 // locator.locations.cfi === current.locator.locations.cfi &&
                 // locator.locations.progression === current.locator.locations.progression &&
                 // locator.locations.position === current.locator.locations.position &&
-                locator.locations.cssSelector === current.locator.locations.cssSelector;
+                ((locator.locations.cssSelector && current.locator.locations.cssSelector &&
+                locator.locations.cssSelector === current.locator.locations.cssSelector) ||
+
+                (typeof locator.locations.progression !== "undefined" &&
+                typeof current.locator.locations.progression !== "undefined" &&
+                locator.locations.progression === current.locator.locations.progression));
         });
         if (!found) {
             _bookmarks.push(current.locator);
@@ -769,7 +782,7 @@ function refreshHighlightsMenu() {
         if (highlight.locator.locations.cssSelector) {
             const textTrim = highlight.highlight.selectionInfo.cleanText.substr(0, 50);
             const link: IRiotOptsLinkListItem = {
-                href: highlight.locator.href + "#r2loc(" + highlight.locator.locations.cssSelector + ")",
+                href: highlight.locator.href + "#r2locCssSelector(" + highlight.locator.locations.cssSelector + ")",
 
                 title: (typeof highlight.locator.locations.progression !== "undefined") ?
                     // tslint:disable-next-line:max-line-length
@@ -2861,7 +2874,9 @@ function startNavigatorExperiment() {
         initBookmarksFromStore();
 
         const buttonBookmarkTOGGLE = document.getElementById("bookmarkTOGGLE") as HTMLElement;
-        buttonBookmarkTOGGLE.addEventListener("MDCIconButtonToggle:change", async (_event) => {
+        const mdcButtonBookmarkTOGGLE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonBookmarkTOGGLE);
+        (buttonBookmarkTOGGLE as any).mdcButton = mdcButtonBookmarkTOGGLE;
+        mdcButtonBookmarkTOGGLE.listen("MDCIconButtonToggle:change", async () => {
             if ((event as any).detail.isOn) {
                 addCurrentVisibleBookmark();
             } else {
@@ -2878,8 +2893,6 @@ function startNavigatorExperiment() {
             visualDebugBookmarks();
             refreshBookmarksStore();
         });
-        const mdcButtonBookmarkTOGGLE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonBookmarkTOGGLE);
-        (buttonBookmarkTOGGLE as any).mdcButton = mdcButtonBookmarkTOGGLE;
 
         // const buttonBookmarkHighlightTOGGLE = document.getElementById("bookmarkHighlightTOGGLE") as HTMLElement;
         // buttonBookmarkHighlightTOGGLE.addEventListener("MDCIconButtonToggle:change", async (_event) => {
@@ -3114,16 +3127,29 @@ function startNavigatorExperiment() {
             basic: electronStore.get("basicLinkTitles"),
             handleLink: (href: string) => {
                 href = href.substr(FAKE_URL_BOOKMARKS.length);
-                const fragToken = "#r2loc(";
-                const i = href.indexOf(fragToken);
+                let isProgression = false;
+                let fragToken = "#r2locCssSelector(";
+                let i = href.indexOf(fragToken);
+                console.log(i);
+                if (i < 0) {
+                    fragToken = "#r2locProgression(";
+                    i = href.indexOf(fragToken);
+                    console.log(i);
+                    if (i > 0) {
+                        isProgression = true;
+                    }
+                }
                 if (i > 0) {
                     const j = i + fragToken.length;
-                    const cssSelector = decodeURIComponent(href.substr(j, href.length - j - 1));
+                    const data = decodeURIComponent(href.substr(j, href.length - j - 1));
+                    const cssSelector = isProgression ? undefined : data;
+                    const progression = isProgression ? parseFloat(data) : undefined;
                     href = href.substr(0, i);
-                    const locator = {
+                    const locator: Locator = {
                         href,
                         locations: {
                             cssSelector,
+                            progression,
                         },
                     };
                     handleLinkLocator_(locator);
@@ -3144,14 +3170,19 @@ function startNavigatorExperiment() {
         if (_publication.Spine && _publication.Spine.length) {
 
             const opts: IRiotOptsLinkList = {
-                basic: true,
-                fixBasic: true, // always single-line list items (no title)
+                basic: electronStore.get("basicLinkTitles"),
                 handleLink: handleLink_,
                 links: (_publicationJSON.spine || _publicationJSON.readingOrder) as IRiotOptsLinkListItem[],
                 url: publicationJsonUrl,
             };
-            // const tag =
-            riotMountLinkList("#reader_controls_SPINE", opts);
+            const tag = riotMountLinkList("#reader_controls_SPINE", opts)[0] as IRiotTagLinkList;
+
+            electronStore.onChanged("basicLinkTitles", (newValue: any, oldValue: any) => {
+                if (typeof newValue === "undefined" || typeof oldValue === "undefined") {
+                    return;
+                }
+                tag.setBasic(newValue);
+            });
         }
 
         if (_publication.TOC && _publication.TOC.length) {
