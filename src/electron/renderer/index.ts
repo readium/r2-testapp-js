@@ -3246,6 +3246,11 @@ function startNavigatorExperiment() {
                     location = { href: obj.doc, locations: { cfi: undefined, cssSelector: obj.loc } };
                 } else if (obj.locCssSelector) {
                     location = { href: obj.doc, locations: { cfi: undefined, cssSelector: obj.locCssSelector } };
+                } else if (typeof obj.locProgression !== "undefined") {
+                    location = {
+                        href: obj.doc,
+                        locations: { cfi: undefined, cssSelector: undefined, progression: obj.locProgression },
+                    };
                 }
                 if (obj.locCfi) {
                     if (!location) {
