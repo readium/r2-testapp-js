@@ -3071,7 +3071,7 @@ function startNavigatorExperiment() {
         const optsHighlights: IRiotOptsLinkListGroup = {
             basic: electronStore.get("basicLinkTitles"),
             handleLink: (href: string) => {
-                href = href.substr(FAKE_URL_HIGHLIGHTS.length);
+                href = href.startsWith(FAKE_URL_HIGHLIGHTS) ? href.substr(FAKE_URL_HIGHLIGHTS.length) : href;
                 const fragToken = "#r2loc(";
                 const i = href.indexOf(fragToken);
                 if (i > 0) {
@@ -3126,7 +3126,8 @@ function startNavigatorExperiment() {
         const optsBookmarks: IRiotOptsLinkListGroup = {
             basic: electronStore.get("basicLinkTitles"),
             handleLink: (href: string) => {
-                href = href.substr(FAKE_URL_BOOKMARKS.length);
+                console.log(href);
+                href = href.startsWith(FAKE_URL_BOOKMARKS) ? href.substr(FAKE_URL_BOOKMARKS.length) : href;
                 let isProgression = false;
                 let fragToken = "#r2locCssSelector(";
                 let i = href.indexOf(fragToken);
@@ -3355,6 +3356,7 @@ function startNavigatorExperiment() {
             }
             // console.log(location);
             const locatorExtended: LocatorExtended | undefined = location ? {
+                audioPlaybackInfo: undefined,
                 docInfo: {
                     isFixedLayout: isFixedLayout(_publication as Publication, foundLink),
                     isRightToLeft: false,
