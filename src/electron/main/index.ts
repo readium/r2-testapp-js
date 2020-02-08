@@ -1073,15 +1073,13 @@ file drag-and-drop
                 if (_electronBrowserWindowFileOrUrlDialog) {
                     _electronBrowserWindowFileOrUrlDialog.close();
                 }
-            }, 200);
+            }, 2000);
         } else if ((payload as any).fileChooser) {
             process.nextTick(async () => {
                 const res = await dialog.showOpenDialog({
                     defaultPath: _lastBookPath, // || DEFAULT_BOOK_PATH,
                     filters: [
-                        { name: "EPUB publication", extensions: ["epub", "epub3"] },
-                        { name: "LCP license", extensions: ["lcpl"] },
-                        { name: "Comic book", extensions: ["cbz"] },
+                        { name: "R2 publications", extensions: ["epub", "epub3", "lcpl", "cbz", "audiobook", "json"] },
                         // {name: "Zip archive", extensions: ["zip"]},
                         // {name: "Any file", extensions: ["*"]},
                     ],
@@ -1141,6 +1139,14 @@ ipcMain.on(R2_EVENT_OPEN_URL_OR_PATH, async (_event: any, payload: IEventPayload
 });
 
 async function loadFileOrUrl(argPath: string): Promise<boolean> {
+
+    if (!argPath) {
+        return false;
+    }
+    argPath = argPath.trim();
+    if (!argPath.length) {
+        return false;
+    }
 
     let filePathToLoadOnLaunch: string | undefined;
     let filePath = argPath;
