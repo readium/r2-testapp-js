@@ -3369,12 +3369,16 @@ function startNavigatorExperiment() {
             } : undefined;
             updateReadingProgressionSlider(locatorExtended);
 
-            installNavigatorDOM(_publication as Publication, publicationJsonUrl,
+            installNavigatorDOM(
+                _publication as Publication,
+                publicationJsonUrl,
                 rootHtmlElementID,
                 preloadPath,
                 location,
                 true,
-                undefined);
+                undefined,
+                undefined,
+                );
         }, 500);
     })();
 }

@@ -766,8 +766,11 @@ const electronStore: IStore = new StoreElectron("readium2-testapp", {
     readiumCSSEnable: false,
 });
 
-function __computeReadiumCssJsonMessage(_publication: Publication, _link: Link | undefined):
-    IEventPayload_R2_EVENT_READIUMCSS {
+function __computeReadiumCssJsonMessage(
+    _publication: Publication,
+    _link: Link | undefined,
+    _sessionInfo: string | undefined,
+    ): IEventPayload_R2_EVENT_READIUMCSS {
 
     const on = electronStore.get("readiumCSSEnable");
     if (on) {
