@@ -76,6 +76,9 @@ const queryParams = getURLQueryParams();
 // import { registerProtocol } from "@r2-navigator-js/electron/renderer/common/protocol";
 // registerProtocol();
 
+const R2_LOC_CSSSELECTOR = "r2locCssSelector";
+const R2_LOC_PROGRESSION = "r2locProgression";
+
 const readiumCssDefaultsJson: IReadiumCSS = readiumCSSDefaults;
 const readiumCssKeys = Object.keys(readiumCSSDefaults);
 // console.log(readiumCssKeys);
@@ -508,8 +511,8 @@ function refreshBookmarksMenu() {
         }
         if (bookmark.locations.cssSelector || typeof bookmark.locations.progression !== "undefined") {
             const href = bookmark.href +
-                (bookmark.locations.cssSelector ? `#r2locCssSelector(${bookmark.locations.cssSelector})` :
-                `#r2locProgression(${bookmark.locations.progression})`);
+                (bookmark.locations.cssSelector ? `#${R2_LOC_CSSSELECTOR}(${bookmark.locations.cssSelector})` :
+                `#${R2_LOC_PROGRESSION}(${bookmark.locations.progression})`);
             const r2Link = (bookmark as any).link ? (bookmark as any).link as Link : undefined;
             const isAudio = (r2Link &&
                 ((r2Link.TypeLink && r2Link.TypeLink.startsWith("audio/")) || r2Link.Duration));
@@ -782,7 +785,7 @@ function refreshHighlightsMenu() {
         if (highlight.locator.locations.cssSelector) {
             const textTrim = highlight.highlight.selectionInfo.cleanText.substr(0, 50);
             const link: IRiotOptsLinkListItem = {
-                href: highlight.locator.href + "#r2locCssSelector(" + highlight.locator.locations.cssSelector + ")",
+                href: `${highlight.locator.href}#${R2_LOC_CSSSELECTOR}(${highlight.locator.locations.cssSelector})`,
 
                 title: (typeof highlight.locator.locations.progression !== "undefined") ?
                     // tslint:disable-next-line:max-line-length
@@ -3072,7 +3075,7 @@ function startNavigatorExperiment() {
             basic: electronStore.get("basicLinkTitles"),
             handleLink: (href: string) => {
                 href = href.startsWith(FAKE_URL_HIGHLIGHTS) ? href.substr(FAKE_URL_HIGHLIGHTS.length) : href;
-                const fragToken = "#r2loc(";
+                const fragToken = `#${R2_LOC_CSSSELECTOR}(`;
                 const i = href.indexOf(fragToken);
                 if (i > 0) {
                     const j = i + fragToken.length;
@@ -3129,11 +3132,11 @@ function startNavigatorExperiment() {
                 console.log(href);
                 href = href.startsWith(FAKE_URL_BOOKMARKS) ? href.substr(FAKE_URL_BOOKMARKS.length) : href;
                 let isProgression = false;
-                let fragToken = "#r2locCssSelector(";
+                let fragToken = `#${R2_LOC_CSSSELECTOR}(`;
                 let i = href.indexOf(fragToken);
                 console.log(i);
                 if (i < 0) {
-                    fragToken = "#r2locProgression(";
+                    fragToken = `#${R2_LOC_PROGRESSION}(`;
                     i = href.indexOf(fragToken);
                     console.log(i);
                     if (i > 0) {
