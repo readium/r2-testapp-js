@@ -51,7 +51,7 @@
     "debug": "^4.1.1",
     "electron-store": "^5.1.0",
     "filehound": "^1.17.4",
-    "material-components-web": "^4.0.0",
+    "material-components-web": "^5.0.0",
     "material-design-icons-iconfont": "^5.0.1",
     "mathjax": "^3.0.1",
     "portfinder": "^1.0.25",
@@ -72,7 +72,7 @@
     "uuid": "^3.4.0"
   },
   "devDependencies": {
-    "@octokit/rest": "^16.43.1",
+    "@octokit/rest": "^17.0.0",
     "@types/debounce": "^3.0.0",
     "@types/debug": "^4.1.5",
     "@types/electron-store": "^3.2.0",
