@@ -33,7 +33,7 @@ import * as portfinder from "portfinder";
 import * as request from "request";
 import * as requestPromise from "request-promise-native";
 import { URL } from "url";
-import * as uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
 import { launchStatusDocumentProcessing } from "@r2-lcp-js/lsd/status-document-processing";
 import { LCP, setLcpNativePluginPath } from "@r2-lcp-js/parser/epub/lcp";
@@ -796,7 +796,7 @@ function loadFileOrUrlDialog(initval: string) {
         return;
     }
 
-    const dialogid = uuid.v4().replace(/-/g, "_");
+    const dialogid = uuidv4().replace(/-/g, "_");
     const html = `
 <html>
 <head>

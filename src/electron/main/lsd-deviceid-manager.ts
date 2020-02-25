@@ -6,7 +6,7 @@
 // ==LICENSE-END==
 
 import * as debug_ from "debug";
-import * as uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
 import { IDeviceIDManager } from "@r2-lcp-js/lsd/deviceid-manager";
 
@@ -34,7 +34,7 @@ export function getDeviceIDManager(electronStoreLSD: IStore, name: string): IDev
 
         async getDeviceID(): Promise<string> {
 
-            let id = uuid.v4();
+            let id = uuidv4();
 
             const lsdStore = electronStoreLSD.get("lsd");
             if (!lsdStore) {
