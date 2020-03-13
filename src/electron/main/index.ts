@@ -728,8 +728,8 @@ async function createElectronBrowserWindow(
     }
     // fullUrl = fullUrl + "&lcpPlugin=" + encodeURIComponent_RFC3986(Buffer.from(lcpPluginPath).toString("base64"));
 
-    const urlRoot = _publicationsServer.serverUrl() as string;
-    fullUrl = fullUrl + "&pubServerRoot=" + encodeURIComponent_RFC3986(urlRoot);
+    // const urlRoot = _publicationsServer.serverUrl() as string;
+    // fullUrl = fullUrl + "&pubServerRoot=" + encodeURIComponent_RFC3986(urlRoot);
     if (isHttpWebPubWithoutLCP) {
         fullUrl = fullUrl + "&isHttpWebPubWithoutLCP=1";
     }

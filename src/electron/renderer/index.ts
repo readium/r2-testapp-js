@@ -12,7 +12,7 @@ import * as throttle from "throttleit";
 
 import { TaJsonDeserialize } from "@r2-lcp-js/serializable";
 import {
-    IEventPayload_R2_EVENT_READIUMCSS, IEventPayload_R2_EVENT_WEBVIEW_KEYDOWN,
+    IEventPayload_R2_EVENT_READIUMCSS, IKeyboardEvent,
 } from "@r2-navigator-js/electron/common/events";
 import { IHighlight, IHighlightDefinition } from "@r2-navigator-js/electron/common/highlight";
 import {
@@ -25,9 +25,9 @@ import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/que
 import {
     LocatorExtended, TTSStateEnum, getCurrentReadingLocation, handleLinkLocator, handleLinkUrl,
     highlightsClickListen, highlightsCreate, highlightsRemove, installNavigatorDOM,
-    isLocatorVisible, navLeftOrRight, readiumCssOnOff, reloadContent, setEpubReadingSystemInfo,
-    setKeyDownEventHandler, setReadingLocationSaver, setReadiumCssJsonGetter, ttsClickEnable,
-    ttsListen, ttsNext, ttsPause, ttsPlay, ttsPrevious, ttsResume, ttsStop,
+    isLocatorVisible, navLeftOrRight, readiumCssUpdate, reloadContent, setEpubReadingSystemInfo,
+    setKeyDownEventHandler, setReadingLocationSaver, ttsClickEnable, ttsListen, ttsNext, ttsPause,
+    ttsPlay, ttsPrevious, ttsResume, ttsStop,
 } from "@r2-navigator-js/electron/renderer/index";
 import { initGlobalConverters_OPDS } from "@r2-opds-js/opds/init-globals";
 import {
@@ -109,8 +109,8 @@ initGlobalConverters_SHARED();
 initGlobalConverters_GENERIC();
 
 // tslint:disable-next-line:no-string-literal
-const pubServerRoot = queryParams["pubServerRoot"];
-console.log(pubServerRoot);
+// const pubServerRoot = queryParams["pubServerRoot"];
+// console.log(pubServerRoot);
 
 let _publication: Publication | undefined;
 
@@ -127,14 +127,14 @@ const computeReadiumCssJsonMessage = (): IEventPayload_R2_EVENT_READIUMCSS => {
         }
         const jsonMsg: IEventPayload_R2_EVENT_READIUMCSS = {
             setCSS: cssJson,
-            urlRoot: pubServerRoot,
+            // urlRoot: pubServerRoot,
         };
         return jsonMsg;
     } else {
         return { setCSS: undefined }; // reset all (disable ReadiumCSS)
     }
 };
-setReadiumCssJsonGetter(computeReadiumCssJsonMessage);
+// setReadiumCssJsonGetter(computeReadiumCssJsonMessage);
 
 setEpubReadingSystemInfo({ name: "Readium2 test app", version: "0.0.1-alpha.1" });
 
@@ -1156,7 +1156,8 @@ electronStore.onChanged("readiumCSS.paged", (newValue: any, oldValue: any) => {
 });
 
 const refreshReadiumCSS = debounce(() => {
-    readiumCssOnOff();
+    // readiumCssOnOff();
+    readiumCssUpdate(computeReadiumCssJsonMessage());
 }, 500);
 
 // super hacky, but necessary :(
@@ -2262,7 +2263,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
     (window as any).mdc.menu.MDCMenuFoundation.numbers.TRANSITION_DURATION_MS = 200;
 
-    const keyDownEventHandler = (ev: IEventPayload_R2_EVENT_WEBVIEW_KEYDOWN) => {
+    const keyDownEventHandler = (
+        ev: IKeyboardEvent,
+        _elementName: string,
+        _elementAttributes: { [name: string]: string; }) => {
+
         // DEPRECATED
         // if (ev.keyCode === 37 || ev.keyCode === 39) { // left / right
         // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
@@ -2279,7 +2284,7 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     };
     setKeyDownEventHandler(keyDownEventHandler);
-    // TODO this seems to hijack MDC slider thumb change
+
     window.document.addEventListener("keydown", (ev: KeyboardEvent) => {
         if (drawer.open) {
             return;
@@ -2287,7 +2292,7 @@ window.addEventListener("DOMContentLoaded", () => {
         if ((ev.target as any).mdcSlider) {
             return;
         }
-        keyDownEventHandler(ev);
+        keyDownEventHandler(ev, "", {});
     });
 
     setTimeout(() => {
@@ -3365,6 +3370,7 @@ function startNavigatorExperiment() {
                     isRightToLeft: false,
                     isVerticalWritingMode: false,
                 },
+                epubPage: undefined,
                 locator: location,
                 paginationInfo: undefined,
                 selectionInfo: undefined,
@@ -3381,6 +3387,7 @@ function startNavigatorExperiment() {
                 true,
                 undefined,
                 undefined,
+                computeReadiumCssJsonMessage(),
                 );
         }, 500);
     })();
