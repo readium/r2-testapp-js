@@ -129,7 +129,7 @@ function openAllDevTools() {
         //     wc.hostWebContents.id === electronBrowserWindow.webContents.id) {
         // }
         // https://github.com/electron/electron/blob/v3.0.0/docs/api/breaking-changes.md#webcontents
-        wc.openDevTools({ mode: "detach" });
+        wc.openDevTools({ activate: true, mode: "detach" });
     }
 }
 
@@ -137,11 +137,11 @@ function openAllDevTools() {
 function openTopLevelDevTools() {
     const bw = BrowserWindow.getFocusedWindow();
     if (bw) {
-        bw.webContents.openDevTools({ mode: "detach" });
+        bw.webContents.openDevTools({ activate: true, mode: "detach" });
     } else {
         const arr = BrowserWindow.getAllWindows();
         arr.forEach((bww) => {
-            bww.webContents.openDevTools({ mode: "detach" });
+            bww.webContents.openDevTools({ activate: true, mode: "detach" });
         });
     }
 }
@@ -711,7 +711,50 @@ async function createElectronBrowserWindow(
     electronBrowserWindow.webContents.on("dom-ready", () => {
         debug("electronBrowserWindow dom-ready " + publicationFilePath + " : " + publicationUrl);
         // https://github.com/electron/electron/blob/v3.0.0/docs/api/breaking-changes.md#webcontents
-        // electronBrowserWindow.webContents.openDevTools({ mode: "detach" });
+
+        if (IS_DEV) {
+            const wc = electronBrowserWindow.webContents;
+            wc.on("context-menu", (_ev, params) => {
+                const { x, y } = params;
+                const openDevToolsAndInspect = () => {
+                    const devToolsOpened = () => {
+                        wc.off("devtools-opened", devToolsOpened);
+                        wc.inspectElement(x, y);
+
+                        setTimeout(() => {
+                            if (wc.isDevToolsOpened()) {
+                                wc.devToolsWebContents.focus();
+                            }
+                        }, 500);
+                    };
+                    wc.on("devtools-opened", devToolsOpened);
+                    wc.openDevTools({ activate: true, mode: "detach" });
+                };
+                Menu.buildFromTemplate([{
+                    click: () => {
+                        const wasOpened = wc.isDevToolsOpened();
+                        if (!wasOpened) {
+                            openDevToolsAndInspect();
+                        } else {
+                            if (!wc.isDevToolsFocused()) {
+                                // wc.toggleDevTools();
+                                wc.closeDevTools();
+
+                                setImmediate(() => {
+                                    openDevToolsAndInspect();
+                                });
+                            } else {
+                                // this should never happen,
+                                // as the right-click context menu occurs with focus
+                                // in BrowserWindow / WebView's WebContents
+                                wc.inspectElement(x, y);
+                            }
+                        }
+                    },
+                    label: "Inspect element",
+                }]).popup({window: electronBrowserWindow});
+            });
+        }
     });
 
     if (!isHttpWebPubWithoutLCP && SECURE && isHTTP(publicationUrl)) { // && !await isManifestJSON(publicationFilePath)
