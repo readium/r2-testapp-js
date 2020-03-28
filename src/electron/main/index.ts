@@ -1337,7 +1337,7 @@ app.on("ready", () => {
         };
         const MATHJAX_URL_PATH = "math-jax";
         _publicationsServer.expressUse("/" + MATHJAX_URL_PATH, express.static(mathJaxPath, staticOptionsMathJax));
-        const transformer = (_publication: Publication, _link: Link, str: string): string => {
+        const transformer = (_publication: Publication, _link: Link, _url: string | undefined, str: string): string => {
 
             const mathJax = electronStore.get("readiumCSS.mathJax") || readiumCSSDefaults.mathJax;
 
