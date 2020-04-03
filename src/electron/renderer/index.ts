@@ -169,6 +169,7 @@ function sanitizeText(str: string): string {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, " ").replace(/\s\s+/g, " ").trim();
 }
 
+const onChangeReadingProgressionSliderDebounced = debounce(onChangeReadingProgressionSlider, 200);
 function onChangeReadingProgressionSlider() {
     const positionSelector = document.getElementById("positionSelector") as HTMLElement;
     const mdcSlider = (positionSelector as any).mdcSlider;
@@ -193,6 +194,7 @@ function onChangeReadingProgressionSlider() {
                         progression: undefined,
                     },
                 };
+                console.log("handleLinkLocator (fixed-layout / reflow-scrolled) from onChangeReadingProgressionSlider");
                 handleLinkLocator(locator);
             }
         }
@@ -236,6 +238,7 @@ function onChangeReadingProgressionSlider() {
                 progression: (mdcSlider.value - 1) / mdcSlider.max,
             },
         };
+        console.log("onChangeReadingProgressionSlider (reflow-paginated) from onChangeReadingProgressionSlider");
         handleLinkLocator(locator);
     }
 }
@@ -2652,7 +2655,8 @@ window.addEventListener("DOMContentLoaded", () => {
     (positionSelector as any).mdcSlider = slider;
 
     slider.listen("MDCSlider:change", (_event: any) => {
-        onChangeReadingProgressionSlider();
+        console.log("MDCSlider:change");
+        onChangeReadingProgressionSliderDebounced();
     });
 
     if (lcpPassInput) {
@@ -3440,9 +3444,11 @@ function handleLinkLocator_(locator: Locator) {
     if (drawer.open) {
         drawer.open = false;
         setTimeout(() => {
+            console.log("handleLinkLocator (timeout) from handleLinkLocator_");
             handleLinkLocator(locator);
         }, 200);
     } else {
+        console.log("handleLinkLocator from handleLinkLocator_");
         handleLinkLocator(locator);
     }
 }
