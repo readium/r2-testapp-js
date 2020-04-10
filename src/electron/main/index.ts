@@ -1126,7 +1126,7 @@ file drag-and-drop
                 const res = await dialog.showOpenDialog({
                     defaultPath: _lastBookPath, // || DEFAULT_BOOK_PATH,
                     filters: [
-                        { name: "R2 publications", extensions: ["epub", "epub3", "lcpl", "cbz", "audiobook", "json"] },
+                        { name: "R2 publications", extensions: ["epub", "epub3", "lcpl", "cbz", "audiobook", "lcpa", "lcpaudiobook", "json"] },
                         // {name: "Zip archive", extensions: ["zip"]},
                         // {name: "Any file", extensions: ["*"]},
                     ],
@@ -1690,7 +1690,7 @@ async function openFileDownload(filePath: string) {
 
     const ext = path.extname(filePath);
     const filename = path.basename(filePath);
-    const destFileName = filename + ".epub";
+    const destFileName = filename;
     if (ext === ".lcpl") {
         let epubFilePath: string[];
         try {
@@ -1722,7 +1722,7 @@ async function openFileDownload(filePath: string) {
         const result = epubFilePath as string[];
         process.nextTick(async () => {
             const detail = result[0] + " ---- [" + result[1] + "]";
-            const message = "LCP EPUB file download success [" + destFileName + "]";
+            const message = "LCP EPUB file download success [" + path.basename(result[0]) + "]";
             const res = await dialog.showMessageBox({
                 buttons: ["&OK"],
                 cancelId: 0,
