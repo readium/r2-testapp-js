@@ -2384,8 +2384,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const nightDiv = document.getElementById("night_div") as HTMLElement;
     nightDiv.style.display = nightSwitch.checked ? "block" : "none";
 
-    nightSwitchEl.addEventListener("change", (_event: any) => {
-        // nightSwitch.handleChange("change", (_event: any) => {
+    nightSwitchEl.addEventListener("click", (_event: any) => {
+        // nightSwitch.handleClick((_event: any) => {
         const checked = nightSwitch.checked;
         electronStore.set("readiumCSS.night", checked);
     });
@@ -2395,7 +2395,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const sepiaSwitch = new (window as any).mdc.switchControl.MDCSwitch(sepiaSwitchEl);
     (sepiaSwitchEl as any).mdcSwitch = sepiaSwitch;
     sepiaSwitch.checked = electronStore.get("readiumCSS.sepia");
-    sepiaSwitchEl.addEventListener("change", (_event: any) => {
+    sepiaSwitchEl.addEventListener("click", (_event: any) => {
         const checked = sepiaSwitch.checked;
         electronStore.set("readiumCSS.sepia", checked);
     });
@@ -2405,7 +2405,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const invertSwitch = new (window as any).mdc.switchControl.MDCSwitch(invertSwitchEl);
     (invertSwitchEl as any).mdcSwitch = invertSwitch;
     invertSwitch.checked = electronStore.get("readiumCSS.invert");
-    invertSwitchEl.addEventListener("change", (_event: any) => {
+    invertSwitchEl.addEventListener("click", (_event: any) => {
         const checked = invertSwitch.checked;
         electronStore.set("readiumCSS.invert", checked);
     });
@@ -2415,7 +2415,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const darkenSwitch = new (window as any).mdc.switchControl.MDCSwitch(darkenSwitchEl);
     (darkenSwitchEl as any).mdcSwitch = darkenSwitch;
     darkenSwitch.checked = electronStore.get("readiumCSS.darken");
-    darkenSwitchEl.addEventListener("change", (_event: any) => {
+    darkenSwitchEl.addEventListener("click", (_event: any) => {
         const checked = darkenSwitch.checked;
         electronStore.set("readiumCSS.darken", checked);
     });
@@ -2426,8 +2426,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const justifySwitch = new (window as any).mdc.switchControl.MDCSwitch(justifySwitchEl);
     (justifySwitchEl as any).mdcSwitch = justifySwitch;
     justifySwitch.checked = electronStore.get("readiumCSS.textAlign") === "justify";
-    justifySwitchEl.addEventListener("change", (_event: any) => {
-        // justifySwitch.handleChange("change", (_event: any) => {
+    justifySwitchEl.addEventListener("click", (_event: any) => {
+        // justifySwitch.handleClick((_event: any) => {
         const checked = justifySwitch.checked;
         electronStore.set("readiumCSS.textAlign", checked ? "justify" : "initial");
     });
@@ -2438,8 +2438,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const footnotesSwitch = new (window as any).mdc.switchControl.MDCSwitch(footnotesSwitchEl);
     (footnotesSwitchEl as any).mdcSwitch = footnotesSwitch;
     footnotesSwitch.checked = electronStore.get("readiumCSS.noFootnotes") ? false : true;
-    footnotesSwitchEl.addEventListener("change", (_event: any) => {
-        // footnotesSwitch.handleChange("change", (_event: any) => {
+    footnotesSwitchEl.addEventListener("click", (_event: any) => {
+        // footnotesSwitch.handleClick((_event: any) => {
         const checked = footnotesSwitch.checked;
         electronStore.set("readiumCSS.noFootnotes", checked ? false : true);
     });
@@ -2450,8 +2450,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const reduceMotionSwitch = new (window as any).mdc.switchControl.MDCSwitch(reduceMotionSwitchEl);
     (reduceMotionSwitchEl as any).mdcSwitch = reduceMotionSwitch;
     reduceMotionSwitch.checked = electronStore.get("readiumCSS.reduceMotion") ? true : false;
-    reduceMotionSwitchEl.addEventListener("change", (_event: any) => {
-        // footnotesSwitch.handleChange("change", (_event: any) => {
+    reduceMotionSwitchEl.addEventListener("click", (_event: any) => {
+        // footnotesSwitch.handleClick((_event: any) => {
         const checked = reduceMotionSwitch.checked;
         electronStore.set("readiumCSS.reduceMotion", checked ? true : false);
     });
@@ -2462,8 +2462,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const mathJaxSwitch = new (window as any).mdc.switchControl.MDCSwitch(mathJaxSwitchEl);
     (mathJaxSwitchEl as any).mdcSwitch = mathJaxSwitch;
     mathJaxSwitch.checked = electronStore.get("readiumCSS.mathJax") ? true : false;
-    mathJaxSwitchEl.addEventListener("change", (_event: any) => {
-        // footnotesSwitch.handleChange("change", (_event: any) => {
+    mathJaxSwitchEl.addEventListener("click", (_event: any) => {
+        // footnotesSwitch.handleClick((_event: any) => {
         const checked = mathJaxSwitch.checked;
         electronStore.set("readiumCSS.mathJax", checked ? true : false);
     });
@@ -2474,8 +2474,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const paginateSwitch = new (window as any).mdc.switchControl.MDCSwitch(paginateSwitchEl);
     (paginateSwitchEl as any).mdcSwitch = paginateSwitch;
     paginateSwitch.checked = electronStore.get("readiumCSS.paged");
-    paginateSwitchEl.addEventListener("change", (_event: any) => {
-        // paginateSwitch.handleChange("change", (_event: any) => {
+    paginateSwitchEl.addEventListener("click", (_event: any) => {
+        // paginateSwitch.handleClick((_event: any) => {
         const checked = paginateSwitch.checked;
         electronStore.set("readiumCSS.paged", checked);
 
@@ -2527,8 +2527,8 @@ window.addEventListener("DOMContentLoaded", () => {
     if (readiumcssSwitch.checked) {
         ensureSliderLayout();
     }
-    readiumcssSwitchEl.addEventListener("change", (_event: any) => {
-        // readiumcssSwitch.handleChange("change", (_event: any) => {
+    readiumcssSwitchEl.addEventListener("click", (_event: any) => {
+        // readiumcssSwitch.handleClick((_event: any) => {
         const checked = readiumcssSwitch.checked;
         electronStore.set("readiumCSSEnable", checked);
     });
@@ -2538,8 +2538,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const basicSwitch = new (window as any).mdc.switchControl.MDCSwitch(basicSwitchEl);
     (basicSwitchEl as any).mdcSwitch = basicSwitch;
     basicSwitch.checked = !electronStore.get("basicLinkTitles");
-    basicSwitchEl.addEventListener("change", (_event: any) => {
-        // basicSwitch.handleChange("change", (_event: any) => {
+    basicSwitchEl.addEventListener("click", (_event: any) => {
+        // basicSwitch.handleClick((_event: any) => {
         const checked = basicSwitch.checked;
         electronStore.set("basicLinkTitles", !checked);
 
@@ -2554,7 +2554,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const debugSwitch = new (window as any).mdc.switchControl.MDCSwitch(debugSwitchEl);
     (debugSwitchEl as any).mdcSwitch = debugSwitch;
     debugSwitch.checked = electronStore.get("visualDebug");
-    debugSwitchEl.addEventListener("change", (_event: any) => {
+    debugSwitchEl.addEventListener("click", (_event: any) => {
         const checked = debugSwitch.checked;
         electronStore.set("visualDebug", checked);
 

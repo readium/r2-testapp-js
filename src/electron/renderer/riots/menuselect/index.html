@@ -1,10 +1,13 @@
 <riot-menuselect class="mdc-select">
   <!-- <input type="hidden" name="enhanced-select"> -->
   <div class="mdc-select__anchor">
+    <span class="mdc-select__ripple"></span>
+    <input type="text" disabled="disabled" readonly="readonly" class="mdc-select__selected-text" value="{ getLabelForId(opts.selected) }" />
     <i class="mdc-select__dropdown-icon"></i>
-    <div class="mdc-select__selected-text" role="button" aria-haspopup="listbox">{ getLabelForId(opts.selected) }</div>
+    <span class="mdc-floating-label mdc-floating-label--float-above">{ opts.label }</span>
+    <span class="mdc-line-ripple"></span>
   </div>
-  <div class="mdc-select__menu mdc-menu mdc-menu-surface" role="listbox">
+  <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth" role="listbox">
     <ul class="mdc-list">
       <li each="{ opts.options }"
         id="{ id }"
@@ -18,13 +21,9 @@
         >{ (label === "_" ? "" : label) }</li>
     </ul>
   </div>
-  <span class="mdc-floating-label mdc-floating-label--float-above">{ opts.label }</span>
-  <div class="mdc-line-ripple"></div>
-
   <script>window.riot_menuselect.call(this, this.opts);</script>
 </riot-menuselect>
 <!-- <riot-menuselect class="mdc-select">
-
   <select class="mdc-select__native-control">
     <option each="{ opts.options }"
             value="{ label }"
