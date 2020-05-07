@@ -48,7 +48,9 @@ import { convertHttpUrlToCustomScheme } from "@r2-navigator-js/electron/common/s
 import { trackBrowserWindow } from "@r2-navigator-js/electron/main/browser-window-tracker";
 import { lsdLcpUpdateInject } from "@r2-navigator-js/electron/main/lsd-injectlcpl";
 import { setupReadiumCSS } from "@r2-navigator-js/electron/main/readium-css";
-import { initSessions, secureSessions } from "@r2-navigator-js/electron/main/sessions";
+import {
+    clearSessions, initSessions, secureSessions,
+} from "@r2-navigator-js/electron/main/sessions";
 import { initGlobalConverters_OPDS } from "@r2-opds-js/opds/init-globals";
 import {
     initGlobalConverters_GENERIC, initGlobalConverters_SHARED,
@@ -1860,3 +1862,20 @@ app.on("quit", () => {
 
     _publicationsServer.stop();
 });
+
+async function willQuitCallback(evt: Electron.Event) {
+    debug("app will quit");
+    evt.preventDefault();
+
+    app.removeListener("will-quit", willQuitCallback);
+
+    try {
+        await clearSessions();
+    } catch (err) {
+        debug(err);
+    }
+    debug("Cache and StorageData cleared, now quitting...");
+    app.quit();
+}
+
+app.on("will-quit", willQuitCallback);

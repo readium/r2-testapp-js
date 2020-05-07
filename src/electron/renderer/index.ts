@@ -27,7 +27,7 @@ import {
     highlightsClickListen, highlightsCreate, highlightsRemove, installNavigatorDOM,
     isLocatorVisible, navLeftOrRight, readiumCssUpdate, reloadContent, setEpubReadingSystemInfo,
     setKeyDownEventHandler, setReadingLocationSaver, ttsClickEnable, ttsListen, ttsNext, ttsPause,
-    ttsPlay, ttsPrevious, ttsResume, ttsStop,
+    ttsPlay, ttsPlaybackRate, ttsPrevious, ttsResume, ttsStop,
 } from "@r2-navigator-js/electron/renderer/index";
 import { initGlobalConverters_OPDS } from "@r2-opds-js/opds/init-globals";
 import {
@@ -2920,6 +2920,12 @@ function startNavigatorExperiment() {
         //     new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonBookmarkHighlightTOGGLE);
         // (buttonBookmarkHighlightTOGGLE as any).mdcButton = mdcButtonBookmarkHighlightTOGGLE;
 
+        const selectttsRATE = document.getElementById("ttsPlaybackRate") as HTMLSelectElement;
+        selectttsRATE.addEventListener("change", () => {
+            const speed = parseFloat(selectttsRATE.value);
+            ttsPlaybackRate(speed);
+        });
+
         const buttonttsPLAYPAUSE = document.getElementById("ttsPLAYPAUSE") as HTMLElement;
         buttonttsPLAYPAUSE.addEventListener("MDCIconButtonToggle:change", (event) => {
             // console.log("MDCIconButtonToggle:change");
@@ -2929,7 +2935,8 @@ function startNavigatorExperiment() {
                 if (_ttsState === TTSStateEnum.PAUSED) {
                     ttsResume();
                 } else {
-                    ttsPlay();
+                    const speed = parseFloat(selectttsRATE.value);
+                    ttsPlay(speed);
                 }
             } else {
                 ttsPause();
@@ -2942,7 +2949,7 @@ function startNavigatorExperiment() {
 
         // const buttonttsPLAY = document.getElementById("ttsPLAY") as HTMLElement;
         // buttonttsPLAY.addEventListener("click", (_event) => {
-        //     ttsPlay();
+        //     ttsPlay(1);
         // });
         // const buttonttsPAUSE = document.getElementById("ttsPAUSE") as HTMLElement;
         // buttonttsPAUSE.addEventListener("click", (_event) => {
@@ -3005,6 +3012,7 @@ function startNavigatorExperiment() {
                 buttonttsSTOP.style.display = "inline-block";
                 buttonttsPREVIOUS.style.display = "inline-block";
                 buttonttsNEXT.style.display = "inline-block";
+                selectttsRATE.style.display = "inline-block";
             } else if (_ttsState === TTSStateEnum.STOPPED) {
                 // console.log("refreshTtsUiState _ttsState === TTSStateEnum.STOPPED");
                 // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
@@ -3016,6 +3024,7 @@ function startNavigatorExperiment() {
                 buttonttsSTOP.style.display = "none";
                 buttonttsPREVIOUS.style.display = "none";
                 buttonttsNEXT.style.display = "none";
+                selectttsRATE.style.display = "none";
             } else if (_ttsState === TTSStateEnum.PLAYING) {
                 // console.log("refreshTtsUiState _ttsState === TTSStateEnum.PLAYING");
                 // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
@@ -3027,6 +3036,7 @@ function startNavigatorExperiment() {
                 buttonttsSTOP.style.display = "inline-block";
                 buttonttsPREVIOUS.style.display = "inline-block";
                 buttonttsNEXT.style.display = "inline-block";
+                selectttsRATE.style.display = "inline-block";
             } else {
                 // console.log("refreshTtsUiState _ttsState === undefined");
                 // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
@@ -3038,6 +3048,7 @@ function startNavigatorExperiment() {
                 buttonttsSTOP.style.display = "none";
                 buttonttsPREVIOUS.style.display = "none";
                 buttonttsNEXT.style.display = "none";
+                selectttsRATE.style.display = "none";
             }
         }
 
