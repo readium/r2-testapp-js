@@ -402,6 +402,9 @@ async function createElectronBrowserWindow(
                 if (isHTTP(publicationFilePath)) {
 
                     const arrLinks = [];
+                    if (manifestJson.spine) {
+                        arrLinks.push(...manifestJson.spine);
+                    }
                     if (manifestJson.readingOrder) {
                         arrLinks.push(...manifestJson.readingOrder);
                     }

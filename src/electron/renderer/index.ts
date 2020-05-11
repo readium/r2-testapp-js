@@ -3226,12 +3226,13 @@ function startNavigatorExperiment() {
                 tag.setBasic(newValue);
             });
         }
+
         if (_publication.PageList && _publication.PageList.length) {
 
             const opts: IRiotOptsLinkList = {
                 basic: electronStore.get("basicLinkTitles"),
                 handleLink: handleLink_,
-                links: _publicationJSON["page-list"] as IRiotOptsLinkListItem[],
+                links: (_publicationJSON["page-list"] || _publicationJSON.pageList) as IRiotOptsLinkListItem[],
                 url: publicationJsonUrl,
             };
             const tag = riotMountLinkList("#reader_controls_PAGELIST", opts)[0] as IRiotTagLinkList;
