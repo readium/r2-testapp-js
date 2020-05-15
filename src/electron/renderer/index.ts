@@ -23,11 +23,14 @@ import {
 } from "@r2-navigator-js/electron/common/sessions";
 import { getURLQueryParams } from "@r2-navigator-js/electron/renderer/common/querystring";
 import {
-    LocatorExtended, TTSStateEnum, getCurrentReadingLocation, handleLinkLocator, handleLinkUrl,
-    highlightsClickListen, highlightsCreate, highlightsRemove, installNavigatorDOM,
-    isLocatorVisible, navLeftOrRight, readiumCssUpdate, reloadContent, setEpubReadingSystemInfo,
-    setKeyDownEventHandler, setReadingLocationSaver, ttsClickEnable, ttsListen, ttsNext, ttsPause,
-    ttsPlay, ttsPlaybackRate, ttsPrevious, ttsResume, ttsStop,
+    LocatorExtended, MediaOverlaysStateEnum, TTSStateEnum, getCurrentReadingLocation,
+    handleLinkLocator, handleLinkUrl, highlightsClickListen, highlightsCreate, highlightsRemove,
+    installNavigatorDOM, isLocatorVisible, mediaOverlaysClickEnable,
+    mediaOverlaysEnableSkippability, mediaOverlaysListen, mediaOverlaysNext, mediaOverlaysPause,
+    mediaOverlaysPlay, mediaOverlaysPlaybackRate, mediaOverlaysPrevious, mediaOverlaysResume,
+    mediaOverlaysStop, navLeftOrRight, publicationHasMediaOverlays, readiumCssUpdate, reloadContent,
+    setEpubReadingSystemInfo, setKeyDownEventHandler, setReadingLocationSaver, ttsClickEnable,
+    ttsListen, ttsNext, ttsPause, ttsPlay, ttsPlaybackRate, ttsPrevious, ttsResume, ttsStop,
 } from "@r2-navigator-js/electron/renderer/index";
 import { initGlobalConverters_OPDS } from "@r2-opds-js/opds/init-globals";
 import {
@@ -2920,11 +2923,24 @@ function startNavigatorExperiment() {
         //     new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonBookmarkHighlightTOGGLE);
         // (buttonBookmarkHighlightTOGGLE as any).mdcButton = mdcButtonBookmarkHighlightTOGGLE;
 
+        const moSkipCheckBox = document.getElementById("moSkipCheckBox") as HTMLInputElement;
+        const moSkipCheckBoxLabel = document.getElementById("moSkipCheckBoxLabel") as HTMLElement;
+        moSkipCheckBox.checked = true;
+        moSkipCheckBox.addEventListener("change", () => {
+            mediaOverlaysEnableSkippability(moSkipCheckBox.checked);
+        });
+
         const selectttsRATE = document.getElementById("ttsPlaybackRate") as HTMLSelectElement;
         selectttsRATE.addEventListener("change", () => {
-            const speed = parseFloat(selectttsRATE.value);
-            ttsPlaybackRate(speed);
+            if (_publication && publicationHasMediaOverlays(_publication)) {
+                const speed = parseFloat(selectmoRATE.value);
+                mediaOverlaysPlaybackRate(speed);
+            } else {
+                const speed = parseFloat(selectttsRATE.value);
+                ttsPlaybackRate(speed);
+            }
         });
+        const selectmoRATE = selectttsRATE;
 
         const buttonttsPLAYPAUSE = document.getElementById("ttsPLAYPAUSE") as HTMLElement;
         buttonttsPLAYPAUSE.addEventListener("MDCIconButtonToggle:change", (event) => {
@@ -2932,16 +2948,31 @@ function startNavigatorExperiment() {
             // console.log((event as any).detail.isOn);
 
             if ((event as any).detail.isOn) {
-                if (_ttsState === TTSStateEnum.PAUSED) {
-                    ttsResume();
+                if (_publication && publicationHasMediaOverlays(_publication)) {
+                    if (_moState === MediaOverlaysStateEnum.PAUSED) {
+                        mediaOverlaysResume();
+                    } else {
+                        const speed = parseFloat(selectmoRATE.value);
+                        mediaOverlaysPlay(speed);
+                    }
                 } else {
-                    const speed = parseFloat(selectttsRATE.value);
-                    ttsPlay(speed);
+                    if (_ttsState === TTSStateEnum.PAUSED) {
+                        ttsResume();
+                    } else {
+                        const speed = parseFloat(selectttsRATE.value);
+                        ttsPlay(speed);
+                    }
                 }
             } else {
-                ttsPause();
+                if (_publication && publicationHasMediaOverlays(_publication)) {
+                    mediaOverlaysPause();
+                } else {
+                    ttsPause();
+                }
             }
         });
+        const buttonmoPLAYPAUSE = buttonttsPLAYPAUSE;
+
         const mdcButtonttsPLAYPAUSE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonttsPLAYPAUSE);
         (buttonttsPLAYPAUSE as any).mdcButton = mdcButtonttsPLAYPAUSE;
         // console.log("(buttonttsPLAYPAUSE as any).mdcButton.on");
@@ -2957,20 +2988,35 @@ function startNavigatorExperiment() {
         // });
         const buttonttsSTOP = document.getElementById("ttsSTOP") as HTMLElement;
         buttonttsSTOP.addEventListener("click", (_event) => {
-            ttsStop();
+            if (_publication && publicationHasMediaOverlays(_publication)) {
+                mediaOverlaysStop();
+            } else {
+                ttsStop();
+            }
         });
+        const buttonmoSTOP = buttonttsSTOP;
         // const buttonttsRESUME = document.getElementById("ttsRESUME") as HTMLElement;
         // buttonttsRESUME.addEventListener("click", (_event) => {
         //     ttsResume();
         // });
         const buttonttsNEXT = document.getElementById("ttsNEXT") as HTMLElement;
         buttonttsNEXT.addEventListener("click", (_event) => {
-            ttsNext();
+            if (_publication && publicationHasMediaOverlays(_publication)) {
+                mediaOverlaysNext();
+            } else {
+                ttsNext();
+            }
         });
+        const buttonmoNEXT = buttonttsNEXT;
         const buttonttsPREVIOUS = document.getElementById("ttsPREVIOUS") as HTMLElement;
         buttonttsPREVIOUS.addEventListener("click", (_event) => {
-            ttsPrevious();
+            if (_publication && publicationHasMediaOverlays(_publication)) {
+                mediaOverlaysPrevious();
+            } else {
+                ttsPrevious();
+            }
         });
+        const buttonmoPREVIOUS = buttonttsPREVIOUS;
 
         // const buttonttsENABLE = document.getElementById("ttsENABLE") as HTMLElement;
         // buttonttsENABLE.addEventListener("click", (_event) => {
@@ -2984,13 +3030,20 @@ function startNavigatorExperiment() {
 
         const buttonttsTOGGLE = document.getElementById("ttsTOGGLE") as HTMLElement;
         buttonttsTOGGLE.addEventListener("MDCIconButtonToggle:change", (_event) => {
-            ttsEnableToggle();
+            if (_publication && publicationHasMediaOverlays(_publication)) {
+                moEnableToggle();
+            } else {
+                ttsEnableToggle();
+            }
         });
         const mdcButtonttsTOGGLE = new (window as any).mdc.iconButton.MDCIconButtonToggle(buttonttsTOGGLE);
         (buttonttsTOGGLE as any).mdcButton = mdcButtonttsTOGGLE;
 
         let _ttsState: TTSStateEnum | undefined;
         refreshTtsUiState();
+
+        let _moState: MediaOverlaysStateEnum | undefined;
+        refreshMoUiState();
 
         ttsListen((ttsState: TTSStateEnum) => {
             if (!_ttsEnabled) {
@@ -2999,8 +3052,18 @@ function startNavigatorExperiment() {
             _ttsState = ttsState;
             refreshTtsUiState();
         });
+        mediaOverlaysListen((mediaOverlaysState: MediaOverlaysStateEnum) => {
+            if (!_moEnabled) {
+                // moEnableToggle();
+                return;
+            }
+            _moState = mediaOverlaysState;
+            refreshMoUiState();
+        });
 
         function refreshTtsUiState() {
+            moSkipCheckBox.style.display = "none";
+            moSkipCheckBoxLabel.style.display = "none";
             if (_ttsState === TTSStateEnum.PAUSED) {
                 // console.log("refreshTtsUiState _ttsState === TTSStateEnum.PAUSED");
                 // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
@@ -3051,6 +3114,65 @@ function startNavigatorExperiment() {
                 selectttsRATE.style.display = "none";
             }
         }
+        function refreshMoUiState() {
+            if (_moState === MediaOverlaysStateEnum.PAUSED) {
+                // console.log("refreshMoUiState _moState === MediaOverlaysStateEnum.PAUSED");
+                // console.log((buttonmoPLAYPAUSE as any).mdcButton.on);
+                (buttonmoPLAYPAUSE as any).mdcButton.on = false;
+                // buttonmoPLAY.style.display = "none";
+                // buttonmoRESUME.style.display = "inline-block";
+                // buttonmoPAUSE.style.display = "none";
+                buttonmoPLAYPAUSE.style.display = "inline-block";
+                buttonmoSTOP.style.display = "inline-block";
+                buttonmoPREVIOUS.style.display = "inline-block";
+                buttonmoNEXT.style.display = "inline-block";
+                selectmoRATE.style.display = "inline-block";
+                moSkipCheckBox.style.display = "inline-block";
+                moSkipCheckBoxLabel.style.display = "inline-block";
+            } else if (_moState === MediaOverlaysStateEnum.STOPPED) {
+                // console.log("refreshMoUiState _moState === MediaOverlaysStateEnum.STOPPED");
+                // console.log((buttonmoPLAYPAUSE as any).mdcButton.on);
+                (buttonmoPLAYPAUSE as any).mdcButton.on = false;
+                // buttonmoPLAY.style.display = "inline-block";
+                // buttonmoRESUME.style.display = "none";
+                // buttonmoPAUSE.style.display = "none";
+                buttonmoPLAYPAUSE.style.display = "inline-block";
+                buttonmoSTOP.style.display = "none";
+                buttonmoPREVIOUS.style.display = "none";
+                buttonmoNEXT.style.display = "none";
+                selectmoRATE.style.display = "none";
+                moSkipCheckBox.style.display = "none";
+                moSkipCheckBoxLabel.style.display = "none";
+            } else if (_moState === MediaOverlaysStateEnum.PLAYING) {
+                // console.log("refreshMoUiState _moState === MediaOverlaysStateEnum.PLAYING");
+                // console.log((buttonmoPLAYPAUSE as any).mdcButton.on);
+                (buttonmoPLAYPAUSE as any).mdcButton.on = true;
+                // buttonmoPLAY.style.display = "none";
+                // buttonmoRESUME.style.display = "none";
+                // buttonmoPAUSE.style.display = "inline-block";
+                buttonmoPLAYPAUSE.style.display = "inline-block";
+                buttonmoSTOP.style.display = "inline-block";
+                buttonmoPREVIOUS.style.display = "inline-block";
+                buttonmoNEXT.style.display = "inline-block";
+                selectmoRATE.style.display = "inline-block";
+                moSkipCheckBox.style.display = "inline-block";
+                moSkipCheckBoxLabel.style.display = "inline-block";
+            } else {
+                // console.log("refreshMoUiState _moState === undefined");
+                // console.log((buttonmoPLAYPAUSE as any).mdcButton.on);
+                (buttonmoPLAYPAUSE as any).mdcButton.on = false;
+                // buttonmoPLAY.style.display = "none";
+                // buttonmoRESUME.style.display = "none";
+                // buttonmoPAUSE.style.display = "none";
+                buttonmoPLAYPAUSE.style.display = "none";
+                buttonmoSTOP.style.display = "none";
+                buttonmoPREVIOUS.style.display = "none";
+                buttonmoNEXT.style.display = "none";
+                selectmoRATE.style.display = "none";
+                moSkipCheckBox.style.display = "none";
+                moSkipCheckBoxLabel.style.display = "none";
+            }
+        }
 
         // buttonttsDISABLE.style.display = "none";
         let _ttsEnabled = false;
@@ -3071,6 +3193,26 @@ function startNavigatorExperiment() {
                 _ttsState = TTSStateEnum.STOPPED;
                 refreshTtsUiState();
                 ttsStop();
+            }
+        }
+        let _moEnabled = false;
+        function moEnableToggle() {
+            if (_moEnabled) {
+                // buttonmoENABLE.style.display = "inline-block";
+                // buttonmoDISABLE.style.display = "none";
+                mediaOverlaysClickEnable(false);
+                _moEnabled = false;
+                _moState = undefined;
+                refreshMoUiState();
+                mediaOverlaysStop();
+            } else {
+                // buttonmoENABLE.style.display = "none";
+                // buttonmoDISABLE.style.display = "inline-block";
+                mediaOverlaysClickEnable(true);
+                _moEnabled = true;
+                _moState = MediaOverlaysStateEnum.STOPPED;
+                refreshMoUiState();
+                mediaOverlaysStop();
             }
         }
 
