@@ -893,23 +893,30 @@ const saveReadingLocation = async (location: LocatorExtended) => {
     }
 
     if (hrefHasChanged) {
-        const highlightsToCreate: IHighlightDefinition[] = [];
-        _highlights.forEach((highlightData) => {
-            if (highlightData.locator.href === location.locator.href) {
-                const h = {
-                    color: highlightData.highlight.color,
-                    id: highlightData.highlight.id,
-                    selectionInfo: highlightData.highlight.selectionInfo,
-                } as IHighlightDefinition;
-                highlightsToCreate.push(h);
+        async function initCreateHighlights(href: string) {
+            const highlightsToCreate: IHighlightDefinition[] = [];
+            _highlights.forEach((highlightData) => {
+                if (highlightData.locator.href === href) {
+                    const h = {
+                        color: highlightData.highlight.color,
+                        id: highlightData.highlight.id,
+                        selectionInfo: highlightData.highlight.selectionInfo,
+                    } as IHighlightDefinition;
+                    highlightsToCreate.push(h);
+                }
+            });
+            if (highlightsToCreate.length) {
+                try {
+                    await highlightsCreate(href, highlightsToCreate);
+                } catch (err) {
+                    console.log(err);
+                }
             }
-        });
-        if (highlightsToCreate.length) {
-            try {
-                await highlightsCreate(location.locator.href, highlightsToCreate);
-            } catch (err) {
-                console.log(err);
-            }
+        }
+
+        await initCreateHighlights(location.locator.href);
+        if (location.secondWebViewHref) {
+            await initCreateHighlights(location.secondWebViewHref);
         }
     }
 
@@ -3531,6 +3538,7 @@ function startNavigatorExperiment() {
                 epubPage: undefined,
                 locator: location,
                 paginationInfo: undefined,
+                secondWebViewHref: undefined,
                 selectionInfo: undefined,
                 selectionIsNew: undefined,
             } : undefined;
