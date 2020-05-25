@@ -26,11 +26,12 @@ import {
     LocatorExtended, MediaOverlaysStateEnum, TTSStateEnum, getCurrentReadingLocation,
     handleLinkLocator, handleLinkUrl, highlightsClickListen, highlightsCreate, highlightsRemove,
     installNavigatorDOM, isLocatorVisible, mediaOverlaysClickEnable,
-    mediaOverlaysEnableSkippability, mediaOverlaysListen, mediaOverlaysNext, mediaOverlaysPause,
-    mediaOverlaysPlay, mediaOverlaysPlaybackRate, mediaOverlaysPrevious, mediaOverlaysResume,
-    mediaOverlaysStop, navLeftOrRight, publicationHasMediaOverlays, readiumCssUpdate, reloadContent,
-    setEpubReadingSystemInfo, setKeyDownEventHandler, setReadingLocationSaver, ttsClickEnable,
-    ttsListen, ttsNext, ttsPause, ttsPlay, ttsPlaybackRate, ttsPrevious, ttsResume, ttsStop,
+    mediaOverlaysEnableCaptionsMode, mediaOverlaysEnableSkippability, mediaOverlaysListen,
+    mediaOverlaysNext, mediaOverlaysPause, mediaOverlaysPlay, mediaOverlaysPlaybackRate,
+    mediaOverlaysPrevious, mediaOverlaysResume, mediaOverlaysStop, navLeftOrRight,
+    publicationHasMediaOverlays, readiumCssUpdate, reloadContent, setEpubReadingSystemInfo,
+    setKeyDownEventHandler, setReadingLocationSaver, ttsClickEnable, ttsListen, ttsNext, ttsPause,
+    ttsPlay, ttsPlaybackRate, ttsPrevious, ttsResume, ttsStop,
 } from "@r2-navigator-js/electron/renderer/index";
 import { initGlobalConverters_OPDS } from "@r2-opds-js/opds/init-globals";
 import {
@@ -845,6 +846,7 @@ electronStore.onChanged("highlights", (newValue: any, oldValue: any) => {
     refreshHighlightsMenu();
 });
 
+let _currentHighlightDrawType = 2;
 let _lastSavedReadingLocationHref: string | undefined;
 const saveReadingLocation = async (location: LocatorExtended) => {
     const hrefHasChanged = _lastSavedReadingLocationHref !== location.locator.href;
@@ -871,9 +873,22 @@ const saveReadingLocation = async (location: LocatorExtended) => {
 
     let highlightsStoreWasRefreshed = false;
 
+    if (_currentHighlightDrawType === 0) {
+        _currentHighlightDrawType = 1;
+    } else if (_currentHighlightDrawType === 1) {
+        _currentHighlightDrawType = 2;
+    } else if (_currentHighlightDrawType === 2) {
+        _currentHighlightDrawType = 0;
+    } else {
+        _currentHighlightDrawType = 0;
+    }
+
     const selectionInfo = location.selectionInfo;
     if (selectionInfo && location.selectionIsNew) {
-        const highlightToCreate = { selectionInfo } as IHighlightDefinition;
+        const highlightToCreate = {
+            drawType: _currentHighlightDrawType,
+            selectionInfo,
+        } as IHighlightDefinition;
         let createdHighlights: Array<IHighlight | null> | undefined;
         try {
             createdHighlights = await highlightsCreate(location.locator.href, [highlightToCreate]);
@@ -899,6 +914,7 @@ const saveReadingLocation = async (location: LocatorExtended) => {
                 if (highlightData.locator.href === href) {
                     const h = {
                         color: highlightData.highlight.color,
+                        drawType: highlightData.highlight.drawType,
                         id: highlightData.highlight.id,
                         selectionInfo: highlightData.highlight.selectionInfo,
                     } as IHighlightDefinition;
@@ -2936,6 +2952,12 @@ function startNavigatorExperiment() {
         moSkipCheckBox.addEventListener("change", () => {
             mediaOverlaysEnableSkippability(moSkipCheckBox.checked);
         });
+        const moCaptionCheckBox = document.getElementById("moCaptionCheckBox") as HTMLInputElement;
+        const moCaptionCheckBoxLabel = document.getElementById("moCaptionCheckBoxLabel") as HTMLElement;
+        moCaptionCheckBox.checked = false;
+        moCaptionCheckBox.addEventListener("change", () => {
+            mediaOverlaysEnableCaptionsMode(moCaptionCheckBox.checked);
+        });
 
         const selectttsRATE = document.getElementById("ttsPlaybackRate") as HTMLSelectElement;
         selectttsRATE.addEventListener("change", () => {
@@ -3071,6 +3093,10 @@ function startNavigatorExperiment() {
         function refreshTtsUiState() {
             moSkipCheckBox.style.display = "none";
             moSkipCheckBoxLabel.style.display = "none";
+
+            moCaptionCheckBox.style.display = "none";
+            moCaptionCheckBoxLabel.style.display = "none";
+
             if (_ttsState === TTSStateEnum.PAUSED) {
                 // console.log("refreshTtsUiState _ttsState === TTSStateEnum.PAUSED");
                 // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
@@ -3136,6 +3162,8 @@ function startNavigatorExperiment() {
                 selectmoRATE.style.display = "inline-block";
                 moSkipCheckBox.style.display = "inline-block";
                 moSkipCheckBoxLabel.style.display = "inline-block";
+                moCaptionCheckBox.style.display = "inline-block";
+                moCaptionCheckBoxLabel.style.display = "inline-block";
             } else if (_moState === MediaOverlaysStateEnum.STOPPED) {
                 // console.log("refreshMoUiState _moState === MediaOverlaysStateEnum.STOPPED");
                 // console.log((buttonmoPLAYPAUSE as any).mdcButton.on);
@@ -3150,6 +3178,8 @@ function startNavigatorExperiment() {
                 selectmoRATE.style.display = "none";
                 moSkipCheckBox.style.display = "none";
                 moSkipCheckBoxLabel.style.display = "none";
+                moCaptionCheckBox.style.display = "none";
+                moCaptionCheckBoxLabel.style.display = "none";
             } else if (_moState === MediaOverlaysStateEnum.PLAYING) {
                 // console.log("refreshMoUiState _moState === MediaOverlaysStateEnum.PLAYING");
                 // console.log((buttonmoPLAYPAUSE as any).mdcButton.on);
@@ -3164,6 +3194,8 @@ function startNavigatorExperiment() {
                 selectmoRATE.style.display = "inline-block";
                 moSkipCheckBox.style.display = "inline-block";
                 moSkipCheckBoxLabel.style.display = "inline-block";
+                moCaptionCheckBox.style.display = "inline-block";
+                moCaptionCheckBoxLabel.style.display = "inline-block";
             } else {
                 // console.log("refreshMoUiState _moState === undefined");
                 // console.log((buttonmoPLAYPAUSE as any).mdcButton.on);
@@ -3178,6 +3210,8 @@ function startNavigatorExperiment() {
                 selectmoRATE.style.display = "none";
                 moSkipCheckBox.style.display = "none";
                 moSkipCheckBoxLabel.style.display = "none";
+                moCaptionCheckBox.style.display = "none";
+                moCaptionCheckBoxLabel.style.display = "none";
             }
         }
 
