@@ -30,8 +30,8 @@ import {
     mediaOverlaysNext, mediaOverlaysPause, mediaOverlaysPlay, mediaOverlaysPlaybackRate,
     mediaOverlaysPrevious, mediaOverlaysResume, mediaOverlaysStop, navLeftOrRight,
     publicationHasMediaOverlays, readiumCssUpdate, reloadContent, setEpubReadingSystemInfo,
-    setKeyDownEventHandler, setReadingLocationSaver, ttsClickEnable, ttsListen, ttsNext, ttsPause,
-    ttsPlay, ttsPlaybackRate, ttsPrevious, ttsResume, ttsStop,
+    setKeyDownEventHandler, setReadingLocationSaver, ttsClickEnable, ttsListen, ttsNext,
+    ttsOverlayEnable, ttsPause, ttsPlay, ttsPlaybackRate, ttsPrevious, ttsResume, ttsStop,
 } from "@r2-navigator-js/electron/renderer/index";
 import { initGlobalConverters_OPDS } from "@r2-opds-js/opds/init-globals";
 import {
@@ -2958,7 +2958,6 @@ function startNavigatorExperiment() {
         moCaptionCheckBox.addEventListener("change", () => {
             mediaOverlaysEnableCaptionsMode(moCaptionCheckBox.checked);
         });
-
         const selectttsRATE = document.getElementById("ttsPlaybackRate") as HTMLSelectElement;
         selectttsRATE.addEventListener("change", () => {
             if (_publication && publicationHasMediaOverlays(_publication)) {
@@ -2970,6 +2969,26 @@ function startNavigatorExperiment() {
             }
         });
         const selectmoRATE = selectttsRATE;
+
+        const ttsOverlayCheckBox = document.getElementById("ttsOverlayCheckBox") as HTMLInputElement;
+        const ttsOverlayCheckBoxLabel = document.getElementById("ttsOverlayCheckBoxLabel") as HTMLElement;
+        ttsOverlayCheckBox.checked = false;
+        ttsOverlayCheckBox.addEventListener("change", () => {
+            let wasStopped = false;
+            if (_ttsState !== TTSStateEnum.STOPPED) {
+                wasStopped = true;
+                ttsStop();
+            }
+
+            ttsOverlayEnable(ttsOverlayCheckBox.checked);
+
+            if (wasStopped) {
+                setTimeout(() => {
+                    const speed = parseFloat(selectttsRATE.value);
+                    ttsPlay(speed);
+                }, 500);
+            }
+        });
 
         const buttonttsPLAYPAUSE = document.getElementById("ttsPLAYPAUSE") as HTMLElement;
         buttonttsPLAYPAUSE.addEventListener("MDCIconButtonToggle:change", (event) => {
@@ -3097,6 +3116,9 @@ function startNavigatorExperiment() {
             moCaptionCheckBox.style.display = "none";
             moCaptionCheckBoxLabel.style.display = "none";
 
+            ttsOverlayCheckBox.style.display = "inline-block";
+            ttsOverlayCheckBoxLabel.style.display = "inline-block";
+
             if (_ttsState === TTSStateEnum.PAUSED) {
                 // console.log("refreshTtsUiState _ttsState === TTSStateEnum.PAUSED");
                 // console.log((buttonttsPLAYPAUSE as any).mdcButton.on);
@@ -3148,6 +3170,9 @@ function startNavigatorExperiment() {
             }
         }
         function refreshMoUiState() {
+            ttsOverlayCheckBox.style.display = "none";
+            ttsOverlayCheckBoxLabel.style.display = "none";
+
             if (_moState === MediaOverlaysStateEnum.PAUSED) {
                 // console.log("refreshMoUiState _moState === MediaOverlaysStateEnum.PAUSED");
                 // console.log((buttonmoPLAYPAUSE as any).mdcButton.on);
