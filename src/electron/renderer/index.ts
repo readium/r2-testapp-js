@@ -907,29 +907,29 @@ const saveReadingLocation = async (location: LocatorExtended) => {
         }
     }
 
-    if (hrefHasChanged) {
-        async function initCreateHighlights(href: string) {
-            const highlightsToCreate: IHighlightDefinition[] = [];
-            _highlights.forEach((highlightData) => {
-                if (highlightData.locator.href === href) {
-                    const h = {
-                        color: highlightData.highlight.color,
-                        drawType: highlightData.highlight.drawType,
-                        id: highlightData.highlight.id,
-                        selectionInfo: highlightData.highlight.selectionInfo,
-                    } as IHighlightDefinition;
-                    highlightsToCreate.push(h);
-                }
-            });
-            if (highlightsToCreate.length) {
-                try {
-                    await highlightsCreate(href, highlightsToCreate);
-                } catch (err) {
-                    console.log(err);
-                }
+    async function initCreateHighlights(href: string) {
+        const highlightsToCreate: IHighlightDefinition[] = [];
+        _highlights.forEach((highlightData) => {
+            if (highlightData.locator.href === href) {
+                const h = {
+                    color: highlightData.highlight.color,
+                    drawType: highlightData.highlight.drawType,
+                    id: highlightData.highlight.id,
+                    selectionInfo: highlightData.highlight.selectionInfo,
+                } as IHighlightDefinition;
+                highlightsToCreate.push(h);
+            }
+        });
+        if (highlightsToCreate.length) {
+            try {
+                await highlightsCreate(href, highlightsToCreate);
+            } catch (err) {
+                console.log(err);
             }
         }
+    }
 
+    if (hrefHasChanged) {
         await initCreateHighlights(location.locator.href);
         if (location.secondWebViewHref) {
             await initCreateHighlights(location.secondWebViewHref);

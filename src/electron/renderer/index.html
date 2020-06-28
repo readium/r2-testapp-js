@@ -52,31 +52,72 @@
         <!-- <input type="hidden" name="enhanced-select"> -->
         <div class="mdc-select__anchor">
           <span class="mdc-select__ripple"></span>
-          <input type="text" disabled readonly class="mdc-select__selected-text" value="Table of contents">
-          <i class="mdc-select__dropdown-icon"></i>
+          <span class="mdc-select__selected-text"></span>
+          <span class="mdc-select__dropdown-icon">
+            <svg
+                class="mdc-select__dropdown-icon-graphic"
+                viewBox="7 10 10 5">
+              <polygon
+                  class="mdc-select__dropdown-icon-inactive"
+                  stroke="none"
+                  fill-rule="evenodd"
+                  points="7 10 12 15 17 10">
+              </polygon>
+              <polygon
+                  class="mdc-select__dropdown-icon-active"
+                  stroke="none"
+                  fill-rule="evenodd"
+                  points="7 15 12 10 17 15">
+              </polygon>
+            </svg>
+          </span>
           <span class="mdc-floating-label">Main menu</span>
           <span class="mdc-line-ripple"></span>
         </div>
         <div id="nav-select-menu" class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
           <ul class="mdc-list">
             <li aria-selected id="selectTOC" role="option" tabindex="0" class="mdc-list-item mdc-list-item--selected"
-              data-value="Table of contents">Table of contents</li>
+              data-value="Table of contents">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Table of contents</span>
+            </li>
 
-            <li id="selectLandmarks" role="option" tabindex="0" class="mdc-list-item" data-value="Landmarks">Landmarks</li>
+            <li id="selectLandmarks" role="option" tabindex="0" class="mdc-list-item" data-value="Landmarks">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Landmarks</span>
+            </li>
 
-            <li id="selectPageList" role="option" tabindex="0" class="mdc-list-item" data-value="Page list">Page list</li>
+            <li id="selectPageList" role="option" tabindex="0" class="mdc-list-item" data-value="Page list">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Page list</span>
+            </li>
 
-            <li id="selectSpine" role="option" tabindex="0" class="mdc-list-item" data-value="Spine / reading order">Spine / reading order</li>
+            <li id="selectSpine" role="option" tabindex="0" class="mdc-list-item" data-value="Spine / reading order">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Spine / reading order</span>
+            </li>
 
-            <li id="selectBookmarks" role="option" tabindex="0" class="mdc-list-item" data-value="Bookmarks">Bookmarks</li>
+            <li id="selectBookmarks" role="option" tabindex="0" class="mdc-list-item" data-value="Bookmarks">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Bookmarks</span>
+            </li>
 
-            <li id="selectHighlights" role="option" tabindex="0" class="mdc-list-item" data-value="Highlights">Highlights</li>
+            <li id="selectHighlights" role="option" tabindex="0" class="mdc-list-item" data-value="Highlights">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Highlights</span>
+            </li>
 
             <li role="presentation" tabindex="-1" class="mdc-list-divider mdc-list-divider--padded" disabled> </li>
 
-            <li id="selectStyles" role="option" tabindex="0" class="mdc-list-item" data-value="Styling">Styling</li>
+            <li id="selectStyles" role="option" tabindex="0" class="mdc-list-item" data-value="Styling">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Styling</span>
+            </li>
 
-            <li id="selectAdvanced" role="option" tabindex="0" class="mdc-list-item" data-value="Dev tools">Dev tools</li>
+            <li id="selectAdvanced" role="option" tabindex="0" class="mdc-list-item" data-value="Dev tools">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Dev tools</span>
+            </li>
           </ul>
         </div>
 
