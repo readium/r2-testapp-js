@@ -18,6 +18,7 @@ import { IHighlight, IHighlightDefinition } from "@r2-navigator-js/electron/comm
 import {
     IReadiumCSS, readiumCSSDefaults,
 } from "@r2-navigator-js/electron/common/readium-css-settings";
+import { IRangeInfo } from "@r2-navigator-js/electron/common/selection";
 import {
     READIUM2_ELECTRON_HTTP_PROTOCOL, convertCustomSchemeToHttpUrl,
 } from "@r2-navigator-js/electron/common/sessions";
@@ -41,6 +42,7 @@ import { Locator } from "@r2-shared-js/models/locator";
 import { IStringMap } from "@r2-shared-js/models/metadata-multilang";
 import { Publication } from "@r2-shared-js/models/publication";
 import { Link } from "@r2-shared-js/models/publication-link";
+import { encodeURIComponent_RFC3986 } from "@r2-utils-js/_utils/http/UrlUtils";
 
 import {
     IEventPayload_R2_EVENT_LCP_LSD_RENEW, IEventPayload_R2_EVENT_LCP_LSD_RENEW_RES,
@@ -790,9 +792,19 @@ function refreshHighlightsMenu() {
             highlightsListGroups.push(listgroup);
         }
         if (highlight.locator.locations.cssSelector) {
+            let rangeInfoSerialized: string | undefined;
+            if (highlight.highlight?.selectionInfo?.rangeInfo) {
+                rangeInfoSerialized =
+                    encodeURIComponent_RFC3986(
+                    Buffer.from(
+                        JSON.stringify(highlight.highlight.selectionInfo.rangeInfo, null, ""),
+                    ).toString("base64"),
+                    )
+                    ;
+            }
             const textTrim = highlight.highlight.selectionInfo.cleanText.substr(0, 50);
             const link: IRiotOptsLinkListItem = {
-                href: `${highlight.locator.href}#${R2_LOC_CSSSELECTOR}(${highlight.locator.locations.cssSelector})`,
+                href: `${highlight.locator.href}#${R2_LOC_CSSSELECTOR}(${highlight.locator.locations.cssSelector})(${rangeInfoSerialized ? rangeInfoSerialized : ""})`,
 
                 title: (typeof highlight.locator.locations.progression !== "undefined") ?
                     // tslint:disable-next-line:max-line-length
@@ -3306,16 +3318,29 @@ function startNavigatorExperiment() {
                 const fragToken = `#${R2_LOC_CSSSELECTOR}(`;
                 const i = href.indexOf(fragToken);
                 if (i > 0) {
+                    const iMark = href.indexOf(")(", i);
                     const j = i + fragToken.length;
-                    const cssSelector = decodeURIComponent(href.substr(j, href.length - j - 1));
+                    const cssSelector = decodeURIComponent(href.substr(j, iMark - j));
+                    // console.log(href, cssSelector);
+
+                    const b64 = decodeURIComponent(href.substr(iMark + 2, href.length - (iMark + 2) - 1));
+                    // console.log(b64);
+                    const rangeInfoStr = Buffer.from(b64, "base64").toString("utf8");
+                    // console.log(rangeInfoStr);
+                    const rangeInfo = JSON.parse(rangeInfoStr);
+                    // console.log(JSON.stringify(rangeInfo, null, 4));
+
                     href = href.substr(0, i);
+                    // console.log(href);
+
                     const locator = {
                         href,
                         locations: {
                             cssSelector,
                         },
                     };
-                    handleLinkLocator_(locator);
+
+                    handleLinkLocator_(locator, rangeInfo);
                 }
             },
             linksgroup: [] as IRiotOptsLinkListGroupItem[],
@@ -3661,15 +3686,15 @@ function handleLink_(href: string) {
     }
 }
 
-function handleLinkLocator_(locator: Locator) {
+function handleLinkLocator_(locator: Locator, rangeInfo?: IRangeInfo) {
     if (drawer.open) {
         drawer.open = false;
         setTimeout(() => {
             console.log("handleLinkLocator (timeout) from handleLinkLocator_");
-            handleLinkLocator(locator);
+            handleLinkLocator(locator, undefined, rangeInfo);
         }, 200);
     } else {
         console.log("handleLinkLocator from handleLinkLocator_");
-        handleLinkLocator(locator);
+        handleLinkLocator(locator, undefined, rangeInfo);
     }
 }
