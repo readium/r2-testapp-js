@@ -64,8 +64,8 @@ const DEBUG = false;
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 const owner_appveyor = "danielweck";
-const owner = "edrlab";
-const repo = "thorium-reader";
+const owner = "readium";
+const repo = "r2-testapp-js";
 const tag = process.env.TRAVIS_TAG;
 
 (async () => {
