@@ -66,8 +66,8 @@ jobs:
     #   if: ${{ github.event_name != 'pull_request' }}
     #   uses: actions/upload-artifact@v2
     #   with:
-    #     name: Thorium
-    #     path: ./release/*.exe
+    #     name: R2TestApp
+    #     path: ./electron-pack/*.exe
     # - name: Delete Release
     #   if: ${{ github.event_name != 'pull_request' }}
     #   uses: author/action-rollback@stable
@@ -90,8 +90,8 @@ jobs:
     #   uses: actions/upload-release-asset@v1
     #   with:
     #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #     asset_path: ./release/*.exe
-    #     asset_name: Thorium.exe
+    #     asset_path: ./electron-pack/*.exe
+    #     asset_name: r2-testapp-js.exe
     #     asset_content_type: application/octet-stream
     # - name: GitHub Script Release And Assets
     #   if: ${{ github.event_name != 'pull_request' }}
@@ -120,7 +120,7 @@ jobs:
     #       });
     #       */
 
-    #       for (let file of await fs.readdir('release')) {
+    #       for (let file of await fs.readdir('electron-pack')) {
     #         if (!file.endsWith('.exe') || !file.endsWith('.AppImage') || !file.endsWith('.msi') || !file.endsWith('.deb') || !file.endsWith('.dmg')) {
     #           continue;
     #         }
