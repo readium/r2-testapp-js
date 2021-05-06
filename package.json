@@ -91,7 +91,7 @@
     "electron-builder": "^22.7.0",
     "exorcist": "^1.0.1",
     "git-rev-sync": "^2.0.0",
-    "json": "^9.0.6",
+    "json": "^10.0.0",
     "mkdirp": "^1.0.4",
     "rimraf": "^3.0.2",
     "riot-typed": "github:danielweck/riot-typed#master",
