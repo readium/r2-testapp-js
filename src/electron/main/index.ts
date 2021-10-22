@@ -516,7 +516,7 @@ async function createElectronBrowserWindow(
                         // https://github.com/request/request-promise/issues/90
                         // const needsStreamingResponse = true;
                         if (needsStreamingResponse) {
-                            const promise = new Promise((resolve, reject) => {
+                            const promise = new Promise<void>((resolve, reject) => {
                                 request.get({
                                     headers: {},
                                     method: "GET",
@@ -597,7 +597,7 @@ async function createElectronBrowserWindow(
                 };
 
                 if (needsStreamingResponse) {
-                    const promise = new Promise((resolve, reject) => {
+                    const promise = new Promise<void>((resolve, reject) => {
                         request.get({
                             headers: {},
                             method: "GET",

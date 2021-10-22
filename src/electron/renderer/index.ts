@@ -2997,7 +2997,7 @@ function startNavigatorExperiment() {
             if (wasStopped) {
                 setTimeout(() => {
                     const speed = parseFloat(selectttsRATE.value);
-                    ttsPlay(speed);
+                    ttsPlay(speed, null);
                 }, 500);
             }
         });
@@ -3020,7 +3020,7 @@ function startNavigatorExperiment() {
                         ttsResume();
                     } else {
                         const speed = parseFloat(selectttsRATE.value);
-                        ttsPlay(speed);
+                        ttsPlay(speed, null);
                     }
                 }
             } else {

@@ -1,9 +1,7 @@
   'cson2json': '
-    sed -E "s/#ECMASCRIPT#/es5/g" package-scripts-bundle.cson > tmp-bundle.cson &&
     sed -E "s/#ECMASCRIPT#/es6-es2015/g" package-scripts-bundle.cson >> tmp-bundle.cson &&
     sed -E "s/#ECMASCRIPT#/es7-es2016/g" package-scripts-bundle.cson >> tmp-bundle.cson &&
     sed -E "s/#ECMASCRIPT#/es8-es2017/g" package-scripts-bundle.cson >> tmp-bundle.cson &&
-    sed -E "s/#ECMASCRIPT#/es5/g" package-scripts-build.cson > tmp-build.cson &&
     sed -E "s/#ECMASCRIPT#/es6-es2015/g" package-scripts-build.cson >> tmp-build.cson &&
     sed -E "s/#ECMASCRIPT#/es7-es2016/g" package-scripts-build.cson >> tmp-build.cson &&
     sed -E "s/#ECMASCRIPT#/es8-es2017/g" package-scripts-build.cson >> tmp-build.cson &&
@@ -14,7 +12,7 @@
   'postinstallxx': '
     npm rebuild
       --runtime=electron
-      --target=8.2.3
+      --target=15.3.0
       --disturl=https://atom.io/download/atom-shell
       --build-from-source
   '
@@ -103,14 +101,12 @@
   '
 
   'riot:all': '
-    npm run riot:es5 &&
     npm run riot:es6-es2015 &&
     npm run riot:es7-es2016 &&
     npm run riot:es8-es2017
   '
 
   'preelectron-renderer:all': '
-    npm run preelectron-renderer:es5 &&
     npm run preelectron-renderer:es6-es2015 &&
     npm run preelectron-renderer:es7-es2016 &&
     npm run preelectron-renderer:es8-es2017
@@ -300,7 +296,6 @@
   '
 
   'transpile:typescript:all': '
-    npm run transpile:typescript:es5 &&
     npm run transpile:typescript:es6-es2015 &&
     npm run transpile:typescript:es7-es2016 &&
     npm run transpile:typescript:es8-es2017
@@ -322,14 +317,12 @@
   '
 
   'bundle:all': '
-    npm run bundle:es5 &&
     npm run bundle:es6-es2015 &&
     npm run bundle:es7-es2016 &&
     npm run bundle:es8-es2017
   '
 
   'bundle:all_': '
-    npm run bundle:es5_ &&
     npm run bundle:es6-es2015_ &&
     npm run bundle:es7-es2016_ &&
     npm run bundle:es8-es2017_
